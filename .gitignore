@@ -1,36 +1,65 @@
-# Logs
-logs
+# ==========================================
+# GESTION DES DÉPENDANCES & RUNTIMES
+# ==========================================
+node_modules/
+.npm
+.eslintcache
+/backend/node_modules/
+/frontend/node_modules/
+
+# ==========================================
+# SECRETS & CONFIGURATION (CRITIQUE)
+# ==========================================
+# Ne jamais commiter les secrets !
+.env
+.env.local
+.env.*.local
+*.env
+# On autorise uniquement les exemples
+!.env.example
+
+# ==========================================
+# BUILDS & OUTPUTS
+# ==========================================
+/backend/dist/
+/frontend/dist/
+*.tsbuildinfo
+.parcel-cache
+.cache
+.vite
+
+# ==========================================
+# DOCKER
+# ==========================================
+.docker/
+# Si vous persistez des données DB localement
+/pgdata/
+
+# ==========================================
+# TESTS & QUALITÉ
+# ==========================================
+/coverage/
+/frontend/cypress/screenshots/
+/frontend/cypress/videos/
+.nyc_output
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
+# ==========================================
+# SYSTÈME & ÉDITEURS
+# ==========================================
 .DS_Store
-dist
-dist-ssr
-coverage
-*.local
-
-# Editor directories and files
-.vscode/*
+Thumbs.db
+.vscode/
 !.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.idea/
+*.swp
+*.bak
 
-*.tsbuildinfo
-
-.eslintcache
-
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-
-# Vitest
-__screenshots__/
+# ==========================================
+# TYPESCRIPT & TYPES
+# ==========================================
+# On ignore les fichiers générés mais on garde les définitions manuelles
+*.js.map
