@@ -178,6 +178,8 @@ npm run test       # tests unitaires & intégration
 
 ## 🗄️ Base de données
 
+### Schéma
+
 - Le schéma de la base est défini via dbdiagram.io
 - 👉 Lien du diagramme DB : [CLIQUER ICI](https://dbdiagram.io/d/gameDash-6950178f39fa3db27ba3cd58)
 - La DB est pensée pour :
@@ -186,6 +188,78 @@ npm run test       # tests unitaires & intégration
   - maps versionnées (diff Git-like)
   - économie
   - audit & modération
+
+#### Configuration Docker
+
+La base est définie dans le fichier suivant :
+
+- `docker/docker-compose.yml`
+- Le port interne PostgreSQL est 5432 (fixe)
+- Le port 5433 est exposé sur la machine hôte pour éviter les conflits locaux
+- Les données sont persistées via un volume Docker
+
+### ▶️ Commandes Docker
+
+- Démarrer la base de données :
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+- Arrêter et réinitialiser complètement la base (suppression des données) :
+
+```bash
+docker compose -f docker/docker-compose.yml down -v
+```
+
+### 🔁 Migrations de base de données (Knex)
+
+La gestion du schéma est assurée par Knex, qui permet de versionner et d’appliquer les évolutions de la base de données de manière contrôlée.
+
+**Configuration des variables d’environnement**
+
+Les paramètres de connexion sont définis dans :
+
+- backend/.env
+
+```env
+DB_HOST=localhost
+DB_PORT=5433
+DB_USER=gamedash
+DB_PASSWORD=gamedash
+DB_NAME=gamedash
+```
+
+### 🧬 Création d’une migration
+
+Depuis le dossier backend/ :
+
+```bash
+npx knex migrate:make create_maps --knexfile knexfile.cjs
+```
+
+Cette commande génère un nouveau fichier de migration dans :
+
+- backend/migrations/
+
+### ▶️ Exécution des migrations
+
+Appliquer les migrations :
+
+```bash
+npx knex migrate:latest --knexfile knexfile.cjs
+```
+
+Résultat attendu :
+
+```bash
+Batch 1 run: 1 migrations
+```
+
+Knex crée automatiquement les tables internes suivantes :
+
+- knex_migrations
+- knex_migrations_lock
 
 ---
 
