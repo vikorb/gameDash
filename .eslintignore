@@ -1,0 +1,3 @@
+knexfile.cjs
+backend/knexfile.cjs
+backend/migrations/**

@@ -1,4 +1,4 @@
-# GameDash (Vue.js)
+# GameDash
 
 ## 📌 Présentation du projet
 
@@ -14,16 +14,29 @@ Le projet est réalisé en **équipe de 3**, avec un fort accent sur :
 
 ## 🧱 Stack technique
 
+### Frontend
+
 - **Vue.js 3**
 - **Vite**
 - **TypeScript**
 - **Vue Router**
 - **Pinia**
+
+### Backend
+
+- **Node.js**
+- **Express**
+- **Knex**
+- **PostgreSQL**
+
+### Qualité & outillage
+
 - **npm**
 - **ESLint + Prettier**
 - **Vitest** (tests unitaires & intégration)
 - **Husky + commitlint + lint-staged**
 - **GitHub Actions (CI)**
+- **Docker & Docker Compose**
 
 ---
 
@@ -34,6 +47,7 @@ Le projet est réalisé en **équipe de 3**, avec un fort accent sur :
 - Node.js (version LTS recommandée)
 - npm
 - Git
+- Docker
 
 ### Installation
 
@@ -43,15 +57,31 @@ npm install
 
 ---
 
-## Lancer le projet en développement
+## ▶️ Lancement recommandé (stack complet)
+
+> ⚠️ **Mode recommandé pour la démo et le développement**
+
+````bash
+docker compose -f docker/docker-compose.yml up --build
+### Lancer le projet en développement
 
 ```bash
 npm run dev
-```
+````
 
----
+Cela lance automatiquement :
 
-## Scripts disponibles
+- PostgreSQL
+- le backend API
+- le frontend Vue
+
+Accès :
+
+- Frontend : http://localhost:5173
+- API : http://localhost:3000/health
+- DB : localhost:5433
+
+#### Scripts disponibles (lancement manuel)
 
 ```bash
 npm run dev        # serveur de dev
@@ -64,38 +94,95 @@ npm run test       # tests unitaires & intégration
 
 ---
 
-## 🧩 Organisation du projet
+## 🏗️ Architecture du projet
 
-### Arborescence générale
+Le projet **GameDash** est structuré sous la forme d’un **monorepo** avec une séparation claire entre le **frontend**, le **backend** et l’**infrastructure**.  
+Cette organisation permet une meilleure lisibilité, une montée en charge progressive et une intégration facilitée dans une CI/CD.
+
+---
+
+### 📁 Arborescence globale
+
+```txt
+gameDash/
+├─ src/                      # Frontend Vue.js
+│  ├─ assets/                # Styles, images, icônes
+│  ├─ components/            # Composants agnostiques réutilisables
+│  ├─ views/                 # Pages (1 dossier par vue)
+│  ├─ router/                # Configuration Vue Router
+│  ├─ stores/                # Stores Pinia
+│  ├─ services/              # Accès API (HTTP)
+│  ├─ types/                 # Types et interfaces TypeScript
+│  ├─ utils/                 # Fonctions utilitaires
+│  └─ main.ts                # Point d’entrée frontend
+│
+├─ backend/                  # Backend API (Node.js / Express)
+│  ├─ src/
+│  │  ├─ app.ts              # Point d’entrée API
+│  │  ├─ db.ts               # Connexion base de données (Knex)
+│  │  └─ routes/             # Routes API (ex: maps)
+│  │
+│  ├─ migrations/            # Migrations Knex (schéma DB)
+│  ├─ knexfile.cjs           # Configuration Knex (CLI)
+│  ├─ .env                   # Variables d’environnement backend
+│  └─ package.json           # Dépendances backend
+│
+├─ docker/
+│  └─ docker-compose.yml     # Orchestration DB / backend / frontend
+│
+├─ package.json              # Dépendances frontend
+├─ eslint.config.ts          # Configuration ESLint (frontend)
+├─ README.md                 # Documentation projet
+└─ .gitignore
+```
+
+### 🎨 Frontend (Vue.js)
+
+- Application Vue 3 avec Composition API
+- Build et dev server via Vite
+- Navigation gérée par Vue Router
+- État global via Pinia
+- Communication avec le backend via des services HTTP
+- Typage strict avec TypeScript
+- Tests unitaires et d’intégration avec Vitest
+  ➡️ Le frontend ne communique jamais directement avec la base de données.
+
+### ⚙️ Backend (API)
+
+- API Node.js / Express
+- Exposition d’endpoints REST (/maps, etc.)
+- Accès base de données via Knex
+- Schéma versionné par migrations
+- Migrations appliquées automatiquement au démarrage
+- Séparation claire entre :
+  - routes
+  - logique métier
+  - accès base de données
+    ➡️ Le backend est le seul point d’accès à la base de données.
+
+### 🐘 Base de données
+
+- PostgreSQL exécuté via Docker
+- Schéma global défini sur dbdiagram.io
+- Versionnage du schéma via Knex migrations
+- Données persistées via volumes Docker
+
+### 🐳 Docker & orchestration
+
+- Docker Compose orchestre :
+  - la base de données
+  - le backend
+  - le frontend
+- Une seule commande permet de démarrer l’ensemble du stack :
 
 ```bash
-.
-├── assets/
-│   ├── css/          # styles globaux
-│   ├── icons/        # icônes
-│   └── images/
-│
-├── src/
-│   ├── components/   # composants agnostiques et réutilisables
-│   ├── locales/
-│   │   ├── fr/
-│   │   └── en/
-│   ├── router/       # configuration des routes
-│   ├── stores/       # Pinia stores
-│   ├── types/        # types TypeScript / DTO
-│   ├── utils/        # helpers, fonctions utilitaires
-│   ├── views/        # pages (1 dossier = 1 page)
-│   │   └── Login/
-│   │       ├── LoginView.vue
-│   │       └── components/
-│   ├── App.vue
-│   └── main.ts
-│
-├── tests/            # structure miroir de src/
-├── .husky/
-├── .github/
-└── README.md
+docker compose up
 ```
+
+- Environnement reproductible pour :
+  - développement local
+  - démonstration
+  - CI
 
 ---
 
@@ -157,7 +244,7 @@ npm run test       # tests unitaires & intégration
 ## 🌍 Internationalisation
 
 - Toutes les chaînes affichées à l’utilisateur doivent passer par locales/
-- Aucune string “en dur” dans les composants
+- Aucun string “en dur” dans les composants
 - Langues supportées :
   - Français
   - Anglais
@@ -260,6 +347,16 @@ Knex crée automatiquement les tables internes suivantes :
 
 - knex_migrations
 - knex_migrations_lock
+
+### 🔌 API (extrait)
+
+Endpoints disponibles
+
+- GET /health → status API
+- GET /maps → liste des maps
+- POST /maps → création d’une map
+
+Le backend est l’unique point d’accès à la base.
 
 ---
 
