@@ -1,78 +1,29 @@
 <template>
   <div class="map-form">
-    <div class="header">
-      <h1 class="title">
-        {{ isEditMode ? t('mapForm.title_edit') : t('mapForm.title_create') }}
-      </h1>
-
-      <BaseButton
-        to="/maps"
-        variant="secondary"
-        :title="t('mapForm.actions.back_hover')"
-        :aria-label="t('mapForm.actions.back_aria')"
-      >
-        {{ t('mapForm.actions.back') }}
-      </BaseButton>
-    </div>
+    <MapFormHeader :is-edit="isEditMode" />
 
     <BaseCard class="form-card">
       <form class="form" @submit.prevent="onSubmit">
-        <div class="field">
-          <label class="label" for="title">{{ t('mapForm.fields.title.label') }}</label>
-          <input
-            id="title"
-            v-model="form.title"
-            class="input"
-            type="text"
-            :placeholder="t('mapForm.fields.title.placeholder')"
-            :title="t('mapForm.fields.title.hover')"
-            :aria-label="t('mapForm.fields.title.aria')"
-            :disabled="saving"
-            autocomplete="off"
-          />
-          <p v-if="errors.title" class="error">{{ errors.title }}</p>
-        </div>
-
-        <div class="field">
-          <label class="label" for="description">{{ t('mapForm.fields.description.label') }}</label>
-          <textarea
-            id="description"
-            v-model="form.description"
-            class="textarea"
-            :placeholder="t('mapForm.fields.description.placeholder')"
-            :title="t('mapForm.fields.description.hover')"
-            :aria-label="t('mapForm.fields.description.aria')"
-            :disabled="saving"
-            rows="6"
-          />
-        </div>
+        <MapFormFields
+          v-model:title="form.title"
+          v-model:description="form.description"
+          :errors="errors"
+          :saving="saving"
+        />
 
         <p v-if="submitError" class="submit-error">
           {{ submitError }}
         </p>
 
-        <div class="actions">
-          <BaseButton
-            variant="primary"
-            type="submit"
-            :title="submitHover"
-            :aria-label="submitAria"
-            :disabled="saving || !canSubmit"
-          >
-            {{ saving ? t('common.saving') : submitLabel }}
-          </BaseButton>
-
-          <BaseButton
-            v-if="!isEditMode"
-            variant="secondary"
-            :title="t('mapForm.actions.reset_hover')"
-            :aria-label="t('mapForm.actions.reset_aria')"
-            :disabled="saving"
-            @click="onReset"
-          >
-            {{ t('mapForm.actions.reset') }}
-          </BaseButton>
-        </div>
+        <MapFormActions
+          :is-edit="isEditMode"
+          :saving="saving"
+          :can-submit="canSubmit"
+          :submit-label="submitLabel"
+          :submit-hover="submitHover"
+          :submit-aria="submitAria"
+          @reset="onReset"
+        />
       </form>
     </BaseCard>
   </div>
@@ -84,10 +35,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 import BaseCard from '@/components/ui/BaseCard.vue';
-import BaseButton from '@/components/ui/BaseButton.vue';
 import { useMapStore } from '@/stores/mapStore';
 import { toApiError } from '@/utils/apiError';
 import type { GameMap } from '@/types/map';
+import MapFormFields from './maps/form/MapFormFields.vue';
+import MapFormActions from './maps/form/MapFormActions.vue';
+import MapFormHeader from './maps/form/MapFormHeader.vue';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -97,9 +50,8 @@ const mapStore = useMapStore();
 const saving = ref(false);
 const submitError = ref<string | null>(null);
 
-const idParam = computed(() => route.params.id);
 const mapId = computed<number | null>(() => {
-  const raw = idParam.value;
+  const raw = route.params.id;
   const n = typeof raw === 'string' ? Number(raw) : NaN;
   return Number.isFinite(n) ? n : null;
 });
@@ -169,10 +121,9 @@ async function loadIfEdit() {
   if (!isEditMode.value || mapId.value === null) return;
 
   const id = mapId.value;
-
-  const existingInStore = mapStore.maps.find((m) => m.id === id);
-  if (existingInStore) {
-    setFromMap(existingInStore);
+  const existing = mapStore.maps.find((m) => m.id === id);
+  if (existing) {
+    setFromMap(existing);
     return;
   }
 
@@ -186,7 +137,6 @@ async function loadIfEdit() {
 
 async function onSubmit() {
   submitError.value = null;
-
   if (!validate()) return;
 
   saving.value = true;
@@ -196,18 +146,11 @@ async function onSubmit() {
       description: form.description.trim(),
     };
 
-    if (isEditMode.value && mapId.value !== null) {
-      payload.id = mapId.value;
-    } else {
-      payload.creator_id = 1;
-    }
-
-    if (isEditMode.value && mapId.value !== null) {
-      payload.id = mapId.value;
-    }
+    // ✅ backend exige creator_id en création
+    if (!isEditMode.value) payload.creator_id = 1;
+    if (isEditMode.value && mapId.value !== null) payload.id = mapId.value;
 
     await mapStore.saveMap(payload);
-
     router.push('/maps');
   } catch (err) {
     const apiErr = toApiError(err, t('mapForm.errors.save_failed'));
@@ -231,13 +174,6 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-}
-
 .form-card {
   display: flex;
   flex-direction: column;
@@ -249,48 +185,9 @@ onMounted(() => {
   gap: var(--space-4);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.label {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.input,
-.textarea {
-  width: 100%;
-  border: var(--border-1);
-  border-radius: var(--radius-1);
-  padding: 10px 12px;
-  background: var(--color-bg);
-  color: var(--color-text);
-  outline: none;
-}
-
-.input:focus,
-.textarea:focus {
-  border-color: var(--color-primary);
-}
-
-.error {
-  color: var(--color-danger, #d14343);
-  font-weight: 600;
-  margin: 0;
-}
-
 .submit-error {
   color: var(--color-danger, #d14343);
   font-weight: 700;
   margin: 0;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
 }
 </style>
