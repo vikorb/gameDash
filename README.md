@@ -350,7 +350,7 @@ DB_NAME=gamedash
 
 ### 🧬 Création d’une migration
 
-Depuis le dossier backend/ :
+Depuis le dossier backend/src :
 
 ```bash
 npx knex migrate:make create_maps --knexfile knexfile.cjs
@@ -358,7 +358,7 @@ npx knex migrate:make create_maps --knexfile knexfile.cjs
 
 Cette commande génère un nouveau fichier de migration dans :
 
-- backend/migrations/
+- backend/src/migrations/
 
 ### ▶️ Exécution des migrations
 

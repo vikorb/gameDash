@@ -6,6 +6,7 @@ node_modules/
 .eslintcache
 /backend/node_modules/
 /frontend/node_modules/
+*package-lock.json
 
 # ==========================================
 # SECRETS & CONFIGURATION (CRITIQUE)
