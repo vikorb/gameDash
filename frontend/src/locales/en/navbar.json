@@ -1,0 +1,10 @@
+{
+  "nav": {
+    "home": "Home",
+    "maps": "Maps",
+    "lang": {
+        "fr": "FR",
+        "en": "EN"
+    }
+  }
+}

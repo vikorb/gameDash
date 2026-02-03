@@ -1,0 +1,21 @@
+{
+  "home": {
+    "hero": {
+      "title": "🎮 GameDash",
+      "subtitle": "Your control panel for maps."
+    },
+    "stats": {
+      "title": "Statistics",
+      "maps_created": "{count} map(s) created"
+    },
+    "quick_actions": {
+      "title": "Quick actions",
+      "create_map": "Create a map",
+      "create_map_hover": "Create a new map and start configuring it.",
+      "create_map_aria": "Create a new map",
+      "view_list": "View list",
+      "view_list_hover": "Browse all available maps and their details.",
+      "view_list_aria": "View the list of maps"
+    }
+  }
+}
