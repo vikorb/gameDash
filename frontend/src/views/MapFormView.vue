@@ -63,6 +63,7 @@
           </BaseButton>
 
           <BaseButton
+            v-if="!isEditMode"
             variant="secondary"
             :title="t('mapForm.actions.reset_hover')"
             :aria-label="t('mapForm.actions.reset_aria')"
@@ -235,11 +236,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: var(--space-3);
-}
-
-.title {
-  margin: 0;
-  color: var(--color-text);
 }
 
 .form-card {

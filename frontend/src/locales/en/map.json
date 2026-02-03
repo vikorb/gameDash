@@ -9,6 +9,10 @@
       "edit": "Edit",
       "edit_hover": "Edit the map “{title}”.",
       "edit_aria": "Edit the map {title}"
+    },
+    "empty": {
+      "title": "No maps yet",
+      "subtitle": "Create your first map to get started."
     }
   },
   "mapForm": {

@@ -20,3 +20,8 @@ body {
   color: var(--color-text);
   line-height: 1.5;
 }
+
+.title {
+  margin: 0;
+  color: var(--color-text);
+}
