@@ -19,4 +19,9 @@ export async function seed(knex: Knex): Promise<void> {
   ])
   .onConflict('id')
   .merge();
+
+  await knex.raw(`
+    SELECT setval(pg_get_serial_sequence('maps', 'id'), max(id)) 
+    FROM maps
+  `);
 }
