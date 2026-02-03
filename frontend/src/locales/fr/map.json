@@ -1,0 +1,54 @@
+{
+  "listMaps": {
+    "title": "Liste des maps",
+    "empty_description": "Aucune description pour le moment.",
+    "actions": {
+      "create": "＋ Créer une map",
+      "create_hover": "Créer une nouvelle map et commencer sa configuration.",
+      "create_aria": "Créer une nouvelle map",
+      "edit": "Modifier",
+      "edit_hover": "Modifier la map « {title} ».",
+      "edit_aria": "Modifier la map {title}"
+    }
+  },
+  "mapForm": {
+    "title_create": "Créer une map",
+    "title_edit": "Modifier la map",
+    "unnamed": "sans titre",
+    "fields": {
+      "title": {
+        "label": "Titre",
+        "placeholder": "Ex : Zone de départ, Ville, Donjon…",
+        "hover": "Donne un nom clair à ta map pour la retrouver facilement.",
+        "aria": "Titre de la map"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Décris rapidement le but, les détails ou l’ambiance de la map…",
+        "hover": "Ajoute des infos utiles : objectif, règles, taille, difficultés…",
+        "aria": "Description de la map"
+      }
+    },
+    "actions": {
+      "back": "Retour",
+      "back_hover": "Revenir à la liste des maps.",
+      "back_aria": "Retour à la liste des maps",
+      "create": "Créer",
+      "create_hover": "Créer la map avec les informations saisies.",
+      "create_aria": "Créer la map",
+      "save": "Enregistrer",
+      "save_hover": "Enregistrer les modifications de « {title} ».",
+      "save_aria": "Enregistrer les modifications de {title}",
+      "reset": "Réinitialiser",
+      "reset_hover": "Annuler les changements et restaurer les valeurs d’origine.",
+      "reset_aria": "Réinitialiser le formulaire"
+    },
+    "validation": {
+      "title_min": "Le titre doit contenir au moins {min} caractères."
+    },
+    "errors": {
+      "not_found": "Impossible de charger cette map. Elle n’existe peut-être plus.",
+      "save_failed": "Erreur lors de l’enregistrement de la map."
+    }
+  }
+}
