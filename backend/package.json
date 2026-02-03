@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "migrate": "knex migrate:latest --knexfile src/knexfile.ts",
-    "build": "tsc && tsc-paths -p tsconfig.json -s src -o dist"
+    "build": "tsc && tsc-paths -p tsconfig.json -s src -o dist",
+    "seed": "knex seed:run --knexfile src/knexfile.ts"
   },
   "keywords": [],
   "author": "",

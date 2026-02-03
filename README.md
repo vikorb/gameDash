@@ -49,10 +49,22 @@ Le projet est réalisé en **équipe de 3**, avec un fort accent sur :
 - Git
 - Docker
 
-### Installation
+### Installation rapide
 
+1. Cloner le repo
+```bash
+git clone <url-du-repo>
+cd gameDash
+```
+
+2. Installer les dépendances (pour l'outillage local : husky, eslint)
 ```bash
 npm install
+```
+
+3. Lancer toute la stack (DB + API + Front)
+```bash
+docker compose up --build
 ```
 
 ---
@@ -78,8 +90,8 @@ Cela lance automatiquement :
 Accès :
 
 - Frontend : http://localhost:5173
-- API : http://localhost:3000/health
-- DB : localhost:5433
+- API : http://localhost:3000/api
+- DB : localhost:5432
 
 #### Scripts disponibles (lancement manuel)
 
@@ -105,35 +117,36 @@ Cette organisation permet une meilleure lisibilité, une montée en charge progr
 
 ```txt
 gameDash/
-├─ src/                      # Frontend Vue.js
-│  ├─ assets/                # Styles, images, icônes
-│  ├─ components/            # Composants agnostiques réutilisables
-│  ├─ views/                 # Pages (1 dossier par vue)
-│  ├─ router/                # Configuration Vue Router
-│  ├─ stores/                # Stores Pinia
-│  ├─ services/              # Accès API (HTTP)
-│  ├─ types/                 # Types et interfaces TypeScript
-│  ├─ utils/                 # Fonctions utilitaires
-│  └─ main.ts                # Point d’entrée frontend
+├── frontend/                # Application Vue.js 3
+│   ├── src/
+│   │   ├── assets/          # Styles globaux (main.css), images
+│   │   ├── components/      
+│   │   │   └── ui/          # Composants agnostiques (BaseButton, BaseCard)
+│   │   ├── views/           # Pages de l'application (Home, MapsList, MapForm)
+│   │   ├── router/          # Configuration Vue Router
+│   │   ├── stores/          # Gestion d'état Pinia (mapStore)
+│   │   ├── api/             # Configuration Axios / Intercepteurs
+│   │   ├── types/           # Interfaces TypeScript (GameMap, MapStatus)
+│   │   ├── utils/           # Helpers (formatage, gestion d'erreurs)
+│   │   └── main.ts          # Point d’entrée Vue
+│   ├── Dockerfile           # Build de l'image frontend
+│   └── package.json
 │
-├─ backend/                  # Backend API (Node.js / Express)
-│  ├─ src/
-│  │  ├─ app.ts              # Point d’entrée API
-│  │  ├─ db.ts               # Connexion base de données (Knex)
-│  │  └─ routes/             # Routes API (ex: maps)
-│  │
-│  ├─ migrations/            # Migrations Knex (schéma DB)
-│  ├─ knexfile.cjs           # Configuration Knex (CLI)
-│  ├─ .env                   # Variables d’environnement backend
-│  └─ package.json           # Dépendances backend
+├── backend/                 # API Node.js / Express
+│   ├── src/
+│   │   ├── database/        # Configuration Knex & Database
+│   │   │   ├── migrations/  # Schémas de tables
+│   │   │   └── seeds/       # Données de test (01_maps.ts)
+│   │   ├── routes/          # Endpoints API (maps.ts)
+│   │   ├── types/           # Types partagés ou spécifiques au back
+│   │   └── index.ts         # Point d’entrée serveur
+│   ├── Dockerfile           # Build de l'image backend
+│   ├── knexfile.ts          # Configuration Knex (CLI & App)
+│   └── package.json
 │
-├─ docker/
-│  └─ docker-compose.yml     # Orchestration DB / backend / frontend
-│
-├─ package.json              # Dépendances frontend
-├─ eslint.config.ts          # Configuration ESLint (frontend)
-├─ README.md                 # Documentation projet
-└─ .gitignore
+├── docker-compose.yml       # Orchestration DB, Backend et Frontend
+├── .gitignore               # Exclusion des node_modules et .env
+└── README.md                # Documentation du projet
 ```
 
 ### 🎨 Frontend (Vue.js)
@@ -165,7 +178,9 @@ gameDash/
 - PostgreSQL exécuté via Docker
 - Schéma global défini sur dbdiagram.io
 - Versionnage du schéma via Knex migrations
-- Données persistées via volumes Docker
+- **Persistance :** Attention, par choix de développement, les données ne sont **pas persistées** sur le disque hôte entre deux `docker compose down`. 
+- **Cycle de vie :** À chaque redémarrage (`up`), la base est réinitialisée : les migrations sont rejouées et les **seeds sont injectées automatiquement**. 
+- **Pourquoi ce choix ?** Cela garantit que toute l'équipe travaille en permanence sur un schéma et un jeu de données identiques et "propres".
 
 ### 🐳 Docker & orchestration
 
@@ -176,7 +191,7 @@ gameDash/
 - Une seule commande permet de démarrer l’ensemble du stack :
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 
 - Environnement reproductible pour :
@@ -196,12 +211,12 @@ docker compose up
 
 ### 2️⃣ Views
 
-- Chaque page = 1 dossier
-- Les composants spécifiques à une page restent dans views/<Page>/components
+- Chaque page métier = 1 dossier lui correspondant
+- Les composants spécifiques à une page vont dans le dossier correspondant à la page
 
 ### 3️⃣ Tests
 
-- Le dossier tests/ reproduit exactement la structure de src/
+- Le dossier tests/ reproduit exactement la structure de frontend/
 - Un composant = un fichier de test correspondant
 - Les tests sont obligatoires pour toute logique métier
 
@@ -219,7 +234,7 @@ docker compose up
 
 ### Taille des fichiers
 
-- 150 lignes MAXIMUM par fichier
+- 80 lignes MAXIMUM par fichier
 - Au-delà → refactorisation obligatoire
 
 ### Nommage
@@ -233,6 +248,8 @@ docker compose up
 - Pas d’abréviations obscures
   ❌ usr, tmp, res
   ✅ user, temporaryValue, response
+
+- Nom de variables claires
 
 ### Composants
 
@@ -251,15 +268,29 @@ docker compose up
 
 ---
 
-## 🧠 User Stories & Méthodologie
+## 🧠 Méthodologie
 
 ### User Stories
 
-- Les User Stories définies dans le projet doivent être respectées strictement
-- Une US :
-  - est petite mais cohérente
-  - contient fonctionnalités, tests, seeds et lien DB
-- Toute évolution doit être validée par l’équipe
+Le projet suit une approche rigoureuse où chaque évolution est pilotée par une User Story. Une US doit être atomique et complète.
+
+- Périmètre d'une US : Chaque US doit inclure :
+  - La fonctionnalité (Frontend & Backend).
+  - Le schéma de base de données (Migrations).
+  - Les données de test (Seeds).
+  - Les tests unitaires ou d'intégration associés.
+
+### Workflow Git & Nomenclature
+
+Chaque User Story correspond strictement à une branche unique. Aucune modification n'est effectuée directement sur la branche principale.
+
+- Nomenclature des branches : feat/us-[ID]-[TITRE_SIMPLIFIÉ] : *Exemple : feat/us-04-edition_map_form*
+
+- Cycle de vie :
+  - Création de la branche à partir de main ou develop.
+  - Développement complet (Code + DB + Seeds).
+  - Validation par l'équipe via une Merge Request (MR).
+  - Fusion (Merge) dans main après validation.
 
 ---
 
@@ -280,9 +311,9 @@ docker compose up
 
 La base est définie dans le fichier suivant :
 
-- `docker/docker-compose.yml`
+- `docker-compose.yml`
 - Le port interne PostgreSQL est 5432 (fixe)
-- Le port 5433 est exposé sur la machine hôte pour éviter les conflits locaux
+- Le port 5432 est exposé sur la machine hôte pour éviter les conflits locaux
 - Les données sont persistées via un volume Docker
 
 ### ▶️ Commandes Docker
@@ -358,6 +389,49 @@ Endpoints disponibles
 
 Le backend est l’unique point d’accès à la base.
 
+### 🌱 Données de test (Seeds)
+
+Les Seeds permettent de peupler la base de données avec des données de test cohérentes dès le lancement du projet. Elles sont essentielles pour garantir que chaque développeur travaille sur le même jeu de données.
+
+**Emplacement des fichiers**
+
+Les scripts de peuplement se trouvent dans :
+- backend/src/database/seeds/
+
+**Exécution automatique (Docker)**
+
+Le conteneur Backend attend que la DB soit prête, puis exécute systématiquement :
+
+1. knex migrate:latest (Mise à jour du schéma)
+2. knex seed:run (Injection des données de test)
+
+**⚠️ Important** : Toute donnée ajoutée manuellement en base via un client SQL sera perdue au prochain ```docker compose down```. Si une donnée doit survivre, ajoutez-la dans un fichier de seed.
+
+**Stratégie d'Idempotence**
+
+Pour éviter les erreurs de doublons lors des redémarrages successifs, les seeds utilisent la clause .onConflict().merge(). Cela permet de mettre à jour les données existantes plutôt que de tenter une insertion en double.
+
+**Exécution manuelle**
+
+Si vous avez besoin de rejouer les seeds manuellement depuis le dossier backend/ :
+
+```Bash
+# Pour peupler la base avec les données initiales
+npx knex seed:run --knexfile knexfile.ts
+```
+
+**Création d'une nouvelle Seed**
+
+Pour générer un nouveau fichier de données (ex: pour les utilisateurs) :
+
+```Bash
+npx knex seed:make 02_users --knexfile knexfile.ts
+```
+
+**💡 Rappel de sécurité**
+
+Les seeds sont destinées exclusivement aux environnements de développement et de staging. Elles ne doivent jamais être exécutées telles quelles en production si elles contiennent des commandes de suppression (.del()).
+
 ---
 
 ## 🧾 Git & conventions
@@ -421,6 +495,13 @@ Un commit non conforme est refusé automatiquement.
 5. CI verte
 6. Review par au moins 1 membre
 7. Merge
+
+### Avant de pousser votre PR, vérifiez :
+- [ ] Le fichier fait-il moins de 80 lignes ?
+- [ ] Les nouveaux composants sont-ils en PascalCase ?
+- [ ] Est-ce que `npm run lint` passe ?
+- [ ] Si j'ai touché à la DB, ai-je créé la migration ET la seed correspondante ?
+- [ ] Les tests passent-ils toujours (`npm run test`) ?
 
 ---
 
