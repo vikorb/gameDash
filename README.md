@@ -74,7 +74,7 @@ docker compose up --build
 > ⚠️ **Mode recommandé pour la démo et le développement**
 
 ````bash
-docker compose -f docker/docker-compose.yml up --build
+docker compose up --build
 ### Lancer le projet en développement
 
 ```bash
@@ -321,13 +321,13 @@ La base est définie dans le fichier suivant :
 - Démarrer la base de données :
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose up --build
 ```
 
 - Arrêter et réinitialiser complètement la base (suppression des données) :
 
 ```bash
-docker compose -f docker/docker-compose.yml down -v
+docker compose down -v
 ```
 
 ### 🔁 Migrations de base de données (Knex)
