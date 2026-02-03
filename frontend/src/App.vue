@@ -6,12 +6,12 @@ import { RouterView, RouterLink } from 'vue-router'
   <header>
     <nav class="main-nav">
       <RouterLink to="/">Accueil</RouterLink> |
-      <RouterLink to="/test-maps">Maps</RouterLink>
+      <RouterLink to="/maps">Maps</RouterLink>
     </nav>
   </header>
 
   <main>
-    <RouterView />
+    <RouterView :key="$route.fullPath" />
   </main>
 </template>
 

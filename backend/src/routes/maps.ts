@@ -53,4 +53,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const map = await db('maps')
+      .where({ id })
+      .whereNull('deleted_at')
+      .first();
+
+    if (!map) {
+      return res.status(404).json({ error: "Map introuvable" });
+    }
+
+    res.json(map);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erreur lors de la récupération de la map" });
+  }
+});
+
 export default router;

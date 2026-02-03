@@ -6,7 +6,7 @@
     <p>Le panneau de contrôle de tes maps.</p>
 
     <nav>
-      <RouterLink to="/test-maps" class="btn">
+      <RouterLink to="/maps" class="btn">
         Voir les Maps (Test API)
       </RouterLink>
     </nav>
