@@ -17,7 +17,7 @@
 .home { text-align: center; margin-top: 50px; }
 .btn {
   display: inline-block;
-  background-color: #42b883;
+  background-color: var(--color-primary);
   color: white;
   padding: 10px 20px;
   border-radius: 8px;
@@ -25,5 +25,5 @@
   font-weight: bold;
   transition: background 0.3s;
 }
-.btn:hover { background-color: #35495e; }
+.btn:hover { background-color: var(-color-primary-strong); }
 </style>

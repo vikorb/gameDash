@@ -37,14 +37,14 @@ const goToEdit = (id: number) => {
 
 <style scoped>
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.btn-primary { background: #42b883; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; }
+.btn-primary { background: var(--color-primary); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-.map-card { border: 1px solid #ddd; padding: 1rem; border-radius: 8px; background: white; }
+.map-card { border: 1px solid var(--color-border); padding: 1rem; border-radius: 8px; background: white; }
 .btn-edit {
   margin-top: 10px;
   width: 100%;
   cursor: pointer;
-  background: #35495e;
+  background: var(--color-primary-strong);
   color: white;
   border: none;
   padding: 8px;

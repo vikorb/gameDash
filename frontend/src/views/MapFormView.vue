@@ -94,5 +94,5 @@ const save = async () => {
 .form-container { max-width: 500px; margin: 0 auto; }
 .field { margin-bottom: 1rem; display: flex; flex-direction: column; }
 .actions { display: flex; gap: 10px; margin-top: 2rem; }
-.save { background: #42b883; color: white; border: none; padding: 10px; cursor: pointer; flex: 1; }
+.save { background: var(--color-primary); color: white; border: none; padding: 10px; cursor: pointer; flex: 1; }
 </style>

@@ -1,34 +1,25 @@
 <script setup lang="ts">
-import { RouterView, RouterLink } from 'vue-router'
+import { RouterView } from 'vue-router';
+import AppNavbar from './views/AppNavbar.vue';
 </script>
 
 <template>
   <header>
-    <nav class="main-nav">
-      <RouterLink to="/">Accueil</RouterLink> |
-      <RouterLink to="/maps">Maps</RouterLink>
-    </nav>
+    <AppNavbar />
   </header>
 
-  <main>
+  <main class="app-main">
     <RouterView :key="$route.fullPath" />
   </main>
 </template>
 
 <style>
-/* Style global minimaliste */
-body { font-family: sans-serif; margin: 0; color: #333; }
-.main-nav {
-  padding: 1rem;
-  background: #f4f4f4;
-  border-bottom: 1px solid #ddd;
+body {
+  font-family: sans-serif;
+  margin: 0;
+  color: var(--color-text);
 }
-.main-nav a {
-  margin: 0 10px;
-  text-decoration: none;
-  color: #42b883;
-  font-weight: bold;
+.app-main {
+  padding: 20px;
 }
-.main-nav a.router-link-active { color: #35495e; text-decoration: underline; }
-main { padding: 20px; }
 </style>

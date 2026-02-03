@@ -76,14 +76,14 @@ const handleSubmit = async () => {
 
 <style scoped>
 .maps-page { max-width: 800px; margin: 0 auto; }
-.form-section { background: #fdfdfd; padding: 20px; border: 1px dashed #42b883; border-radius: 10px; margin-bottom: 30px; }
+.form-section { background: white; padding: 20px; border: 1px dashed var(--color-primary); border-radius: 10px; margin-bottom: 30px; }
 .map-form { display: flex; flex-direction: column; gap: 15px; }
 .field { display: flex; flex-direction: column; gap: 5px; }
-input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-button { background: #42b883; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
-button:disabled { background: #ccc; }
+input, textarea { padding: 10px; border: 1px solid white; border-radius: 4px; }
+button { background: var(--color-primary); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+button:disabled { background: white; }
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.map-card { border: 1px solid #eee; padding: 15px; border-radius: 8px; position: relative; }
-.id-badge { font-size: 0.7rem; color: #999; position: absolute; top: 10px; right: 10px; }
+.map-card { border: 1px solid white; padding: 15px; border-radius: 8px; position: relative; }
+.id-badge { font-size: 0.7rem; color: var(--color-text); position: absolute; top: 10px; right: 10px; }
 </style>
