@@ -26,14 +26,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BaseButton from '@/components/ui/BaseButton.vue';
+import { computed } from 'vue';
+import type { MapFormData } from '@/types/form';
 
-defineProps<{
+const props = defineProps<{
   isEdit: boolean;
   saving: boolean;
   canSubmit: boolean;
-  submitLabel: string;
-  submitHover: string;
-  submitAria: string;
+  form: Pick<MapFormData, 'title'>;
 }>();
 
 const emit = defineEmits<{
@@ -41,6 +41,22 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n({ useScope: 'global' });
+
+const submitLabel = computed(() =>
+  props.isEdit ? t('mapForm.actions.save') : t('mapForm.actions.create')
+);
+
+const submitHover = computed(() =>
+  props.isEdit
+    ? t('mapForm.actions.save_hover', { title: props.form.title || t('mapForm.unnamed') })
+    : t('mapForm.actions.create_hover')
+);
+
+const submitAria = computed(() =>
+  props.isEdit
+    ? t('mapForm.actions.save_aria', { title: props.form.title || t('mapForm.unnamed') })
+    : t('mapForm.actions.create_aria')
+);
 </script>
 
 <style scoped>

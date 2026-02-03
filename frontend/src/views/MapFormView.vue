@@ -19,9 +19,7 @@
           :is-edit="isEditMode"
           :saving="saving"
           :can-submit="canSubmit"
-          :submit-label="submitLabel"
-          :submit-hover="submitHover"
-          :submit-aria="submitAria"
+          :form="form"
           @reset="onReset"
         />
       </form>
@@ -33,14 +31,23 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-
 import BaseCard from '@/components/ui/BaseCard.vue';
 import { useMapStore } from '@/stores/mapStore';
 import { toApiError } from '@/utils/apiError';
-import type { GameMap } from '@/types/map';
 import MapFormFields from './maps/form/MapFormFields.vue';
 import MapFormActions from './maps/form/MapFormActions.vue';
 import MapFormHeader from './maps/form/MapFormHeader.vue';
+import type { GameMap } from '@/types/map';
+import type { MapFormData } from '@/types/form';
+import {
+  initMapFormData,
+  mapToFormData,
+  parseRouteId,
+  resetMapFormData,
+  toSavePayload,
+  validateMapForm,
+  type MapFormErrors,
+} from '@/utils/mapForm';
 
 const { t } = useI18n({ useScope: 'global' });
 const route = useRoute();
@@ -50,80 +57,28 @@ const mapStore = useMapStore();
 const saving = ref(false);
 const submitError = ref<string | null>(null);
 
-const mapId = computed<number | null>(() => {
-  const raw = route.params.id;
-  const n = typeof raw === 'string' ? Number(raw) : NaN;
-  return Number.isFinite(n) ? n : null;
-});
-
+const mapId = computed(() => parseRouteId(route.params.id));
 const isEditMode = computed(() => mapId.value !== null);
 
-const form = reactive<{
-  title: string;
-  description: string;
-  original?: Pick<GameMap, 'id' | 'title' | 'description'> | null;
-}>({
-  title: '',
-  description: '',
-  original: null,
-});
-
-const errors = reactive<{ title?: string }>({});
-
-const submitLabel = computed(() =>
-  isEditMode.value ? t('mapForm.actions.save') : t('mapForm.actions.create')
-);
-
-const submitHover = computed(() =>
-  isEditMode.value
-    ? t('mapForm.actions.save_hover', { title: form.title || t('mapForm.unnamed') })
-    : t('mapForm.actions.create_hover')
-);
-
-const submitAria = computed(() =>
-  isEditMode.value
-    ? t('mapForm.actions.save_aria', { title: form.title || t('mapForm.unnamed') })
-    : t('mapForm.actions.create_aria')
-);
+const form = reactive<MapFormData>(initMapFormData());
+const errors = reactive<MapFormErrors>({});
 
 const canSubmit = computed(() => form.title.trim().length >= 2);
-
-function validate() {
-  errors.title = undefined;
-
-  if (form.title.trim().length < 2) {
-    errors.title = t('mapForm.validation.title_min', { min: 2 });
-    return false;
-  }
-  return true;
-}
-
-function setFromMap(m: Pick<GameMap, 'id' | 'title' | 'description'>) {
-  form.title = m.title ?? '';
-  form.description = m.description ?? '';
-  form.original = { id: m.id, title: form.title, description: form.description };
-}
 
 function onReset() {
   submitError.value = null;
   errors.title = undefined;
-
-  if (form.original) {
-    form.title = form.original.title ?? '';
-    form.description = form.original.description ?? '';
-  } else {
-    form.title = '';
-    form.description = '';
-  }
+  resetMapFormData(form);
 }
 
 async function loadIfEdit() {
   if (!isEditMode.value || mapId.value === null) return;
 
   const id = mapId.value;
+
   const existing = mapStore.maps.find((m) => m.id === id);
   if (existing) {
-    setFromMap(existing);
+    mapToFormData(form, existing);
     return;
   }
 
@@ -132,24 +87,19 @@ async function loadIfEdit() {
     submitError.value = t('mapForm.errors.not_found');
     return;
   }
-  setFromMap(fetched);
+
+  mapToFormData(form, fetched);
 }
 
 async function onSubmit() {
   submitError.value = null;
-  if (!validate()) return;
+
+  const valid = validateMapForm(form, t, errors);
+  if (!valid) return;
 
   saving.value = true;
   try {
-    const payload: Partial<GameMap> = {
-      title: form.title.trim(),
-      description: form.description.trim(),
-    };
-
-    // ✅ backend exige creator_id en création
-    if (!isEditMode.value) payload.creator_id = 1;
-    if (isEditMode.value && mapId.value !== null) payload.id = mapId.value;
-
+    const payload: Partial<GameMap> = toSavePayload(form, isEditMode.value, mapId.value);
     await mapStore.saveMap(payload);
     router.push('/maps');
   } catch (err) {
@@ -164,6 +114,7 @@ onMounted(() => {
   loadIfEdit();
 });
 </script>
+
 
 <style scoped>
 .map-form {
