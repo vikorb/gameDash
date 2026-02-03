@@ -18,6 +18,23 @@ export const useMapStore = defineStore('mapStore', {
       } finally {
         this.loading = false;
       }
+    },
+
+    async saveMap(mapData: Partial<GameMap>) {
+      try {
+        const response = await api.post<GameMap>('/maps', mapData);
+
+        const index = this.maps.findIndex(m => m.id === response.data.id);
+        if (index !== -1) {
+          this.maps[index] = response.data;
+        } else {
+          this.maps.push(response.data);
+        }
+        return response.data;
+      } catch (error) {
+        console.error("Erreur lors de la sauvegarde", error);
+        throw error;
+      }
     }
   }
 });
