@@ -9,11 +9,13 @@
     },
     "outDir": "./dist",
     "rootDir": "./src",
-    "esModuleInterop": true,            /* Règle l'erreur ts(1259) */
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true, 
-    "skipLibCheck": true,               /* Accélère la compilation */
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true                      /* Qualité de code Tech Lead */
+    "strict": true,
+    "composite": true,
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

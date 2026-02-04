@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"(skip) no tests\" && exit 0",
-    "prepare": "husky",
-    "lint": "echo \"(skip) lint not set yet\" && exit 0"
+    "type-check": "vue-tsc --build",
+    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
+    "lint:eslint": "eslint . --fix --cache",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
@@ -15,7 +16,24 @@
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",
     "@commitlint/config-conventional": "^20.4.1",
-    "husky": "^9.1.7"
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "@vitest/eslint-plugin": "^1.6.6",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-cypress": "^5.2.1",
+    "eslint-plugin-oxlint": "^1.43.0",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.6.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
+    "vue-eslint-parser": "^10.2.0",
+    "vue-tsc": "^3.2.4"
   },
   "dependencies": {
     "vue-i18n": "^11.2.8"
