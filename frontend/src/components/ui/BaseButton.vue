@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'; // <--- AJOUTER CET IMPORT
+import { RouterLink } from 'vue-router';
 
 interface Props {
   text?: string;
