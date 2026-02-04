@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
-    "lint:eslint": "eslint . --fix --cache"
+    "lint:eslint": "eslint --no-config-lookup --config ./eslint.config.ts \"src/**/*.{ts,mts,cts,tsx}\" --fix --cache"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +27,7 @@
     "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.0",
@@ -38,6 +39,7 @@
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18"
   }
 }
