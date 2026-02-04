@@ -10,19 +10,19 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'; // <--- AJOUTER CET IMPORT
+import { RouterLink } from 'vue-router'
 
 interface Props {
-  text?: string;
-  to?: string | object;
-  variant?: 'primary' | 'secondary' | 'danger';
-  type?: 'button' | 'submit' | 'reset';
+  text?: string
+  to?: string | object
+  variant?: 'primary' | 'secondary' | 'danger'
+  type?: 'button' | 'submit' | 'reset'
 }
 
 withDefaults(defineProps<Props>(), {
   variant: 'primary',
-  type: 'button'
-});
+  type: 'button',
+})
 </script>
 
 <style scoped>

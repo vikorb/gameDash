@@ -4,6 +4,12 @@
       "title": "🎮 GameDash",
       "subtitle": "Your control panel for maps."
     },
+    "landing": {
+      "login": "Sign in",
+      "login_hover": "Sign in to your account.",
+      "signup": "Create account",
+      "signup_hover": "Create a new account."
+    },
     "stats": {
       "title": "Statistics",
       "maps_created": "{count} map(s) created"
