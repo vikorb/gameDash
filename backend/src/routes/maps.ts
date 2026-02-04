@@ -3,17 +3,9 @@ import db from '@/database';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { notFound, badRequest } from '@/utils/httpError';
 import { parsePositiveInt, parseString } from '@/utils/validators';
+import { MapRequestPayload, MapRow } from '@/types/map';
 
 const router = Router();
-
-type MapPayload = {
-  id?: unknown;
-  title?: unknown;
-  description?: unknown;
-  creator_id?: unknown;
-  status?: unknown;
-  moderation_status?: unknown;
-};
 
 router.get(
   '/',
@@ -46,23 +38,21 @@ router.get(
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const body = (req.body ?? {}) as MapPayload;
+    const body = (req.body ?? {}) as MapRequestPayload;
 
     const hasId = body.id != null && body.id !== '';
+    
     const status = body.status !== undefined ? parseString(body.status, 'status', { max: 32, optional: true }) : undefined;
-    const moderation_status =
-      body.moderation_status !== undefined
+    const moderation_status = body.moderation_status !== undefined
         ? parseString(body.moderation_status, 'moderation_status', { max: 32, optional: true })
         : undefined;
 
     if (hasId) {
       const id = parsePositiveInt(body.id, 'id');
-
       const title = body.title !== undefined ? parseString(body.title, 'title', { min: 2, max: 120, optional: true }) : undefined;
-      const description =
-        body.description !== undefined ? parseString(body.description, 'description', { min: 0, max: 2000, optional: true }) : undefined;
+      const description = body.description !== undefined ? parseString(body.description, 'description', { min: 0, max: 2000, optional: true }) : undefined;
 
-      const patch: Record<string, unknown> = { updated_at: db.fn.now() };
+      const patch: Partial<MapRow> = { updated_at: db.fn.now() as unknown as Date };
 
       if (title !== undefined) patch.title = title;
       if (description !== undefined) patch.description = description;
@@ -70,11 +60,8 @@ router.post(
       if (status !== undefined) patch.status = status;
       if (moderation_status !== undefined) patch.moderation_status = moderation_status;
 
-      if (Object.keys(patch).length === 1) {
-        throw badRequest(
-          "Aucun champ à mettre à jour (title/description/creator_id/status/moderation_status)",
-          'VALIDATION_ERROR'
-        );
+      if (Object.keys(patch).length === 1) { 
+        throw badRequest("Aucun champ à mettre à jour", 'VALIDATION_ERROR');
       }
 
       const updatedRows = await db('maps')
@@ -83,15 +70,14 @@ router.post(
         .update(patch)
         .returning('*');
 
-      if (!updatedRows?.length) throw notFound('Map introuvable pour mise à jour', 'MAP_NOT_FOUND');
+      if (!updatedRows?.length) throw notFound('Map introuvable', 'MAP_NOT_FOUND');
 
       return res.status(200).json(updatedRows[0]);
     }
 
     const title = parseString(body.title, 'title', { min: 2, max: 120 })!;
     const creator_id = parsePositiveInt(body.creator_id, 'creator_id');
-    const description =
-      body.description !== undefined ? parseString(body.description, 'description', { min: 0, max: 2000, optional: true }) : undefined;
+    const description = body.description !== undefined ? parseString(body.description, 'description', { min: 0, max: 2000, optional: true }) : undefined;
 
     const [newMap] = await db('maps')
       .insert({

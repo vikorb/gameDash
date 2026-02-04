@@ -7,7 +7,11 @@
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
     "migrate": "knex migrate:latest --knexfile src/knexfile.ts",
     "build": "tsc && tsc-paths -p tsconfig.json -s src -o dist",
-    "seed": "knex seed:run --knexfile src/knexfile.ts"
+    "seed": "knex seed:run --knexfile src/knexfile.ts",
+    "type-check": "tsc --noEmit",
+    "lint": "run-s lint:*",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint --no-config-lookup --config ./eslint.config.ts \"src/**/*.{ts,mts,cts,tsx}\" --fix --cache"
   },
   "keywords": [],
   "author": "",
@@ -17,18 +21,25 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "jiti": "^2.6.1",
     "knex": "^3.1.0",
     "pg": "^8.18.0",
     "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.0",
+    "eslint": "^9.39.2",
     "nodemon": "^3.1.11",
+    "npm-run-all": "^4.1.5",
+    "npm-run-all2": "^8.0.4",
+    "oxlint": "^1.43.0",
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0",
     "vitest": "^4.0.18"
   }
 }
