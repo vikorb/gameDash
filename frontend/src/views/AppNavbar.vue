@@ -17,8 +17,8 @@ import { useI18n } from 'vue-i18n';
 const { t, locale: i18nLocale } = useI18n({ useScope: 'global' });
 
 const items = computed<NavItem[]>(() => [
-  { label: t('nav.home'), to: '/', exact: true },
-  { label: t('nav.maps'), to: '/maps' },
+  { label: t('nav.home'), to: '/test', exact: true },
+  { label: t('nav.maps'), to: '/test/maps' },
 ]);
 
 const langOptions = computed<LangOption<SupportedLocale>[]>(() => [

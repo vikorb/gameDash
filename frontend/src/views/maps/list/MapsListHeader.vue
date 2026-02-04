@@ -3,7 +3,7 @@
     <h1 class="title">{{ t('listMaps.title') }}</h1>
 
     <BaseButton
-      to="/maps/new"
+      to="/test/maps/new"
       variant="primary"
       :title="t('listMaps.actions.create_hover')"
       :aria-label="t('listMaps.actions.create_aria')"

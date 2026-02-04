@@ -6,28 +6,11 @@ import HomeView from '@/views/HomeView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView
-    },
-    {
-      path: '/maps',
-      name: 'maps-list',
-      component: MapsListView
-    },
-    {
-      path: '/maps/new',
-      name: 'map-create',
-      component: MapFormView
-    },
-    {
-      path: '/maps/edit/:id',
-      name: 'map-edit',
-      component: MapFormView,
-      props: true // Permet de recevoir :id comme une prop
-    }
-  ]
+    { path: '/test', name: 'home-test', component: HomeView },
+    { path: '/test/maps', name: 'maps-list-test', component: MapsListView },
+    { path: '/test/maps/new', name: 'map-create-test', component: MapFormView },
+    { path: '/test/maps/edit/:id', name: 'map-edit-test', component: MapFormView, props: true },
+  ],
 })
 
 export default router

@@ -101,7 +101,7 @@ async function onSubmit() {
   try {
     const payload: Partial<GameMap> = toSavePayload(form, isEditMode.value, mapId.value);
     await mapStore.saveMap(payload);
-    router.push('/maps');
+    router.push('/test/maps');
   } catch (err) {
     const apiErr = toApiError(err, t('mapForm.errors.save_failed'));
     submitError.value = apiErr.message;
