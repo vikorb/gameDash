@@ -25,7 +25,7 @@ onMounted(() => {
 });
 
 const goToEdit = (id: number) => {
-  router.push(`/maps/edit/${id}`);
+  router.push(`/test/maps/edit/${id}`);
 };
 </script>
 

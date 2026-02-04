@@ -20,7 +20,7 @@
         <h3 class="card-title">{{ t('home.quick_actions.title') }}</h3>
         <div class="actions-group">
           <BaseButton
-            to="/maps/new"
+            to="/test/maps/new"
             variant="primary"
             :title="t('home.quick_actions.create_map_hover')"
             :aria-label="t('home.quick_actions.create_map_aria')"
@@ -29,7 +29,7 @@
           </BaseButton>
 
           <BaseButton
-            to="/maps"
+            to="/test/maps"
             variant="secondary"
             :title="t('home.quick_actions.view_list_hover')"
             :aria-label="t('home.quick_actions.view_list_aria')"
