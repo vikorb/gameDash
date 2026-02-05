@@ -4,8 +4,9 @@
 
     <form class="auth-form" @submit.prevent="handleSubmit">
       <AuthFields v-model="form" :fields="fields" />
-      <BaseButton type="submit" variant="primary" class="submit-btn">
-        {{ t(buttonKey) }}
+      <div v-if="error" class="error-message">{{ error }}</div>
+      <BaseButton type="submit" variant="primary" class="submit-btn" :disabled="loading">
+        {{ loading ? t('auth.loading') : t(buttonKey) }}
       </BaseButton>
     </form>
 
@@ -14,13 +15,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import AuthHeader from './AuthHeader.vue'
 import AuthFields from './AuthFields.vue'
 import AuthFooter from './AuthFooter.vue'
+import { authService } from '@/services/pocketbase'
 
 interface FormField {
   key: string
@@ -80,12 +82,35 @@ const form = reactive<Record<string, string>>({
   password_confirm: '',
 })
 
-const handleSubmit = () => {
+const loading = ref(false)
+const error = ref('')
+
+const handleSubmit = async () => {
+  error.value = ''
+
   if (props.type === 'signup' && form.password !== form.password_confirm) {
-    alert(t('auth.signup.password_mismatch'))
+    error.value = t('auth.signup.password_mismatch')
     return
   }
-  router.push('/test')
+
+  if (!form.email || !form.password) {
+    error.value = t('auth.error.generic')
+    return
+  }
+
+  loading.value = true
+  try {
+    if (props.type === 'login') {
+      await authService.login(form.email, form.password)
+    } else {
+      await authService.signup(form.email, form.password, form.username)
+    }
+    router.push('/test')
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : t('auth.error.generic')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -101,5 +126,13 @@ const handleSubmit = () => {
   width: 100%;
   padding: 0.75rem;
   font-weight: 600;
+}
+
+.error-message {
+  padding: 0.75rem;
+  background-color: #fee;
+  color: #c33;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
 }
 </style>
