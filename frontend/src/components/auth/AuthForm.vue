@@ -3,9 +3,15 @@
     <AuthHeader :title-key="titleKey" :subtitle-key="subtitleKey" />
 
     <form class="auth-form" @submit.prevent="handleSubmit">
-      <AuthFields v-model="form" :fields="fields" />
+      <AuthFields :model-value="form" @update:model-value="updateForm" :fields="fields" />
       <div v-if="error" class="error-message">{{ error }}</div>
-      <BaseButton type="submit" variant="primary" class="submit-btn" :disabled="loading">
+      <BaseButton
+        type="button"
+        variant="primary"
+        class="submit-btn"
+        :disabled="loading"
+        @click="handleSubmit"
+      >
         {{ loading ? t('auth.loading') : t(buttonKey) }}
       </BaseButton>
     </form>
@@ -82,6 +88,10 @@ const form = reactive<Record<string, string>>({
   password_confirm: '',
 })
 
+const updateForm = (newValue: Record<string, string>) => {
+  Object.assign(form, newValue)
+}
+
 const loading = ref(false)
 const error = ref('')
 
@@ -120,6 +130,9 @@ const handleSubmit = async () => {
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .submit-btn {
@@ -134,5 +147,6 @@ const handleSubmit = async () => {
   color: #c33;
   border-radius: 0.375rem;
   font-size: 0.875rem;
+  text-align: center;
 }
 </style>

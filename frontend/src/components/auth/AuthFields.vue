@@ -7,13 +7,8 @@
       :type="field.type"
       :placeholder="t(field.placeholderKey)"
       class="input"
-      required
-      @input="
-        $emit('update:modelValue', {
-          ...modelValue,
-          [field.key]: ($event.target as HTMLInputElement).value,
-        })
-      "
+      autocomplete="off"
+      @input="handleInput(field.key, ($event.target as HTMLInputElement).value)"
     />
   </div>
 </template>
@@ -28,16 +23,21 @@ interface FormField {
   placeholderKey: string
 }
 
-defineProps<{
+const props = defineProps<{
   fields: FormField[]
   modelValue: Record<string, string>
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: Record<string, string>]
 }>()
 
 const { t } = useI18n({ useScope: 'global' })
+
+const handleInput = (key: string, value: string) => {
+  const newValue = { ...props.modelValue, [key]: value }
+  emit('update:modelValue', newValue)
+}
 </script>
 
 <style scoped>
@@ -45,20 +45,24 @@ const { t } = useI18n({ useScope: 'global' })
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  text-align: left;
 }
 
 .label {
   font-weight: 600;
   color: var(--color-text);
   font-size: 0.95rem;
+  text-align: left;
 }
 
 .input {
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input:focus {
