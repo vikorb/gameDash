@@ -1,9 +1,17 @@
 <template>
   <div v-for="field in fields" :key="field.key" class="form-group">
     <label :for="field.key" class="label">{{ t(field.labelKey) }}</label>
-    <input
+    <PasswordInput
+      v-if="field.type === 'password'"
       :id="field.key"
-      :value="modelValue[field.key]"
+      :model-value="modelValue[field.key] ?? ''"
+      :placeholder="t(field.placeholderKey)"
+      @update:model-value="handleInput(field.key, $event)"
+    />
+    <input
+      v-else
+      :id="field.key"
+      :value="modelValue[field.key] ?? ''"
       :type="field.type"
       :placeholder="t(field.placeholderKey)"
       class="input"
@@ -15,6 +23,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import PasswordInput from './PasswordInput.vue'
 
 interface FormField {
   key: string
@@ -25,7 +34,7 @@ interface FormField {
 
 const props = defineProps<{
   fields: FormField[]
-  modelValue: Record<string, string>
+  modelValue: Record<string, string | undefined>
 }>()
 
 const emit = defineEmits<{
@@ -35,8 +44,11 @@ const emit = defineEmits<{
 const { t } = useI18n({ useScope: 'global' })
 
 const handleInput = (key: string, value: string) => {
-  const newValue = { ...props.modelValue, [key]: value }
-  emit('update:modelValue', newValue)
+  const normalized = Object.fromEntries(
+    Object.entries(props.modelValue).map(([fieldKey, fieldValue]) => [fieldKey, fieldValue ?? '']),
+  ) as Record<string, string>
+  normalized[key] = value
+  emit('update:modelValue', normalized)
 }
 </script>
 
@@ -58,7 +70,6 @@ const handleInput = (key: string, value: string) => {
 .input {
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;
   width: 100%;
