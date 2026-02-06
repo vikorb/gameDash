@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/views/TestAppNavbar.vue'
 import BaseLangSwitch, { type LangOption } from '@/components/BaseLangSwitch.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { setLocale } from '@/utils/i18n'
 import type { SupportedLocale } from '@/plugins/i18n'
+import { authService, pb } from '@/services/pocketbase'
 
 const route = useRoute()
+const router = useRouter()
 
 const showNavbar = computed(() => route.path.startsWith('/test'))
 
@@ -25,6 +28,17 @@ const locale = computed<SupportedLocale>({
     setLocale(val)
   },
 })
+
+const isAuthenticated = ref(authService.isAuthenticated())
+
+pb.authStore.onChange(() => {
+  isAuthenticated.value = authService.isAuthenticated()
+})
+
+const handleLogout = async () => {
+  await authService.logout()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -34,6 +48,15 @@ const locale = computed<SupportedLocale>({
 
   <div class="lang-switch-wrapper">
     <BaseLangSwitch v-model="locale" :options="langOptions" />
+    <BaseButton
+      v-if="isAuthenticated"
+      type="button"
+      variant="secondary"
+      class="logout-btn"
+      @click="handleLogout"
+    >
+      {{ t('nav.logout') }}
+    </BaseButton>
   </div>
 
   <main class="app-main" :class="{ 'app-main-full': !showNavbar }">
@@ -61,5 +84,13 @@ body {
   top: 16px;
   right: 16px;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logout-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
 }
 </style>

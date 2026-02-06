@@ -2,6 +2,7 @@
   "nav": {
     "home": "Accueil",
     "maps": "Maps",
+    "logout": "Se déconnecter",
     "lang": {
         "fr": "FR",
         "en": "EN"
