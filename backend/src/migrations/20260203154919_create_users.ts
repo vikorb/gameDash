@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
     table.text("bio");
     table.string("language");
     table.json("matchmaking_pref");
-    table.string("status").notNullable().defaultTo("offline");
+    table.string("status").notNullable().defaultTo("online");
     table.boolean("is_banned").notNullable().defaultTo(false);
     table.timestamp("created_at").notNullable().defaultTo(knex.fn.now());
     table.timestamp("updated_at").notNullable().defaultTo(knex.fn.now());

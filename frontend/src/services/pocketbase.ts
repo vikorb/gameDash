@@ -27,6 +27,7 @@ export interface AuthUser {
 export const authService = {
   async login(email: string, password: string): Promise<AuthUser> {
     const authData = await pb.collection('users').authWithPassword(email, password)
+    await authService.setStatusOnline(authData.record.id)
     return {
       id: authData.record.id,
       email: authData.record.email,
@@ -41,10 +42,11 @@ export const authService = {
       passwordConfirm: password,
       username: username || email.split('@')[0],
       role: 'player',
-      status: 'offline',
+      status: 'online',
       is_banned: false,
     })
     await pb.collection('users').authWithPassword(email, password)
+    await authService.setStatusOnline(record.id)
     return {
       id: record.id,
       email: record.email,
@@ -63,6 +65,10 @@ export const authService = {
         maxAge: 0,
       })
     }
+  },
+
+  async setStatusOnline(userId: string): Promise<void> {
+    await pb.collection('users').update(userId, { status: 'online' })
   },
 
   isAuthenticated(): boolean {

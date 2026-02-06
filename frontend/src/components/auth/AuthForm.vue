@@ -28,7 +28,8 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import AuthHeader from './AuthHeader.vue'
 import AuthFields from './AuthFields.vue'
 import AuthFooter from './AuthFooter.vue'
-import { authService } from '@/services/pocketbase'
+import { authService, pb } from '@/services/pocketbase'
+import { useUserStore } from '@/stores/userStore'
 
 interface FormField {
   key: string
@@ -57,6 +58,7 @@ const AUTH_CONFIG: Record<'login' | 'signup', { fields: FormField[]; linkTo: str
 const props = defineProps<{ type: 'login' | 'signup' }>()
 
 const router = useRouter()
+const userStore = useUserStore()
 const { t } = useI18n({ useScope: 'global' })
 
 const baseKey = computed(() => `auth.${props.type}`)
@@ -115,6 +117,17 @@ const handleSubmit = async () => {
     } else {
       await authService.signup(form.email, form.password, form.username)
     }
+    const fallbackEmail = String(form.email)
+    const fallbackUsername = form.username
+      ? form.username
+      : (fallbackEmail.split('@')[0] ?? fallbackEmail)
+    const pbRecord = pb.authStore.record ? (pb.authStore.record as Record<string, unknown>) : null
+    const syncRecord = pbRecord
+
+    await userStore.syncFromPocketBase(syncRecord, {
+      email: fallbackEmail,
+      username: fallbackUsername,
+    })
     router.push('/test')
   } catch (err) {
     error.value = err instanceof Error ? err.message : t('auth.error.generic')

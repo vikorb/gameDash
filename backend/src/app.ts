@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 
 import mapsRoutes from '@/routes/maps';
+import usersRoutes from '@/routes/users';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { notFound } from '@/middlewares/notFound';
 import { errorHandler } from '@/middlewares/errorHandler';
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/maps', mapsRoutes);
+app.use('/api/users', usersRoutes);
 
 app.get(
   '/api/health',
