@@ -4,6 +4,20 @@ const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL || 'http://localhost:
 
 export const pb = new PocketBase(POCKETBASE_URL)
 
+if (typeof document !== 'undefined') {
+  pb.authStore.loadFromCookie(document.cookie)
+  pb.authStore.onChange(() => {
+    const twoWeeksSeconds = 14 * 24 * 60 * 60
+    document.cookie = pb.authStore.exportToCookie({
+      httpOnly: false,
+      secure: window.location.protocol === 'https:',
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: twoWeeksSeconds,
+    })
+  })
+}
+
 export interface AuthUser {
   id: string
   email: string
@@ -40,6 +54,15 @@ export const authService = {
 
   async logout(): Promise<void> {
     pb.authStore.clear()
+    if (typeof document !== 'undefined') {
+      document.cookie = pb.authStore.exportToCookie({
+        httpOnly: false,
+        secure: window.location.protocol === 'https:',
+        sameSite: 'Lax',
+        path: '/',
+        maxAge: 0,
+      })
+    }
   },
 
   isAuthenticated(): boolean {
