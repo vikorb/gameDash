@@ -26,11 +26,11 @@ const { t } = useI18n({ useScope: 'global' })
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
-  color: var(--color-text);
+  color: var(--color-cream);
 }
 
 .auth-subtitle {
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.75);
   font-size: 0.95rem;
 }
 </style>

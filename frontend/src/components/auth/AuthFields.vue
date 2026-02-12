@@ -62,7 +62,7 @@ const handleInput = (key: string, value: string) => {
 
 .label {
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-cream);
   font-size: 0.95rem;
   text-align: left;
 }
@@ -72,6 +72,7 @@ const handleInput = (key: string, value: string) => {
   border: 1px solid var(--color-border);
   font-size: 1rem;
   transition: border-color 0.2s;
+  background: #d9d9d9;
   width: 100%;
   box-sizing: border-box;
 }

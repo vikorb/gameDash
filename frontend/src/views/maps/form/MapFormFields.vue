@@ -33,21 +33,21 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  title: string;
-  description: string;
-  saving: boolean;
-  errors: { title?: string };
-}>();
+  title: string
+  description: string
+  saving: boolean
+  errors: { title?: string }
+}>()
 
 const emit = defineEmits<{
-  (e: 'update:title', v: string): void;
-  (e: 'update:description', v: string): void;
-}>();
+  (e: 'update:title', v: string): void
+  (e: 'update:description', v: string): void
+}>()
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' })
 </script>
 
 <style scoped>
@@ -59,7 +59,7 @@ const { t } = useI18n({ useScope: 'global' });
 
 .label {
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-cream);
 }
 
 .input,
@@ -68,7 +68,7 @@ const { t } = useI18n({ useScope: 'global' });
   border: var(--border-1);
   border-radius: var(--radius-1);
   padding: 10px 12px;
-  background: var(--color-bg);
+  background: #d9d9d9;
   color: var(--color-text);
   outline: none;
 }

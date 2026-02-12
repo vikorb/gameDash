@@ -60,20 +60,20 @@ cd gameDash
 
 2. **Configuration des variables d'environnement**
 
-Copiez les fichiers d'exemple et configurez-les :
+Les variables ont été **regroupées** dans un seul fichier de référence :
 
 ```bash
-# Frontend
-cp frontend/.env.example frontend/.env.local
-
-# Backend
-cp backend/.env.example backend/.env
-
-# PocketBase (authentification)
-cp .env.pocketbase.example .env.pocketbase
+cp .env.example .env
 ```
 
-**⚠️ Important :** Modifiez `.env.pocketbase` avec vos propres valeurs :
+**Utilisation selon votre mode de lancement :**
+
+- **Docker Compose** : les valeurs par défaut sont dans `docker-compose.yml`. Modifiez-les si besoin.
+- **Lancement local (sans Docker)** : répartissez les variables de `.env` dans :
+  - `backend/.env` (API)
+  - `frontend/.env.local` (variables `VITE_*`)
+
+**⚠️ Important :** Mettez à jour les valeurs PocketBase si vous ne les laissez pas par défaut :
 
 - `POCKETBASE_ADMIN_EMAIL` : Email admin
 - `POCKETBASE_ADMIN_PASSWORD` : Mot de passe admin (min 8 caractères)
@@ -101,7 +101,7 @@ Une fois la stack lancée :
 - **PocketBase Admin** : http://localhost:8090/\_/
 - **Database PostgreSQL** : localhost:5432
 
-Pour vous connecter à PocketBase Admin, utilisez les credentials définis dans `.env.pocketbase`.
+Pour vous connecter à PocketBase Admin, utilisez les credentials définis dans `docker-compose.yml` (ou votre `.env` si vous les surchargez).
 
 ---
 
@@ -181,8 +181,10 @@ gameDash/
 │   ├── knexfile.ts          # Configuration Knex (CLI & App)
 │   └── package.json
 │
+├── pocketbase/              # Service PocketBase
+├── sonarqube/               # Stack SonarQube locale
 ├── docker-compose.yml       # Orchestration DB, Backend et Frontend
-├── .gitignore               # Exclusion des node_modules et .env
+├── .env.example             # Variables de référence
 └── README.md                # Documentation du projet
 ```
 
@@ -351,7 +353,7 @@ La base est définie dans le fichier suivant :
 - `docker-compose.yml`
 - Le port interne PostgreSQL est 5432 (fixe)
 - Le port 5432 est exposé sur la machine hôte pour éviter les conflits locaux
-- Les données sont persistées via un volume Docker
+- Les données ne sont pas persistées via un volume Docker (réinitialisation après `docker compose down -v`)
 
 ### ▶️ Commandes Docker
 
@@ -378,11 +380,9 @@ Les paramètres de connexion sont définis dans :
 - backend/.env
 
 ```env
-DB_HOST=localhost
-DB_PORT=5433
-DB_USER=gamedash
-DB_PASSWORD=gamedash
-DB_NAME=gamedash
+DATABASE_URL=postgres://user:root@localhost:5432/gameDash
+PORT=3000
+NODE_ENV=development
 ```
 
 ### 🧬 Création d’une migration

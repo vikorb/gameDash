@@ -50,6 +50,7 @@ const visible = ref(false)
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  background: #d9d9d9;
   width: 100%;
   box-sizing: border-box;
 }

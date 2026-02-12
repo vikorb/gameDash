@@ -16,12 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import BaseButton from '@/components/ui/BaseButton.vue';
+import { useI18n } from 'vue-i18n'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
-defineProps<{ isEdit: boolean }>();
+defineProps<{ isEdit: boolean }>()
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' })
 </script>
 
 <style scoped>
@@ -34,6 +34,6 @@ const { t } = useI18n({ useScope: 'global' });
 
 .title {
   margin: 0;
-  color: var(--color-text);
+  color: var(--color-cream);
 }
 </style>

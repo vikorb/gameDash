@@ -14,10 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import BaseButton from '@/components/ui/BaseButton.vue';
+import { useI18n } from 'vue-i18n'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' })
 </script>
 
 <style scoped>
@@ -27,5 +27,9 @@ const { t } = useI18n({ useScope: 'global' });
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+}
+
+.title {
+  color: var(--color-cream);
 }
 </style>

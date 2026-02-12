@@ -28,17 +28,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import BaseCard from '@/components/ui/BaseCard.vue';
-import { useMapStore } from '@/stores/mapStore';
-import { toApiError } from '@/utils/apiError';
-import MapFormFields from './maps/form/MapFormFields.vue';
-import MapFormActions from './maps/form/MapFormActions.vue';
-import MapFormHeader from './maps/form/MapFormHeader.vue';
-import type { GameMap } from '@/types/map';
-import type { MapFormData } from '@/types/form';
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import { useMapStore } from '@/stores/mapStore'
+import { toApiError } from '@/utils/apiError'
+import MapFormFields from './maps/form/MapFormFields.vue'
+import MapFormActions from './maps/form/MapFormActions.vue'
+import MapFormHeader from './maps/form/MapFormHeader.vue'
+import type { GameMap } from '@/types/map'
+import type { MapFormData } from '@/types/form'
 import {
   initMapFormData,
   mapToFormData,
@@ -47,74 +47,73 @@ import {
   toSavePayload,
   validateMapForm,
   type MapFormErrors,
-} from '@/utils/mapForm';
+} from '@/utils/mapForm'
 
-const { t } = useI18n({ useScope: 'global' });
-const route = useRoute();
-const router = useRouter();
-const mapStore = useMapStore();
+const { t } = useI18n({ useScope: 'global' })
+const route = useRoute()
+const router = useRouter()
+const mapStore = useMapStore()
 
-const saving = ref(false);
-const submitError = ref<string | null>(null);
+const saving = ref(false)
+const submitError = ref<string | null>(null)
 
-const mapId = computed(() => parseRouteId(route.params.id));
-const isEditMode = computed(() => mapId.value !== null);
+const mapId = computed(() => parseRouteId(route.params.id))
+const isEditMode = computed(() => mapId.value !== null)
 
-const form = reactive<MapFormData>(initMapFormData());
-const errors = reactive<MapFormErrors>({});
+const form = reactive<MapFormData>(initMapFormData())
+const errors = reactive<MapFormErrors>({})
 
-const canSubmit = computed(() => form.title.trim().length >= 2);
+const canSubmit = computed(() => form.title.trim().length >= 2)
 
 function onReset() {
-  submitError.value = null;
-  errors.title = undefined;
-  resetMapFormData(form);
+  submitError.value = null
+  errors.title = undefined
+  resetMapFormData(form)
 }
 
 async function loadIfEdit() {
-  if (!isEditMode.value || mapId.value === null) return;
+  if (!isEditMode.value || mapId.value === null) return
 
-  const id = mapId.value;
+  const id = mapId.value
 
-  const existing = mapStore.maps.find((m) => m.id === id);
+  const existing = mapStore.maps.find((m) => m.id === id)
   if (existing) {
-    mapToFormData(form, existing);
-    return;
+    mapToFormData(form, existing)
+    return
   }
 
-  const fetched = await mapStore.fetchMapById(id);
+  const fetched = await mapStore.fetchMapById(id)
   if (!fetched) {
-    submitError.value = t('mapForm.errors.not_found');
-    return;
+    submitError.value = t('mapForm.errors.not_found')
+    return
   }
 
-  mapToFormData(form, fetched);
+  mapToFormData(form, fetched)
 }
 
 async function onSubmit() {
-  submitError.value = null;
+  submitError.value = null
 
-  const valid = validateMapForm(form, t, errors);
-  if (!valid) return;
+  const valid = validateMapForm(form, t, errors)
+  if (!valid) return
 
-  saving.value = true;
+  saving.value = true
   try {
-    const payload: Partial<GameMap> = toSavePayload(form, isEditMode.value, mapId.value);
-    await mapStore.saveMap(payload);
-    router.push('/test/maps');
+    const payload: Partial<GameMap> = toSavePayload(form, isEditMode.value, mapId.value)
+    await mapStore.saveMap(payload)
+    router.push('/test/maps')
   } catch (err) {
-    const apiErr = toApiError(err, t('mapForm.errors.save_failed'));
-    submitError.value = apiErr.message;
+    const apiErr = toApiError(err, t('mapForm.errors.save_failed'))
+    submitError.value = apiErr.message
   } finally {
-    saving.value = false;
+    saving.value = false
   }
 }
 
 onMounted(() => {
-  loadIfEdit();
-});
+  loadIfEdit()
+})
 </script>
-
 
 <style scoped>
 .map-form {
@@ -128,6 +127,7 @@ onMounted(() => {
 .form-card {
   display: flex;
   flex-direction: column;
+  background: #516079;
 }
 
 .form {

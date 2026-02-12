@@ -33,7 +33,7 @@ const authType = computed<'login' | 'signup'>(() => {
 }
 
 .auth-card {
-  background: var(--color-surface);
+  background: #516079;
   border-radius: 12px;
   padding: 3rem 2rem;
   width: 100%;

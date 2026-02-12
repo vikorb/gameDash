@@ -4,7 +4,6 @@ import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppNavbar from '@/views/TestAppNavbar.vue'
 import BaseLangSwitch, { type LangOption } from '@/components/BaseLangSwitch.vue'
-import BaseButton from '@/components/ui/BaseButton.vue'
 import { setLocale } from '@/utils/i18n'
 import type { SupportedLocale } from '@/plugins/i18n'
 import { authService, pb } from '@/services/pocketbase'
@@ -22,9 +21,14 @@ const langOptions = computed<LangOption<SupportedLocale>[]>(() => [
 ])
 
 const locale = computed<SupportedLocale>({
-  get: () => (i18nLocale.value === 'fr' ? 'fr' : 'en'),
+  get: () => {
+    const current = typeof i18nLocale === 'string' ? i18nLocale : i18nLocale.value
+    return current === 'fr' ? 'fr' : 'en'
+  },
   set: (val) => {
-    i18nLocale.value = val
+    if (typeof i18nLocale !== 'string') {
+      i18nLocale.value = val
+    }
     setLocale(val)
   },
 })
@@ -39,39 +43,63 @@ const handleLogout = async () => {
   await authService.logout()
   router.push('/')
 }
+
+const handleProfile = () => {}
 </script>
 
 <template>
-  <header v-show="showNavbar">
-    <AppNavbar />
-  </header>
+  <div class="app-shell">
+    <header v-show="showNavbar">
+      <AppNavbar :show-actions="false" />
+    </header>
 
-  <div class="lang-switch-wrapper">
-    <BaseLangSwitch v-model="locale" :options="langOptions" />
-    <BaseButton
-      v-if="isAuthenticated"
-      type="button"
-      variant="secondary"
-      class="logout-btn"
-      @click="handleLogout"
-    >
-      {{ t('nav.logout') }}
-    </BaseButton>
+    <div class="lang-switch-wrapper">
+      <BaseLangSwitch v-model="locale" :options="langOptions" />
+      <button
+        v-if="isAuthenticated"
+        type="button"
+        class="nav-action-btn"
+        aria-label="Profile"
+        @click="handleProfile"
+      >
+        <svg viewBox="0 0 24 24" role="img" focusable="false">
+          <path
+            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.4 0-8 2-8 4.5V20h16v-1.5C20 16 16.4 14 12 14Z"
+          />
+        </svg>
+      </button>
+      <button
+        v-if="isAuthenticated"
+        type="button"
+        class="nav-action-btn"
+        aria-label="Sign out"
+        @click="handleLogout"
+      >
+        <svg viewBox="0 0 24 24" role="img" focusable="false">
+          <path d="M12 2v10M6.2 4.9A8 8 0 1 0 17.8 4.9" />
+        </svg>
+      </button>
+    </div>
+
+    <main class="app-main" :class="{ 'app-main-full': !showNavbar }">
+      <RouterView :key="$route.fullPath" />
+    </main>
+
+    <footer class="app-footer">
+      <span>Copyright @SDv 2026</span>
+    </footer>
   </div>
-
-  <main class="app-main" :class="{ 'app-main-full': !showNavbar }">
-    <RouterView :key="$route.fullPath" />
-  </main>
 </template>
 
 <style>
-body {
-  font-family: sans-serif;
-  margin: 0;
-  color: var(--color-text);
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-main {
+  flex: 1;
   padding: 20px;
 }
 
@@ -89,8 +117,41 @@ body {
   gap: 0.5rem;
 }
 
-.logout-btn {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.85rem;
+.nav-action-btn {
+  background: transparent;
+  border: none;
+  color: #516079;
+  padding: 0.25rem;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nav-action-btn svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-action-btn:hover {
+  color: var(--color-cream);
+}
+
+.app-footer {
+  height: var(--footer-height);
+  background: var(--color-cream);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 </style>
