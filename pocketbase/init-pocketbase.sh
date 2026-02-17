@@ -7,10 +7,11 @@ ADMIN_PASSWORD="${POCKETBASE_ADMIN_PASSWORD:-admin123456}"
 echo "Initializing PocketBase..."
 
 echo "Creating superuser account..."
-./pocketbase superuser upsert "$ADMIN_EMAIL" "$ADMIN_PASSWORD" 2>/dev/null || echo "Superuser may already exist"
+echo "Creating superuser account..."
+./pocketbase superuser upsert "$ADMIN_EMAIL" "$ADMIN_PASSWORD" || echo "Superuser creation failed (may already exist)"
 
 echo "Authenticating as admin..."
-ADMIN_TOKEN=$(curl -s -X POST "$POCKETBASE_URL/api/admins/auth-with-password" \
+ADMIN_TOKEN=$(curl -s -X POST "$POCKETBASE_URL/api/collections/_superusers/auth-with-password" \
   -H "Content-Type: application/json" \
   -d "{
     \"identity\": \"$ADMIN_EMAIL\",
