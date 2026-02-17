@@ -35,8 +35,8 @@ export const authService = {
     }
   },
 
-  async signup(email: string, password: string, username?: string): Promise<AuthUser> {
-    const record = await pb.collection('users').create({
+  async signup(email: string, password: string, username?: string, avatar?: File | null): Promise<AuthUser> {
+    const payload: Record<string, unknown> = {
       email,
       password,
       passwordConfirm: password,
@@ -44,7 +44,13 @@ export const authService = {
       role: 'player',
       status: 'online',
       is_banned: false,
-    })
+    }
+
+    if (avatar) {
+      payload.avatar = avatar
+    }
+
+    const record = await pb.collection('users').create(payload)
     await pb.collection('users').authWithPassword(email, password)
     await authService.setStatusOnline(record.id)
     return {

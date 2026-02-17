@@ -73,9 +73,13 @@ USERS_COLLECTION_PAYLOAD='{
       "values": ["player", "admin", "moderator"]
     },
     {
-      "name": "avatar_url",
-      "type": "url",
-      "required": false
+      "name": "avatar",
+      "type": "file",
+      "required": false,
+      "maxSelect": 1,
+      "maxSize": 0,
+      "mimeTypes": ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
+      "thumbs": []
     },
     {
       "name": "region",
