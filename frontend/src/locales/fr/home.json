@@ -1,5 +1,6 @@
 {
   "home": {
+    "welcome": "Bienvenue {name},",
     "hero": {
       "title": "GameDash",
       "subtitle": "Le panneau de contrôle de tes maps."

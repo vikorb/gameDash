@@ -1,5 +1,7 @@
 <template>
   <div class="home-container">
+    <p v-if="isSessionActive" class="top-welcome">{{ t('home.welcome', { name: displayName }) }}</p>
+
     <header class="hero">
       <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
       <p class="hero-subtitle">{{ t('home.hero.subtitle') }}</p>
@@ -43,20 +45,37 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import BaseButton from '@/components/ui/BaseButton.vue';
-import BaseCard from '@/components/ui/BaseCard.vue';
-import { useMapStore } from '@/stores/mapStore';
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import { useMapStore } from '@/stores/mapStore'
+import { authService } from '@/services/pocketbase'
 
-const { t } = useI18n({ useScope: 'global' });
-const mapStore = useMapStore();
+const { t } = useI18n({ useScope: 'global' })
+const mapStore = useMapStore()
+
+const isSessionActive = computed(() => authService.isAuthenticated())
+
+const displayName = computed(() => {
+  const user = authService.getUser()
+  return user?.username
+})
 </script>
 
 <style scoped>
 .home-container {
   max-width: 1000px;
-  margin: 60px auto;
+  margin: 24px auto 60px;
   padding: 0 24px;
+}
+
+.top-welcome {
+  color: var(--color-cream);
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  text-align: left;
 }
 
 .hero {
