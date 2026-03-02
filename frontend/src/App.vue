@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import AppNavbar from '@/views/TestAppNavbar.vue'
+import AppNavbar from '@/components/navigation/AppNavbar.vue'
 import BaseLangSwitch, { type LangOption } from '@/components/BaseLangSwitch.vue'
 import { setLocale } from '@/utils/i18n'
 import type { SupportedLocale } from '@/plugins/i18n'
@@ -13,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-const showNavbar = computed(() => route.path.startsWith('/test'))
+const showNavbar = computed(() => route.path.startsWith('/home'))
 
 const { t, locale: i18nLocale } = useI18n({ useScope: 'global' })
 

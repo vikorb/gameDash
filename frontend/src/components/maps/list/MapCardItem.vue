@@ -16,18 +16,18 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import BaseCard from '@/components/ui/BaseCard.vue';
-import BaseButton from '@/components/ui/BaseButton.vue';
-import type { GameMap } from '@/types/map';
+import { useI18n } from 'vue-i18n'
+import BaseCard from '@/components/ui/BaseCard.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
+import type { GameMap } from '@/types/map'
 
-defineProps<{ map: GameMap }>();
+defineProps<{ map: GameMap }>()
 
 const emit = defineEmits<{
-  (e: 'edit'): void;
-}>();
+  (e: 'edit'): void
+}>()
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' })
 </script>
 
 <style scoped>

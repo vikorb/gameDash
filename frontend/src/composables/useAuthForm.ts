@@ -49,7 +49,7 @@ export const useAuthForm = (type: Ref<AuthType>) => {
       else await authService.signup(form.email, form.password, form.username, avatarFile.value)
       const syncRecord = pb.authStore.record ? (pb.authStore.record as Record<string, unknown>) : null
       await userStore.syncFromPocketBase(syncRecord)
-      router.push('/test')
+      router.push('/home')
     } catch (err) {
       error.value = err instanceof Error ? err.message : t('auth.error.generic')
     } finally { loading.value = false }

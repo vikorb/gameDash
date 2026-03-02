@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import AuthView from '@/views/AuthView.vue'
-import MapsListView from '@/views/MapsListView.vue'
-import MapFormView from '@/views/MapFormView.vue'
-import TestHomeView from '@/views/TestHomeView.vue'
-import RoleSectionView from '@/views/RoleSectionView.vue'
+import HomeView from '@/views/home/HomeView.vue'
+import LandingView from '@/views/landing/LandingView.vue'
+import AuthView from '@/views/auth/AuthView.vue'
+import MapsListView from '@/views/maps/list/MapsListView.vue'
+import MapFormView from '@/views/maps/form/MapFormView.vue'
+import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import { authService } from '@/services/pocketbase'
 import { useUserStore, type UserRole } from '@/stores/userStore'
 
@@ -16,57 +16,58 @@ const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: HomeView },
+    { path: '/', name: 'landing', component: LandingView },
     { path: '/login', name: 'login', component: AuthView },
     { path: '/signup', name: 'signup', component: AuthView },
-    { path: '/test', name: 'home-test', component: TestHomeView, meta: { requiresAuth: true } },
+    { path: '/home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
     {
-      path: '/test/progress',
-      name: 'progress-test',
+      path: '/home/progress',
+      name: 'progress-home',
       component: RoleSectionView,
       props: { sectionKey: 'progress' },
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
-      path: '/test/tasks',
-      name: 'tasks-test',
+      path: '/home/tasks',
+      name: 'tasks-home',
       component: RoleSectionView,
       props: { sectionKey: 'tasks' },
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
-      path: '/test/activities',
-      name: 'activities-test',
+      path: '/home/activities',
+      name: 'activities-home',
       component: RoleSectionView,
       props: { sectionKey: 'activities' },
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/test/shop',
-      name: 'shop-test',
+      path: '/home/shop',
+      name: 'shop-home',
       component: RoleSectionView,
       props: { sectionKey: 'shop' },
       meta: { requiresAuth: true, roles: ['player', 'admin'] as UserRole[] },
     },
     {
-      path: '/test/maps',
-      name: 'maps-list-test',
+      path: '/home/maps',
+      name: 'maps-list-home',
       component: MapsListView,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/test/maps/new',
-      name: 'map-create-test',
+      path: '/home/maps/new',
+      name: 'map-create-home',
       component: MapFormView,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/test/maps/edit/:id',
-      name: 'map-edit-test',
+      path: '/home/maps/edit/:id',
+      name: 'map-edit-home',
       component: MapFormView,
       props: true,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
+    { path: '/test/:pathMatch(.*)*', redirect: '/home' },
   ],
 })
 
@@ -86,16 +87,16 @@ router.beforeEach(async (to) => {
     try {
       await userStore.hydrateFromSession(pocketbaseUserId)
     } catch {
-      if (to.path === '/test') {
+      if (to.path === '/home') {
         return true
       }
-      return { path: '/test' }
+      return { path: '/home' }
     }
   }
 
   const allowedRoles = (to.meta.roles as UserRole[] | undefined)
   if (!canAccess(userStore.currentRole, allowedRoles)) {
-    return { path: '/test' }
+    return { path: '/home' }
   }
 
   return true

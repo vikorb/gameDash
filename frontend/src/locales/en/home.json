@@ -23,6 +23,29 @@
       "view_list": "View list",
       "view_list_hover": "Browse all available maps and their details.",
       "view_list_aria": "View the list of maps"
+    },
+    "player_play": {
+      "label": "Play",
+      "hover": "Start a match",
+      "aria": "Start a match"
+    },
+    "player_dashboard": {
+      "shop": {
+        "title": "Shop",
+        "orange_pack": "Orange Pack",
+        "premium_pack": "Premium Pack",
+        "footnote": "Mock data – GameDash"
+      },
+      "competitive": {
+        "title": "Competitive profile",
+        "mmr": "MMR",
+        "winrate": "Winrate",
+        "link": "View my progression"
+      },
+      "rank": {
+        "title": "GOLD III",
+        "level": "Level {level}"
+      }
     }
   }
 }

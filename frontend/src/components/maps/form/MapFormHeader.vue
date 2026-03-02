@@ -5,7 +5,7 @@
     </h1>
 
     <BaseButton
-      to="/test/maps"
+      to="/home/maps"
       variant="secondary"
       :title="t('mapForm.actions.back_hover')"
       :aria-label="t('mapForm.actions.back_aria')"

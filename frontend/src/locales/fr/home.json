@@ -23,6 +23,29 @@
       "view_list": "Voir la liste",
       "view_list_hover": "Afficher toutes les maps disponibles et leurs détails.",
       "view_list_aria": "Voir la liste des maps"
+    },
+    "player_play": {
+      "label": "Jouer",
+      "hover": "Lancer une partie",
+      "aria": "Lancer une partie"
+    },
+    "player_dashboard": {
+      "shop": {
+        "title": "Boutique",
+        "orange_pack": "Pack Orange",
+        "premium_pack": "Pack Premium",
+        "footnote": "Données fictives – GameDash"
+      },
+      "competitive": {
+        "title": "Profil compétitif",
+        "mmr": "MMR",
+        "winrate": "Winrate",
+        "link": "Voir ma progression"
+      },
+      "rank": {
+        "title": "GOLD III",
+        "level": "Niveau {level}"
+      }
     }
   }
 }

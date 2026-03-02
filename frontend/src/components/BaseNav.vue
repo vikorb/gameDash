@@ -45,7 +45,7 @@ const getIconPath = (icon?: NavIcon) => (icon ? iconPaths[icon] : '')
 
 <template>
   <nav class="base-nav">
-    <RouterLink v-if="props.showBrand" to="/test" class="base-nav__brand">
+    <RouterLink v-if="props.showBrand" to="/home" class="base-nav__brand">
       <img :src="props.brandLogo" :alt="props.brandLabel" class="base-nav__logo" />
     </RouterLink>
 

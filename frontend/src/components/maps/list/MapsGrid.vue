@@ -9,30 +9,25 @@
   </div>
 
   <div v-else class="grid">
-    <MapCardItem
-      v-for="map in maps"
-      :key="map.id"
-      :map="map"
-      @edit="emit('edit', map.id)"
-    />
+    <MapCardItem v-for="map in maps" :key="map.id" :map="map" @edit="emit('edit', map.id)" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import type { GameMap } from '@/types/map';
-import MapCardItem from './MapCardItem.vue';
+import { useI18n } from 'vue-i18n'
+import type { GameMap } from '@/types/map'
+import MapCardItem from '@/components/maps/list/MapCardItem.vue'
 
 defineProps<{
-  maps: GameMap[];
-  loading: boolean;
-}>();
+  maps: GameMap[]
+  loading: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: 'edit', id: number): void;
-}>();
+  (e: 'edit', id: number): void
+}>()
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'global' })
 </script>
 
 <style scoped>

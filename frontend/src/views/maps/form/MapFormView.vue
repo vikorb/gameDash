@@ -34,9 +34,9 @@ import { useI18n } from 'vue-i18n'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import { useMapStore } from '@/stores/mapStore'
 import { toApiError } from '@/utils/apiError'
-import MapFormFields from './maps/form/MapFormFields.vue'
-import MapFormActions from './maps/form/MapFormActions.vue'
-import MapFormHeader from './maps/form/MapFormHeader.vue'
+import MapFormFields from '@/components/maps/form/MapFormFields.vue'
+import MapFormActions from '@/components/maps/form/MapFormActions.vue'
+import MapFormHeader from '@/components/maps/form/MapFormHeader.vue'
 import type { GameMap } from '@/types/map'
 import type { MapFormData } from '@/types/form'
 import {
@@ -101,7 +101,7 @@ async function onSubmit() {
   try {
     const payload: Partial<GameMap> = toSavePayload(form, isEditMode.value, mapId.value)
     await mapStore.saveMap(payload)
-    router.push('/test/maps')
+    router.push('/home/maps')
   } catch (err) {
     const apiErr = toApiError(err, t('mapForm.errors.save_failed'))
     submitError.value = apiErr.message
