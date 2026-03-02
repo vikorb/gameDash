@@ -1,6 +1,10 @@
 {
   "nav": {
     "home": "Accueil",
+    "progress": "Progression",
+    "tasks": "Tâches",
+    "activities": "Activités",
+    "shop": "Boutique",
     "maps": "Maps",
     "logout": "Se déconnecter",
     "lang": {

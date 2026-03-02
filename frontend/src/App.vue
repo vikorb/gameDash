@@ -7,9 +7,11 @@ import BaseLangSwitch, { type LangOption } from '@/components/BaseLangSwitch.vue
 import { setLocale } from '@/utils/i18n'
 import type { SupportedLocale } from '@/plugins/i18n'
 import { authService, pb } from '@/services/pocketbase'
+import { useUserStore } from '@/stores/userStore'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 
 const showNavbar = computed(() => route.path.startsWith('/test'))
 
@@ -37,10 +39,14 @@ const isAuthenticated = ref(authService.isAuthenticated())
 
 pb.authStore.onChange(() => {
   isAuthenticated.value = authService.isAuthenticated()
+  if (!isAuthenticated.value) {
+    userStore.clearProfile()
+  }
 })
 
 const handleLogout = async () => {
   await authService.logout()
+  userStore.clearProfile()
   router.push('/')
 }
 

@@ -1,6 +1,10 @@
 {
   "nav": {
     "home": "Home",
+    "progress": "Progress",
+    "tasks": "Tasks",
+    "activities": "Activities",
+    "shop": "Shop",
     "maps": "Maps",
     "logout": "Sign out",
     "lang": {

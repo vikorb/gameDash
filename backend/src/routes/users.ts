@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import db from '@/database';
 import { asyncHandler } from '@/middlewares/asyncHandler';
-import { badRequest } from '@/utils/httpError';
+import { badRequest, notFound } from '@/utils/httpError';
 import { parseString } from '@/utils/validators';
 
 const router = Router();
@@ -42,12 +42,12 @@ router.post(
       throw badRequest('is_banned doit être un booléen', 'VALIDATION_ERROR', { field: 'is_banned' });
     }
 
-    const existing = await db<{ id: number }>('users')
+    const existing = await db<UserRow>('users')
       .where('pocketbase_user_id', pocketbase_user_id)
       .first();
 
     if (existing) {
-      return res.status(200).json({ status: 'already_exists' });
+      return res.status(200).json({ status: 'already_exists', user: existing });
     }
 
     const createdRows = (await db<UserRow>('users')
@@ -66,6 +66,23 @@ router.post(
     const created = createdRows[0];
 
     return res.status(201).json({ status: 'created', user: created });
+  })
+);
+
+router.get(
+  '/by-pocketbase/:pocketbaseUserId',
+  asyncHandler(async (req, res) => {
+    const pocketbaseUserId = parseString(req.params.pocketbaseUserId, 'pocketbaseUserId', { min: 1, max: 64 })!;
+
+    const user = await db<UserRow>('users')
+      .where('pocketbase_user_id', pocketbaseUserId)
+      .first();
+
+    if (!user) {
+      throw notFound('Utilisateur introuvable', 'USER_NOT_FOUND', { pocketbaseUserId });
+    }
+
+    return res.status(200).json({ user });
   })
 );
 
