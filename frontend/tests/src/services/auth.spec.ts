@@ -20,7 +20,8 @@ vi.mock('pocketbase', () => {
   return { default: MockPocketBase }
 })
 
-import { authService } from '@/services/pocketbase'
+import { authService } from '../../../src/services/pocketbase'
+import { normalizeRole } from '../../../src/stores/userStore'
 
 describe('Auth Service', () => {
   beforeEach(() => {
@@ -41,5 +42,27 @@ describe('Auth Service', () => {
   it('should get user when authenticated', () => {
     const user = authService.getUser()
     expect(user).toBeNull()
+  })
+})
+
+describe('Role normalization', () => {
+  it('maps admin variants to admin', () => {
+    expect(normalizeRole('admin')).toBe('admin')
+    expect(normalizeRole('Admin')).toBe('admin')
+    expect(normalizeRole('ADMIN')).toBe('admin')
+    expect(normalizeRole('administrateur')).toBe('admin')
+  })
+
+  it('maps moderator variants to moderator', () => {
+    expect(normalizeRole('moderator')).toBe('moderator')
+    expect(normalizeRole('moderateur')).toBe('moderator')
+    expect(normalizeRole('MODERATOR')).toBe('moderator')
+  })
+
+  it('falls back to player for unknown values', () => {
+    expect(normalizeRole('player')).toBe('player')
+    expect(normalizeRole('unknown')).toBe('player')
+    expect(normalizeRole(undefined)).toBe('player')
+    expect(normalizeRole(null)).toBe('player')
   })
 })

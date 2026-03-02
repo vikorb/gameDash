@@ -37,27 +37,33 @@ const emit = defineEmits<{
 
 const userStore = useUserStore()
 
-const roleMenuMap: Record<UserRole, NavItem[]> = {
-  player: [
-    { label: t('nav.home'), to: '/test', exact: true, icon: 'home' },
-    { label: t('nav.progress'), to: '/test/progress', icon: 'progress' },
-    { label: t('nav.tasks'), to: '/test/tasks', icon: 'tasks' },
-    { label: t('nav.shop'), to: '/test/shop', icon: 'shop' },
-  ],
-  admin: [
+const buildItemsForRole = (role: UserRole): NavItem[] => {
+  if (role === 'player') {
+    return [
+      { label: t('nav.home'), to: '/test', exact: true, icon: 'home' },
+      { label: t('nav.progress'), to: '/test/progress', icon: 'progress' },
+      { label: t('nav.tasks'), to: '/test/tasks', icon: 'tasks' },
+      { label: t('nav.shop'), to: '/test/shop', icon: 'shop' },
+    ]
+  }
+
+  if (role === 'admin') {
+    return [
+      { label: t('nav.home'), to: '/test', exact: true, icon: 'home' },
+      { label: t('nav.activities'), to: '/test/activities', icon: 'tasks' },
+      { label: t('nav.maps'), to: '/test/maps', icon: 'maps' },
+      { label: t('nav.shop'), to: '/test/shop', icon: 'shop' },
+    ]
+  }
+
+  return [
     { label: t('nav.home'), to: '/test', exact: true, icon: 'home' },
     { label: t('nav.activities'), to: '/test/activities', icon: 'tasks' },
     { label: t('nav.maps'), to: '/test/maps', icon: 'maps' },
-    { label: t('nav.shop'), to: '/test/shop', icon: 'shop' },
-  ],
-  moderator: [
-    { label: t('nav.home'), to: '/test', exact: true, icon: 'home' },
-    { label: t('nav.activities'), to: '/test/activities', icon: 'tasks' },
-    { label: t('nav.maps'), to: '/test/maps', icon: 'maps' },
-  ],
+  ]
 }
 
-const items = computed<NavItem[]>(() => roleMenuMap[userStore.currentRole])
+const items = computed<NavItem[]>(() => buildItemsForRole(userStore.currentRole))
 
 const hydrateRole = async () => {
   const pocketbaseUserId = authService.getUser()?.id

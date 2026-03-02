@@ -7,6 +7,8 @@ export type UserRole = 'player' | 'admin' | 'moderator';
 export type UserProfile = {
   id: number;
   pocketbase_user_id: string | null;
+  username: string | null;
+  email: string | null;
   role: UserRole;
   status: string;
   is_banned: boolean;
@@ -18,6 +20,8 @@ export type UserProfile = {
 
 export type UserSyncPayload = {
   pocketbase_user_id: string;
+  username?: string;
+  email?: string;
   role?: string;
   status?: string;
   is_banned?: boolean;
@@ -30,7 +34,7 @@ export type UserSyncPayload = {
 const toString = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined;
 
-const normalizeRole = (value: unknown): UserRole => {
+export const normalizeRole = (value: unknown): UserRole => {
   if (typeof value !== 'string') return 'player';
 
   const normalized = value.trim().toLowerCase();
@@ -68,6 +72,8 @@ export const useUserStore = defineStore('userStore', {
 
         const payload: UserSyncPayload = {
           pocketbase_user_id,
+          username: toString(record?.username),
+          email: toString(record?.email),
           role: toString(record?.role),
           status: toString(record?.status),
           is_banned: typeof record?.is_banned === 'boolean' ? record?.is_banned : undefined,

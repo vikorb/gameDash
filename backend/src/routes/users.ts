@@ -9,6 +9,8 @@ const router = Router();
 type UserRow = {
   id: number;
   pocketbase_user_id: string | null;
+  username: string | null;
+  email: string | null;
   role: string;
   status: string;
   is_banned: boolean;
@@ -16,6 +18,9 @@ type UserRow = {
   bio: string | null;
   language: string | null;
   matchmaking_pref: unknown;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -30,6 +35,8 @@ router.post(
     }
 
     const pocketbase_user_id = parseString(body.pocketbase_user_id, 'pocketbase_user_id', { min: 1, max: 64 })!;
+    const username = parseString(body.username, 'username', { min: 1, max: 255, optional: true });
+    const email = parseString(body.email, 'email', { min: 3, max: 255, optional: true });
 
     const role = parseString(body.role, 'role', { min: 1, max: 32, optional: true });
     const status = parseString(body.status, 'status', { min: 1, max: 32, optional: true });
@@ -47,12 +54,33 @@ router.post(
       .first();
 
     if (existing) {
-      return res.status(200).json({ status: 'already_exists', user: existing });
+      const updates: Partial<Pick<UserRow, 'username' | 'email'>> = {};
+
+      if (username !== undefined) {
+        updates.username = username;
+      }
+
+      if (email !== undefined) {
+        updates.email = email;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(200).json({ status: 'already_exists', user: existing });
+      }
+
+      const updatedRows = (await db<UserRow>('users')
+        .where('id', existing.id)
+        .update(updates)
+        .returning('*')) as UserRow[];
+
+      return res.status(200).json({ status: 'already_exists', user: updatedRows[0] });
     }
 
     const createdRows = (await db<UserRow>('users')
       .insert({
         pocketbase_user_id,
+        username: username ?? null,
+        email: email ?? null,
         role: role ?? 'player',
         status: status ?? 'online',
         is_banned: isBannedRaw ?? false,
