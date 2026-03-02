@@ -66,13 +66,6 @@ USERS_COLLECTION_PAYLOAD='{
       "pattern": ""
     },
     {
-      "name": "role",
-      "type": "select",
-      "required": false,
-      "maxSelect": 1,
-      "values": ["player", "admin", "moderator"]
-    },
-    {
       "name": "avatar",
       "type": "file",
       "required": false,
@@ -80,43 +73,6 @@ USERS_COLLECTION_PAYLOAD='{
       "maxSize": 0,
       "mimeTypes": ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
       "thumbs": []
-    },
-    {
-      "name": "region",
-      "type": "text",
-      "required": false
-    },
-    {
-      "name": "bio",
-      "type": "text",
-      "required": false
-    },
-    {
-      "name": "language",
-      "type": "text",
-      "required": false
-    },
-    {
-      "name": "matchmaking_pref",
-      "type": "json",
-      "required": false
-    },
-    {
-      "name": "status",
-      "type": "select",
-      "required": false,
-      "maxSelect": 1,
-      "values": ["online", "offline", "away", "in_game"]
-    },
-    {
-      "name": "is_banned",
-      "type": "bool",
-      "required": false
-    },
-    {
-      "name": "deleted_at",
-      "type": "date",
-      "required": false
     }
   ]
 }'

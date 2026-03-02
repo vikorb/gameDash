@@ -47,10 +47,8 @@ export const useAuthForm = (type: Ref<AuthType>) => {
     try {
       if (type.value === 'login') await authService.login(form.email, form.password)
       else await authService.signup(form.email, form.password, form.username, avatarFile.value)
-      const fallbackEmail = String(form.email)
-      const fallbackUsername = form.username || fallbackEmail.split('@')[0] || fallbackEmail
       const syncRecord = pb.authStore.record ? (pb.authStore.record as Record<string, unknown>) : null
-      await userStore.syncFromPocketBase(syncRecord, { email: fallbackEmail, username: fallbackUsername })
+      await userStore.syncFromPocketBase(syncRecord)
       router.push('/test')
     } catch (err) {
       error.value = err instanceof Error ? err.message : t('auth.error.generic')

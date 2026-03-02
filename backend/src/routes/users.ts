@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { randomUUID } from 'crypto';
 import db from '@/database';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { badRequest } from '@/utils/httpError';
@@ -9,17 +8,14 @@ const router = Router();
 
 type UserRow = {
   id: number;
-  email: string;
-  username: string;
+  pocketbase_user_id: string | null;
   role: string;
   status: string;
   is_banned: boolean;
-  avatar_url: string | null;
   region: string | null;
   bio: string | null;
   language: string | null;
   matchmaking_pref: unknown;
-  password_hash: string;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -33,20 +29,21 @@ router.post(
       throw badRequest('Invalid payload', 'VALIDATION_ERROR');
     }
 
-    const email = parseString(body.email, 'email', { min: 3, max: 255 })!;
-    const usernameInput = parseString(body.username, 'username', { min: 3, max: 50, optional: true });
-    const username = usernameInput ?? email.split('@')[0];
+    const pocketbase_user_id = parseString(body.pocketbase_user_id, 'pocketbase_user_id', { min: 1, max: 64 })!;
 
     const role = parseString(body.role, 'role', { min: 1, max: 32, optional: true });
     const status = parseString(body.status, 'status', { min: 1, max: 32, optional: true });
-    const avatar_url = parseString(body.avatar_url, 'avatar_url', { min: 1, max: 255, optional: true });
     const region = parseString(body.region, 'region', { min: 1, max: 64, optional: true });
     const bio = parseString(body.bio, 'bio', { min: 0, max: 2000, optional: true });
     const language = parseString(body.language, 'language', { min: 1, max: 8, optional: true });
+    const isBannedRaw = body.is_banned;
+
+    if (isBannedRaw !== undefined && typeof isBannedRaw !== 'boolean') {
+      throw badRequest('is_banned doit être un booléen', 'VALIDATION_ERROR', { field: 'is_banned' });
+    }
 
     const existing = await db<{ id: number }>('users')
-      .where('email', email)
-      .orWhere('username', username)
+      .where('pocketbase_user_id', pocketbase_user_id)
       .first();
 
     if (existing) {
@@ -55,17 +52,14 @@ router.post(
 
     const createdRows = (await db<UserRow>('users')
       .insert({
-        email,
-        username,
+        pocketbase_user_id,
         role: role ?? 'player',
         status: status ?? 'online',
-        is_banned: false,
-        avatar_url: avatar_url ?? null,
+        is_banned: isBannedRaw ?? false,
         region: region ?? null,
         bio: bio ?? null,
         language: language ?? null,
         matchmaking_pref: body.matchmaking_pref ?? null,
-        password_hash: `pb:${randomUUID()}`,
       })
       .returning('*')) as UserRow[];
 
