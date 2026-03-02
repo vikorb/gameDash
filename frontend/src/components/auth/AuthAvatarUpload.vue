@@ -21,6 +21,16 @@
       @dragleave.prevent="isDragging = false"
       @drop.prevent="onDrop"
     >
+      <button
+        v-if="previewUrl"
+        type="button"
+        class="remove-btn"
+        :aria-label="t('auth.signup.remove_avatar')"
+        :title="t('auth.signup.remove_avatar')"
+        @click.stop="removeFile"
+      >
+        ×
+      </button>
       <img v-if="previewUrl" :src="previewUrl" :alt="t('auth.signup.avatar')" class="preview" />
       <div v-else class="placeholder">
         <p>{{ t('auth.signup.avatar_drop') }}</p>
@@ -52,7 +62,12 @@ const setFile = (file: File | null) => {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   selectedFile.value = file
   previewUrl.value = file ? URL.createObjectURL(file) : null
+  if (!file && fileInput.value) fileInput.value.value = ''
   emit('update:file', file)
+}
+
+const removeFile = () => {
+  setFile(null)
 }
 
 const openPicker = () => fileInput.value?.click()
@@ -92,6 +107,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 .dropzone {
+  position: relative;
   min-height: 140px;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius);
@@ -121,6 +137,25 @@ onBeforeUnmount(() => {
   max-height: 220px;
   border-radius: calc(var(--radius) - 4px);
   object-fit: cover;
+}
+.remove-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.remove-btn:hover {
+  border-color: var(--color-primary);
 }
 .hint {
   margin: 0;
