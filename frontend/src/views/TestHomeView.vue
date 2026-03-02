@@ -18,7 +18,7 @@
         </div>
       </BaseCard>
 
-      <BaseCard class="action-card">
+      <BaseCard v-if="canManageMaps" class="action-card">
         <h3 class="card-title">{{ t('home.quick_actions.title') }}</h3>
         <div class="actions-group">
           <BaseButton
@@ -50,10 +50,12 @@ import { useI18n } from 'vue-i18n'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import { useMapStore } from '@/stores/mapStore'
+import { useUserStore } from '@/stores/userStore'
 import { authService } from '@/services/pocketbase'
 
 const { t } = useI18n({ useScope: 'global' })
 const mapStore = useMapStore()
+const userStore = useUserStore()
 
 const isSessionActive = computed(() => authService.isAuthenticated())
 
@@ -61,6 +63,10 @@ const displayName = computed(() => {
   const user = authService.getUser()
   return user?.username
 })
+
+const canManageMaps = computed(
+  () => userStore.currentRole === 'admin' || userStore.currentRole === 'moderator',
+)
 </script>
 
 <style scoped>
