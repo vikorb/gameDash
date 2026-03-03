@@ -1,5 +1,6 @@
 import { Router, type Request } from 'express';
 import { randomUUID } from 'crypto';
+import Ajv from 'ajv';
 import db from '@/database';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { badRequest } from '@/utils/httpError';
@@ -20,6 +21,42 @@ type UserRow = {
   matchmaking_pref: unknown;
   password_hash: string;
 };
+
+type WebhookUserRecord = {
+  email: string;
+  username: string;
+  role?: string;
+  status?: number | string;
+  avatar_url?: string;
+  region?: string;
+  bio?: string;
+  language?: string;
+  matchmaking_pref?: unknown;
+};
+
+const ajv = new Ajv({ allErrors: true });
+
+const validateWebhookUserRecord = ajv.compile<WebhookUserRecord>({
+  type: 'object',
+  properties: {
+    email: { type: 'string', minLength: 1 },
+    username: { type: 'string', minLength: 1 },
+    role: { type: 'string' },
+    status: {
+      anyOf: [
+        { type: 'integer', enum: [1, 2, 3] },
+        { type: 'string', enum: ['1', '2', '3', 'online', 'offline', 'banni', 'banned'] },
+      ],
+    },
+    avatar_url: { type: 'string' },
+    region: { type: 'string' },
+    bio: { type: 'string' },
+    language: { type: 'string' },
+    matchmaking_pref: {},
+  },
+  required: ['email', 'username'],
+  additionalProperties: true,
+});
 
 const parseUserStatus = (value: unknown): 1 | 2 | 3 | undefined => {
   if (value === undefined || value === null) return undefined;
@@ -52,21 +89,25 @@ router.post(
       return res.status(200).json({ status: 'ignored' });
     }
 
-    const record = {
-      email: typeof recordRaw.email === 'string' ? recordRaw.email : undefined,
-      username: typeof recordRaw.username === 'string' ? recordRaw.username : undefined,
-      role: typeof recordRaw.role === 'string' ? recordRaw.role : undefined,
-      status: parseUserStatus(recordRaw.status),
-      avatar_url: typeof recordRaw.avatar_url === 'string' ? recordRaw.avatar_url : null,
-      region: typeof recordRaw.region === 'string' ? recordRaw.region : null,
-      bio: typeof recordRaw.bio === 'string' ? recordRaw.bio : null,
-      language: typeof recordRaw.language === 'string' ? recordRaw.language : null,
-      matchmaking_pref: recordRaw.matchmaking_pref ?? null,
-    };
-
-    if (!record.email || !record.username) {
-      throw badRequest('Missing required fields', 'WEBHOOK_VALIDATION_ERROR');
+    if (!validateWebhookUserRecord(recordRaw)) {
+      throw badRequest('Invalid webhook payload', 'WEBHOOK_VALIDATION_ERROR', {
+        errors: validateWebhookUserRecord.errors,
+      });
     }
+
+    const validatedRecord = recordRaw;
+
+    const record = {
+      email: validatedRecord.email,
+      username: validatedRecord.username,
+      role: validatedRecord.role,
+      status: parseUserStatus(validatedRecord.status),
+      avatar_url: validatedRecord.avatar_url ?? null,
+      region: validatedRecord.region ?? null,
+      bio: validatedRecord.bio ?? null,
+      language: validatedRecord.language ?? null,
+      matchmaking_pref: validatedRecord.matchmaking_pref ?? null,
+    };
 
     const existing = await db<{ id: number }>('users')
       .where('email', record.email)
