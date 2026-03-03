@@ -14,8 +14,7 @@ type SeedUserRow = {
   username: string;
   email: string;
   role: 'admin' | 'moderator' | 'player';
-  status: string;
-  is_banned: boolean;
+  status: number;
   region: string | null;
   bio: string | null;
   language: string | null;
@@ -63,8 +62,7 @@ const buildPostgresRows = (identities: Array<SeedUserIdentity & { pocketbase_use
     username: identity.username,
     email: identity.email,
     role: identity.role,
-    status: 'online',
-    is_banned: false,
+    status: 1,
     region: identity.role === 'player' ? (index % 2 === 0 ? 'eu-west' : 'us-east') : 'eu-west',
     bio:
       identity.role === 'admin'
@@ -216,8 +214,7 @@ export async function seed(knex: Knex): Promise<void> {
       username: knex.ref('excluded.username'),
       email: knex.ref('excluded.email'),
       role: knex.ref('excluded.role'),
-      status: 'online',
-      is_banned: false,
+      status: 1,
       updated_at: knex.fn.now(),
     });
 

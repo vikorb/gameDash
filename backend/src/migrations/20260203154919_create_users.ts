@@ -11,10 +11,9 @@ export async function up(knex: Knex): Promise<void> {
     table.text("bio");
     table.string("language");
     table.json("matchmaking_pref");
-    table.string("status").notNullable().defaultTo("online");
-    table.boolean("is_banned").notNullable().defaultTo(false);
+    table.integer("status").notNullable().defaultTo(1);
     table.timestamp("created_at").notNullable().defaultTo(knex.fn.now());
-    table.timestamp("updated_at").notNullable().defaultTo(knex.fn.now());
+    table.timestamp("updated_at").defaultTo(knex.fn.now());
     table.timestamp("deleted_at");
   });
 }

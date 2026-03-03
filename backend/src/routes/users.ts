@@ -12,8 +12,7 @@ type UserRow = {
   username: string | null;
   email: string | null;
   role: string;
-  status: string;
-  is_banned: boolean;
+  status: number;
   region: string | null;
   bio: string | null;
   language: string | null;
@@ -25,6 +24,20 @@ type UserRow = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
+
+const parseUserStatus = (value: unknown): 1 | 2 | 3 | undefined => {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  const parsed = typeof value === 'string' ? Number(value) : value;
+
+  if (!Number.isInteger(parsed) || (parsed !== 1 && parsed !== 2 && parsed !== 3)) {
+    throw badRequest('status doit être 1 (online), 2 (offline) ou 3 (banni)', 'VALIDATION_ERROR', { field: 'status' });
+  }
+
+  return parsed;
+};
 
 router.post(
   '/',
@@ -39,15 +52,10 @@ router.post(
     const email = parseString(body.email, 'email', { min: 3, max: 255, optional: true });
 
     const role = parseString(body.role, 'role', { min: 1, max: 32, optional: true });
-    const status = parseString(body.status, 'status', { min: 1, max: 32, optional: true });
+    const status = parseUserStatus(body.status);
     const region = parseString(body.region, 'region', { min: 1, max: 64, optional: true });
     const bio = parseString(body.bio, 'bio', { min: 0, max: 2000, optional: true });
     const language = parseString(body.language, 'language', { min: 1, max: 8, optional: true });
-    const isBannedRaw = body.is_banned;
-
-    if (isBannedRaw !== undefined && typeof isBannedRaw !== 'boolean') {
-      throw badRequest('is_banned doit être un booléen', 'VALIDATION_ERROR', { field: 'is_banned' });
-    }
 
     const existing = await db<UserRow>('users')
       .where('pocketbase_user_id', pocketbase_user_id)
@@ -82,8 +90,7 @@ router.post(
         username: username ?? null,
         email: email ?? null,
         role: role ?? 'player',
-        status: status ?? 'online',
-        is_banned: isBannedRaw ?? false,
+        status: status ?? 1,
         region: region ?? null,
         bio: bio ?? null,
         language: language ?? null,
