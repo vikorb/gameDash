@@ -10,9 +10,9 @@
 </template>
 
 <script setup lang="ts">
-import PlayerCompetitiveCard from '@/components/player-dashboard/PlayerCompetitiveCard.vue'
-import PlayerRankCard from '@/components/player-dashboard/PlayerRankCard.vue'
-import PlayerShopCard from '@/components/player-dashboard/PlayerShopCard.vue'
+import PlayerCompetitiveCard from '@/views/home/PlayerCompetitiveCard.vue'
+import PlayerRankCard from '@/views/home/PlayerRankCard.vue'
+import PlayerShopCard from '@/views/home/PlayerShopCard.vue'
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { defineComponent, reactive, nextTick } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick, reactive } from 'vue'
 
 type AuthUser = {
   id: string
@@ -8,7 +8,9 @@ type AuthUser = {
   username?: string
 }
 
-const userStoreState = reactive<{ currentRole: 'player' | 'admin' | 'moderator' }>({ currentRole: 'player' })
+const userStoreState = reactive<{ currentRole: 'player' | 'admin' | 'moderator' }>({
+  currentRole: 'player',
+})
 const authState = reactive<{ isAuthenticated: boolean; user: AuthUser | null }>({
   isAuthenticated: false,
   user: null,
@@ -51,7 +53,7 @@ vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({
   }),
 }))
 
-import HomeView from '@/views/home/HomeView.vue'
+import HomeView from '@/views/HomeView.vue'
 
 const mountView = () => mount(HomeView)
 

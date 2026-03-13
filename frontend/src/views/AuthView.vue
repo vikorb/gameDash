@@ -9,7 +9,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import AuthForm from '@/components/auth/AuthForm.vue'
+
+import AuthForm from '@/views/auth/AuthForm.vue'
 
 const route = useRoute()
 

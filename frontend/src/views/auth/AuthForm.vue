@@ -23,12 +23,14 @@
 
 <script setup lang="ts">
 import { toRef } from 'vue'
+
 import BaseButton from '@/components/ui/BaseButton.vue'
-import AuthHeader from './AuthHeader.vue'
+import { useAuthForm } from '@/composables/useAuthForm'
+
+import AuthAvatarUpload from './AuthAvatarUpload.vue'
 import AuthFields from './AuthFields.vue'
 import AuthFooter from './AuthFooter.vue'
-import AuthAvatarUpload from './AuthAvatarUpload.vue'
-import { useAuthForm } from '@/composables/useAuthForm'
+import AuthHeader from './AuthHeader.vue'
 
 const props = defineProps<{ type: 'login' | 'signup' }>()
 
@@ -50,4 +52,29 @@ const {
 } = useAuthForm(toRef(props, 'type'))
 </script>
 
-<style scoped src="./AuthForm.css"></style>
+<style scoped>
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.75rem;
+  font-weight: 600;
+}
+
+.error-message {
+  padding: 0.75rem;
+  background-color: #fee;
+  color: #c33;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+</style>

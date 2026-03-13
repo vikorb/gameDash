@@ -59,8 +59,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseButton from '@/components/ui/BaseButton.vue'
+
 import logo from '@/assets/img/logo_gameDash.svg'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
 const { t } = useI18n({ useScope: 'global' })
 </script>

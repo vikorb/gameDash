@@ -17,6 +17,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+
 import BaseButton from '@/components/ui/BaseButton.vue'
 
 defineProps<{ isEdit: boolean }>()

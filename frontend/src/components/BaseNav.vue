@@ -1,7 +1,7 @@
 <template>
   <nav class="base-nav">
-    <RouterLink v-if="props.showBrand" to="/home" class="base-nav__brand">
-      <img :src="props.brandLogo" :alt="props.brandLabel" class="base-nav__logo" />
+    <RouterLink v-if="showBrand" :to="brandTo" class="base-nav__brand">
+      <img :src="brandLogo" :alt="brandLabel" class="base-nav__logo" />
     </RouterLink>
 
     <div class="base-nav__links">
@@ -22,25 +22,15 @@
       </RouterLink>
     </div>
 
-    <div v-if="props.showActions" class="base-nav__actions">
-      <RouterLink to="/profil" class="base-nav__action" aria-label="Profile">
-        <svg viewBox="0 0 24 24" role="img" focusable="false">
-          <path
-            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.4 0-8 2-8 4.5V20h16v-1.5C20 16 16.4 14 12 14Z"
-          />
-        </svg>
-      </RouterLink>
-      <button type="button" class="base-nav__action" aria-label="Sign out" @click="emit('logout')">
-        <svg viewBox="0 0 24 24" role="img" focusable="false">
-          <path d="M12 2v10M6.2 4.9A8 8 0 1 0 17.8 4.9" />
-        </svg>
-      </button>
+    <div v-if="$slots.actions" class="base-nav__actions">
+      <slot name="actions" />
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+
 import logo from '@/assets/img/logo_gameDash.svg'
 
 export type NavIcon = 'home' | 'progress' | 'tasks' | 'shop' | 'maps'
@@ -52,25 +42,22 @@ export type NavItem = {
   icon?: NavIcon
 }
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    items: NavItem[]
+    items?: NavItem[]
     brandLabel?: string
     brandLogo?: string
+    brandTo?: string
     showBrand?: boolean
-    showActions?: boolean
   }>(),
   {
+    items: () => [],
     brandLabel: 'GAMEDASH',
     brandLogo: logo,
+    brandTo: '/',
     showBrand: true,
-    showActions: true,
   },
 )
-
-const emit = defineEmits<{
-  (event: 'logout'): void
-}>()
 
 const iconPaths: Record<NavIcon, string> = {
   home: 'M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5.5v-6H10.5v6H5a1 1 0 0 1-1-1z',
@@ -104,11 +91,6 @@ const getIconPath = (icon?: NavIcon) => (icon ? iconPaths[icon] : '')
 .base-nav__logo {
   width: 42px;
   height: 42px;
-}
-
-.base-nav__brand-text {
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
 }
 
 .base-nav__links {

@@ -9,9 +9,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
 import { useMapStore } from '@/stores/mapStore'
-import MapsGrid from '@/components/maps/list/MapsGrid.vue'
-import MapsListHeader from '@/components/maps/list/MapsListHeader.vue'
+import MapsGrid from '@/views/maps/list/MapsGrid.vue'
+import MapsListHeader from '@/views/maps/list/MapsListHeader.vue'
 
 const mapStore = useMapStore()
 const router = useRouter()

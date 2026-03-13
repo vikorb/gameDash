@@ -17,8 +17,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HomeHero from '@/components/home/HomeHero.vue'
-import HomeTopRow from '@/components/home/HomeTopRow.vue'
+
+import HomeHero from '@/views/home/HomeHero.vue'
+import HomeTopRow from '@/views/home/HomeTopRow.vue'
 
 const props = defineProps<{
   isSessionActive: boolean

@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+
 import { authService, type AuthUser } from '@/services/pocketbase'
 
 const user = ref<AuthUser | null>(null)

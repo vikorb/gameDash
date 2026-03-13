@@ -21,8 +21,9 @@
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import wordmarkImg from '@/assets/img/play_btn_txt.png'
+
 import shieldBackgroundImg from '@/assets/img/play_btn_shield_background.png'
+import wordmarkImg from '@/assets/img/play_btn_txt.png'
 
 withDefaults(
   defineProps<{

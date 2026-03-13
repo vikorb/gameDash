@@ -7,9 +7,11 @@
     "shop": "Boutique",
     "maps": "Maps",
     "logout": "Se déconnecter",
+    "login": "Connexion",
+    "register": "Inscription",
     "lang": {
-        "fr": "FR",
-        "en": "EN"
+      "fr": "FR",
+      "en": "EN"
     }
   }
 }

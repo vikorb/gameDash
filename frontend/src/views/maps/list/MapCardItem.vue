@@ -17,8 +17,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import BaseCard from '@/components/ui/BaseCard.vue'
+
 import BaseButton from '@/components/ui/BaseButton.vue'
+import BaseCard from '@/components/ui/BaseCard.vue'
 import type { GameMap } from '@/types/map'
 
 defineProps<{ map: GameMap }>()

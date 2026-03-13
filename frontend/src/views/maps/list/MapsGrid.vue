@@ -15,8 +15,9 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+
 import type { GameMap } from '@/types/map'
-import MapCardItem from '@/components/maps/list/MapCardItem.vue'
+import MapCardItem from '@/views/maps/list/MapCardItem.vue'
 
 defineProps<{
   maps: GameMap[]

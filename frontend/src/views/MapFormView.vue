@@ -29,25 +29,26 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+
 import BaseCard from '@/components/ui/BaseCard.vue'
 import { useMapStore } from '@/stores/mapStore'
-import { toApiError } from '@/utils/apiError'
-import MapFormFields from '@/components/maps/form/MapFormFields.vue'
-import MapFormActions from '@/components/maps/form/MapFormActions.vue'
-import MapFormHeader from '@/components/maps/form/MapFormHeader.vue'
-import type { GameMap } from '@/types/map'
 import type { MapFormData } from '@/types/form'
+import type { GameMap } from '@/types/map'
+import { toApiError } from '@/utils/apiError'
 import {
   initMapFormData,
+  type MapFormErrors,
   mapToFormData,
   parseRouteId,
   resetMapFormData,
   toSavePayload,
   validateMapForm,
-  type MapFormErrors,
 } from '@/utils/mapForm'
+import MapFormActions from '@/views/maps/form/MapFormActions.vue'
+import MapFormFields from '@/views/maps/form/MapFormFields.vue'
+import MapFormHeader from '@/views/maps/form/MapFormHeader.vue'
 
 const { t } = useI18n({ useScope: 'global' })
 const route = useRoute()

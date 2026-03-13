@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+
 import PasswordInput from './PasswordInput.vue'
 
 interface FormField {

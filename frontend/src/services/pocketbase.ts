@@ -34,7 +34,12 @@ export const authService = {
     }
   },
 
-  async signup(email: string, password: string, username?: string, avatar?: File | null): Promise<AuthUser> {
+  async signup(
+    email: string,
+    password: string,
+    username?: string,
+    avatar?: File | null,
+  ): Promise<AuthUser> {
     const payload: Record<string, unknown> = {
       email,
       password,

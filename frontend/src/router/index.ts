@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/home/HomeView.vue'
-import LandingView from '@/views/landing/LandingView.vue'
-import AuthView from '@/views/auth/AuthView.vue'
-import MapsListView from '@/views/maps/list/MapsListView.vue'
-import MapFormView from '@/views/maps/form/MapFormView.vue'
-import RoleSectionView from '@/views/home/RoleSectionView.vue'
+
 import { authService } from '@/services/pocketbase'
-import { useUserStore, type UserRole } from '@/stores/userStore'
+import { type UserRole, useUserStore } from '@/stores/userStore'
+import AuthView from '@/views/AuthView.vue'
+import RoleSectionView from '@/views/home/RoleSectionView.vue'
+import HomeView from '@/views/HomeView.vue'
+import LandingView from '@/views/LandingView.vue'
+import MapFormView from '@/views/MapFormView.vue'
+import MapsListView from '@/views/MapsListView.vue'
 import ProfilView from '@/views/profil/ProfilView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
@@ -74,7 +75,17 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (to.meta.requiresAuth && !authService.isAuthenticated()) {
+  const isAuthenticated = authService.isAuthenticated()
+
+  if (to.path === '/') {
+    return isAuthenticated ? { path: '/home' } : true
+  }
+
+  if ((to.path === '/login' || to.path === '/signup') && isAuthenticated) {
+    return { path: '/home' }
+  }
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
     return { path: '/' }
   }
 
@@ -96,7 +107,7 @@ router.beforeEach(async (to) => {
     }
   }
 
-  const allowedRoles = (to.meta.roles as UserRole[] | undefined)
+  const allowedRoles = to.meta.roles as UserRole[] | undefined
   if (!canAccess(userStore.currentRole, allowedRoles)) {
     return { path: '/home' }
   }

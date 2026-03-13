@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import PlayerPlayButton from '@/components/home/PlayerPlayButton.vue'
+import PlayerPlayButton from '@/views/home/PlayerPlayButton.vue'
 
 defineProps<{
   welcomeText?: string
