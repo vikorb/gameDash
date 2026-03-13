@@ -7,6 +7,7 @@ import MapFormView from '@/views/maps/form/MapFormView.vue'
 import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import { authService } from '@/services/pocketbase'
 import { useUserStore, type UserRole } from '@/stores/userStore'
+import ProfilView from '@/views/profil/ProfilView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
   if (!allowedRoles || allowedRoles.length === 0) return true
@@ -20,6 +21,7 @@ const router = createRouter({
     { path: '/login', name: 'login', component: AuthView },
     { path: '/signup', name: 'signup', component: AuthView },
     { path: '/home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
+    { path: '/profil', name: 'profil', component: ProfilView, meta: { requiresAuth: true } },
     {
       path: '/home/progress',
       name: 'progress-home',

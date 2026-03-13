@@ -1,3 +1,47 @@
+<template>
+  <div class="app-shell">
+    <header v-show="showNavbar">
+      <AppNavbar :show-actions="false" />
+    </header>
+
+    <div class="lang-switch-wrapper">
+      <BaseLangSwitch v-model="locale" :options="langOptions" />
+      <button
+        v-if="isAuthenticated"
+        type="button"
+        class="nav-action-btn"
+        aria-label="Profile"
+        @click="handleProfile"
+      >
+        <svg viewBox="0 0 24 24" role="img" focusable="false">
+          <path
+            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.4 0-8 2-8 4.5V20h16v-1.5C20 16 16.4 14 12 14Z"
+          />
+        </svg>
+      </button>
+      <button
+        v-if="isAuthenticated"
+        type="button"
+        class="nav-action-btn"
+        aria-label="Sign out"
+        @click="handleLogout"
+      >
+        <svg viewBox="0 0 24 24" role="img" focusable="false">
+          <path d="M12 2v10M6.2 4.9A8 8 0 1 0 17.8 4.9" />
+        </svg>
+      </button>
+    </div>
+
+    <main class="app-main" :class="{ 'app-main-full': !showNavbar }">
+      <RouterView :key="$route.fullPath" />
+    </main>
+
+    <footer class="app-footer">
+      <span>Copyright @SDv 2026</span>
+    </footer>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
@@ -50,52 +94,10 @@ const handleLogout = async () => {
   router.push('/')
 }
 
-const handleProfile = () => {}
+const handleProfile = () => {
+  router.push('/profil')
+}
 </script>
-
-<template>
-  <div class="app-shell">
-    <header v-show="showNavbar">
-      <AppNavbar :show-actions="false" />
-    </header>
-
-    <div class="lang-switch-wrapper">
-      <BaseLangSwitch v-model="locale" :options="langOptions" />
-      <button
-        v-if="isAuthenticated"
-        type="button"
-        class="nav-action-btn"
-        aria-label="Profile"
-        @click="handleProfile"
-      >
-        <svg viewBox="0 0 24 24" role="img" focusable="false">
-          <path
-            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.4 0-8 2-8 4.5V20h16v-1.5C20 16 16.4 14 12 14Z"
-          />
-        </svg>
-      </button>
-      <button
-        v-if="isAuthenticated"
-        type="button"
-        class="nav-action-btn"
-        aria-label="Sign out"
-        @click="handleLogout"
-      >
-        <svg viewBox="0 0 24 24" role="img" focusable="false">
-          <path d="M12 2v10M6.2 4.9A8 8 0 1 0 17.8 4.9" />
-        </svg>
-      </button>
-    </div>
-
-    <main class="app-main" :class="{ 'app-main-full': !showNavbar }">
-      <RouterView :key="$route.fullPath" />
-    </main>
-
-    <footer class="app-footer">
-      <span>Copyright @SDv 2026</span>
-    </footer>
-  </div>
-</template>
 
 <style>
 .app-shell {

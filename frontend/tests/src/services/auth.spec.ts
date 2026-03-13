@@ -11,7 +11,7 @@ vi.mock('pocketbase', () => {
       onChange: vi.fn(),
     }
 
-    collection = vi.fn((name) => ({
+    collection = vi.fn(() => ({
       authWithPassword: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
