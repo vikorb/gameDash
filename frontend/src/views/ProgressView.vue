@@ -1,3 +1,4 @@
+
 <template>
   <div class="progress-view" v-if="user">
     <h1>Progression de {{ user.username }}</h1>
@@ -6,21 +7,10 @@
         v-if="mmrStore.mmrData"
         :mmr="mmrStore.mmrData.mmr"
         :rank="mmrStore.mmrData.rank"
-        :history="(() => {
-          const hist = (mmrStore.mmrData.history ?? []).map(h => ({ ...h, date: formatDate(h.date), isCurrent: false }))
-          const current = {
-            date: formatDate(new Date().toISOString()),
-            mmr: mmrStore.mmrData.mmr,
-            isCurrent: true
-          }
-         
-          if (!hist.length || hist[hist.length - 1]?.mmr !== current.mmr) {
-            hist.push(current)
-          } else if (hist.length > 0) {
-            hist[hist.length - 1]!.isCurrent = true
-          }
-          return hist
-        })()"
+        :history="mmrHistory"
+        :modes="modes"
+        :selectedModeId="selectedModeId"
+        @update:selectedModeId="handleModeChange"
       />
       <div class="progress-section">
         <h3>Autres progressions</h3>
@@ -33,25 +23,63 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, ref } from 'vue'
 
+<script setup lang="ts">
+import { computed,onMounted, ref } from 'vue'
+
+import { fetchGameModes } from '@/services/gameMode'
 import type { AuthUser } from '@/services/pocketbase'
 import { authService } from '@/services/pocketbase'
 import { useMMRStore } from '@/stores/mmrStore'
+import type { GameMode } from '@/types/gameMode'
 import { formatDate } from '@/utils/date'
 import CardMMR from '@/views/progress/CardMMR.vue'
 
 const user = ref<AuthUser | null>(null)
-const selectedModeId = ref(1)
+const selectedModeId = ref<number | string>(1)
+const modes = ref<GameMode[]>([])
 const mmrStore = useMMRStore()
+
+const mmrHistory = computed(() => {
+  if (!mmrStore.mmrData) return []
+  const hist = (mmrStore.mmrData.history ?? []).map(h => ({ ...h, date: formatDate(h.date), isCurrent: false }))
+  const current = {
+    date: formatDate(new Date().toISOString()),
+    mmr: mmrStore.mmrData.mmr,
+    isCurrent: true
+  }
+  if (!hist.length || hist[hist.length - 1]?.mmr !== current.mmr) {
+    hist.push(current)
+  } else if (hist.length > 0) {
+    hist[hist.length - 1]!.isCurrent = true
+  }
+  return hist
+})
+
+async function loadModes() {
+  const fetchedModes = await fetchGameModes()
+  modes.value = fetchedModes
+  if (Array.isArray(modes.value) && modes.value.length > 0 && !selectedModeId.value) {
+    const firstMode = modes.value[0]
+    if (firstMode && typeof firstMode.id !== 'undefined') {
+      selectedModeId.value = firstMode.id
+    }
+  }
+}
+
+async function handleModeChange(modeId: number | string) {
+  selectedModeId.value = modeId
+  if (user.value) {
+    await mmrStore.fetchMMR(user.value.id, Number(selectedModeId.value))
+  }
+}
 
 onMounted(async () => {
   const pbUser = authService.getUser()
-  console.log('onMounted called, pbUser:', pbUser)
   if (!pbUser) return
   user.value = pbUser
-  await mmrStore.fetchMMR(pbUser.id, selectedModeId.value)
+  await loadModes()
+  await mmrStore.fetchMMR(pbUser.id, Number(selectedModeId.value))
 })
 </script>
 

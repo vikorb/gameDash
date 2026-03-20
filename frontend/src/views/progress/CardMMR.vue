@@ -1,16 +1,20 @@
 <template>
   <div class="mmr-card">
     <div class="mmr-header">
-      <span class="mmr-icon">📈</span>
       <h2>MMR</h2>
+      <div class="mmr-mode-selector">
+        <ModeSelector
+          v-if="modes && modes.length"
+          :modes="modes"
+          :model-value="selectedModeId"
+          @update:modelValue="onModeChange"
+        />
+      </div>
     </div>
     <div class="mmr-graph">
       <LineChart :data="chartData" :options="chartOptions" />
     </div>
     <div class="mmr-info">
-      <h3>
-        Rank: <span class="rank">{{ rank }}</span>
-      </h3>
       <p>
         MMR actuel : <strong>{{ mmr }}</strong>
       </p>
@@ -18,23 +22,36 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 
 import { Chart, registerables } from 'chart.js'
+import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
+
+import type { GameMode } from '@/types/gameMode'
+
+import ModeSelector from './ModeSelector.vue'
 Chart.register(...registerables)
 
 interface MMRHistory {
   date: string
   mmr: number
+  isCurrent?: boolean
 }
 const props = defineProps({
   mmr: { type: Number, required: true },
-  rank: { type: String, required: true },
   history: { type: Array as () => MMRHistory[], required: true },
+  modes: { type: Array as () => GameMode[], required: false, default: () => [] },
+  selectedModeId: { type: [Number, String], required: false, default: 1 },
 })
+const emit = defineEmits(['update:selectedModeId'])
 
-const chartData = {
+function onModeChange(val: number | string) {
+  emit('update:selectedModeId', val)
+}
+
+const chartData = computed(() => ({
   labels: props.history.map((h: MMRHistory) => h.date),
   datasets: [
     {
@@ -44,15 +61,19 @@ const chartData = {
       backgroundColor: 'rgba(242,139,91,0.08)',
       tension: 0.3,
       fill: false,
+      pointRadius: props.history.map((h: MMRHistory) => h.isCurrent ? 8 : 4),
+      pointBackgroundColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#fff'),
+      pointBorderColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#f28b5b'),
+      pointBorderWidth: props.history.map((h: MMRHistory) => h.isCurrent ? 3 : 1),
     },
   ],
-}
+}))
 
 const chartOptions = {
   responsive: true,
   plugins: {
     legend: { display: false },
-    title: { display: true, text: 'Progression MMR (démo)' },
+    title: { display: true, text: 'Progression MMR' },
   },
   scales: {
     x: { title: { display: true, text: 'Date' } },
@@ -76,6 +97,10 @@ const LineChart = Line
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
+  justify-content: space-between;
+}
+.mmr-mode-selector {
+  margin-left: auto;
 }
 .mmr-icon {
   font-size: 2rem;
@@ -85,8 +110,5 @@ const LineChart = Line
 }
 .mmr-info {
   color: #fff;
-}
-.rank {
-  color: #f28b5b;
 }
 </style>
