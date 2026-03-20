@@ -1,3 +1,25 @@
+vi.mock('@/views/home/PlayerCompetitiveCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card-mock" />' })
+}))
+vi.mock('@/views/home/HomeTopRow.vue', () => ({
+  default: defineComponent({ name: 'HomeTopRow', template: '<div class="home-top-row" />' })
+}))
+vi.mock('@/views/home/PlayerPlayButton.vue', () => ({
+  default: defineComponent({ name: 'PlayerPlayButton', template: '<button class="player-play-button-mock" />' })
+}))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key: string) => key })
+}))
+
+vi.mock('vue-router', () => ({
+  RouterLink: {
+    name: 'RouterLink',
+    props: ['to'],
+    template: '<a :href="to"><slot /></a>'
+  },
+  useRouter: () => ({ push: vi.fn(), resolve: vi.fn() }),
+  useRoute: () => ({ path: '/' })
+}))
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick, reactive } from 'vue'
@@ -27,7 +49,7 @@ vi.mock('@/services/pocketbase', () => ({
   },
 }))
 
-vi.mock('@/components/home/HomeHeaderSection.vue', () => ({
+vi.mock('@/views/home/HomeHeaderSection.vue', () => ({
   default: defineComponent({
     name: 'HomeHeaderSection',
     props: {
@@ -45,6 +67,15 @@ vi.mock('@/components/home/HomeHeaderSection.vue', () => ({
     `,
   }),
 }))
+vi.mock('@/components/player-dashboard/PlayerShopCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerShopCard', template: '<div class="player-shop-card" />' })
+}))
+vi.mock('@/components/player-dashboard/PlayerCompetitiveCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card" />' })
+}))
+vi.mock('@/components/player-dashboard/PlayerRankCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerRankCard', template: '<div class="player-rank-card" />' })
+}))
 
 vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({
   default: defineComponent({
@@ -53,7 +84,7 @@ vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({
   }),
 }))
 
-import HomeView from '@/views/HomeView.vue'
+import HomeView from '../../../src/views/HomeView.vue'
 
 const mountView = () => mount(HomeView)
 
@@ -64,12 +95,12 @@ beforeEach(() => {
 })
 
 describe('HomeView', () => {
-  it('render HomeHeaderSection avec les props dérivées de auth et role', () => {
+  it('render HomeHeaderSection avec les props dérivées de auth et role', async () => {
     authState.isAuthenticated = true
     authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
-
+    userStoreState.currentRole = 'player'
     const wrapper = mountView()
-
+    await nextTick()
     const header = wrapper.find('.home-header')
     expect(header.exists()).toBe(true)
     expect(header.attributes('data-session')).toBe('true')
@@ -77,21 +108,31 @@ describe('HomeView', () => {
     expect(header.attributes('data-show-play')).toBe('true')
   })
 
-  it('affiche le dashboard uniquement pour les players', () => {
+  it('affiche le dashboard uniquement pour les players', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
     userStoreState.currentRole = 'player'
     const wrapper = mountView()
+    await nextTick()
     expect(wrapper.find('.player-dashboard').exists()).toBe(true)
   })
 
-  it('masque le dashboard pour admin/moderator', () => {
+  it('masque le dashboard pour admin/moderator', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
     userStoreState.currentRole = 'admin'
     const wrapper = mountView()
+    await nextTick()
     expect(wrapper.find('.player-dashboard').exists()).toBe(false)
     expect(wrapper.find('.home-header').attributes('data-show-play')).toBe('false')
   })
 
   it('se met à jour quand le role change', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
+    userStoreState.currentRole = 'player'
     const wrapper = mountView()
+    await nextTick()
     expect(wrapper.find('.player-dashboard').exists()).toBe(true)
 
     userStoreState.currentRole = 'moderator'
