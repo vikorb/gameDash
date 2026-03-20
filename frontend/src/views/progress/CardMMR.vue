@@ -1,7 +1,7 @@
 <template>
   <div class="mmr-card">
     <div class="mmr-header">
-      <h2>MMR</h2>
+      <h2>MMR <strong>{{ mmr }}</strong></h2>
       <div class="mmr-mode-selector">
         <ModeSelector
           v-if="modes && modes.length"
@@ -13,11 +13,6 @@
     </div>
     <div class="mmr-graph">
       <LineChart :data="chartData" :options="chartOptions" />
-    </div>
-    <div class="mmr-info">
-      <p>
-        MMR actuel : <strong>{{ mmr }}</strong>
-      </p>
     </div>
   </div>
 </template>
@@ -99,6 +94,10 @@ const LineChart = Line
   margin-bottom: 18px;
   justify-content: space-between;
 }
+
+.mmr-header h2 {
+  color: var(--color-cream);
+}
 .mmr-mode-selector {
   margin-left: auto;
 }
@@ -107,8 +106,5 @@ const LineChart = Line
 }
 .mmr-graph {
   margin-bottom: 18px;
-}
-.mmr-info {
-  color: #fff;
 }
 </style>

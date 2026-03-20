@@ -87,6 +87,10 @@ onMounted(async () => {
 .progress-view {
   padding: 20px;
 }
+.progress-view h1 {
+  color: var(--color-cream);
+  margin: 0 0 1.5rem 0;
+}
 .progress-section {
   margin-top: 32px;
 }
