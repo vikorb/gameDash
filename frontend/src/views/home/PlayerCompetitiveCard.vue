@@ -1,10 +1,17 @@
 <template>
   <BaseCard class="player-card competitive-card">
-    <h4 class="competitive-title">{{ t('home.player_dashboard.competitive.title') }}</h4>
 
+    <div class="competitive-header">
+    <h4 class="competitive-title">Profil 
+        </h4>
+        <ModeSelector v-if="modes && modes.length"
+          :modes="modes"
+          :model-value="selectedModeId"
+          @update:modelValue="onModeChange"/>
+    </div>
     <div class="competitive-line">
-      <span class="label">{{ t('home.player_dashboard.competitive.mmr') }}</span>
-      <strong class="value">1476</strong>
+      <span class="label">MMR actuel</span>
+      <strong class="value">{{ displayedMMR }}</strong>
     </div>
 
     <div class="competitive-line">
@@ -17,11 +24,56 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { computed,onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import BaseCard from '@/components/ui/BaseCard.vue'
+import { fetchGameModes } from '@/services/gameMode'
+import { useMMRStore } from '@/stores/mmrStore'
+import { useUserStore } from '@/stores/userStore'
+import type { GameMode } from '@/types/gameMode'
+import ModeSelector from '@/views/progress/ModeSelector.vue';
 
 const { t } = useI18n({ useScope: 'global' })
+
+const modes = ref<GameMode[]>([])
+const selectedModeId = ref<number | string>(1)
+
+const userStore = useUserStore()
+const mmrStore = useMMRStore()
+const { profile } = storeToRefs(userStore)
+const { mmrData } = storeToRefs(mmrStore)
+
+const displayedMMR = computed(() => {
+  return typeof mmrData.value?.mmr === 'number' ? mmrData.value.mmr : '-'
+})
+
+async function loadModes() {
+  modes.value = await fetchGameModes()
+  if (modes.value.length > 0 && modes.value[0]) {
+    selectedModeId.value = modes.value[0].id
+  }
+}
+
+async function loadMMR() {
+  if (profile.value?.pocketbase_user_id && selectedModeId.value) {
+    await mmrStore.fetchMMR(profile.value.pocketbase_user_id, Number(selectedModeId.value))
+  }
+}
+
+function onModeChange(val: number | string) {
+  selectedModeId.value = val
+}
+
+onMounted(async () => {
+  await loadModes()
+  await loadMMR()
+})
+
+watch([selectedModeId, () => profile.value?.pocketbase_user_id], async () => {
+  await loadMMR()
+})
 </script>
 
 <style scoped>

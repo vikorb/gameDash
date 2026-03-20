@@ -25,15 +25,11 @@ import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 
 import type { GameMode } from '@/types/gameMode'
+import type { MMRHistory } from '@/types/mmr'
 
 import ModeSelector from './ModeSelector.vue'
 Chart.register(...registerables)
 
-interface MMRHistory {
-  date: string
-  mmr: number
-  isCurrent?: boolean
-}
 const props = defineProps({
   mmr: { type: Number, required: true },
   history: { type: Array as () => MMRHistory[], required: true },

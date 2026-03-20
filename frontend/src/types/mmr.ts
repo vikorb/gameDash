@@ -1,6 +1,7 @@
 export interface MMRHistory {
   date: string;
   mmr: number;
+  isCurrent?: boolean
 }
 
 export interface MMRData {
