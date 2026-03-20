@@ -127,7 +127,6 @@ router.post(
         .json({ status: "already_exists", user: updatedRows[0] });
     }
 
-    // Sync mdp vers PocketBase si fourni
     if (password && email) {
       await createPocketbaseUser({
         email,
@@ -251,8 +250,7 @@ router.post(
     if (Object.keys(updates).length === 0) {
       return res.status(200).json({ status: "no_changes", user });
     }
-
-    // Sync PocketBase uniquement si email ou username changent
+    
     if (user.pocketbase_user_id && user.email && (email || username)) {
       const currentPassword = parseString(
         body.currentPassword,

@@ -38,7 +38,7 @@ const { t, locale: i18nLocale } = useI18n({ useScope: 'global' })
 
 const items = computed<NavItem[]>(() => [
   { label: t('nav.home'), to: '/home', exact: true, icon: 'home' },
-  { label: t('nav.progress'), to: '/home/progress', icon: 'progress' },
+  { label: t('nav.progress'), to: '/progress', icon: 'progress' },
   { label: t('nav.tasks'), to: '/home/tasks', icon: 'tasks' },
   { label: t('nav.shop'), to: '/home/shop', icon: 'shop' },
 ])

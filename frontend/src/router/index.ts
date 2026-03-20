@@ -24,10 +24,9 @@ const router = createRouter({
     { path: '/home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
     { path: '/profil', name: 'profil', component: ProfilView, meta: { requiresAuth: true } },
     {
-      path: '/home/progress',
-      name: 'progress-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'progress' },
+      path: '/progress',
+      name: 'progress',
+      component: () => import('@/views/ProgressView.vue'),
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {

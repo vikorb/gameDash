@@ -30,7 +30,7 @@ export default defineConfigWithVueTs(
     settings: {
       'import-x/resolver-next': [
         createTypeScriptImportResolver({
-          project: ['tsconfig.app.json', 'tsconfig.node.json'],
+          project: ['tsconfig.app.json'],
           alwaysTryTypes: true,
         }),
       ],
