@@ -8,6 +8,7 @@ import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
 import MapFormView from '@/views/MapFormView.vue'
 import MapsListView from '@/views/MapsListView.vue'
+import MatchmakingView from '@/views/matchmaking/MatchmakingView.vue'
 import ProfilView from '@/views/profil/ProfilView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
@@ -22,6 +23,7 @@ const router = createRouter({
     { path: '/login', name: 'login', component: AuthView },
     { path: '/signup', name: 'signup', component: AuthView },
     { path: '/home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
+    { path: '/matchmaking', name: 'matchmaking', component: MatchmakingView, meta: { requiresAuth: true } },
     { path: '/profil', name: 'profil', component: ProfilView, meta: { requiresAuth: true } },
     {
       path: '/progress',
