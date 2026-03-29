@@ -38,7 +38,6 @@ export async function getUserRankById(userId: number, modeId: number) {
     .andWhere("max_xp", ">=", xp)
     .first();
   if (!rank) {
-    // Si xp dépasse tous les ranks, prendre le dernier
     rank = await db<RankRow>("ranks").orderBy("max_xp", "desc").first();
   }
 
@@ -75,5 +74,6 @@ export async function getUserRankById(userId: number, modeId: number) {
     nextDivision: nextDivision ? nextDivision.name : null,
     nextDivisionMinXp: nextDivision ? nextDivision.min_xp : null,
     nextDivisionMaxXp: nextDivision ? nextDivision.max_xp : null,
+    divisionMaxXp: division ? division.max_xp : null,
   };
 }

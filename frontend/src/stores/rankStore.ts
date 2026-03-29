@@ -12,6 +12,7 @@ export type RankData = {
   nextDivision: string | null
   nextDivisionMinXp: number | null
   nextDivisionMaxXp: number | null
+  divisionMaxXp: number | null
 }
 
 export const useRankStore = defineStore('rankStore', {

@@ -1,6 +1,14 @@
 <template>
   <div class="progress-view" v-if="user">
-    <h1>Progression de {{ user.username }}</h1>
+    <div class="progress-header">
+      <h1 class="progress-title">Progression de {{ user.username }}</h1>
+      <ModeSelector
+        v-if="modes && modes.length"
+        :modes="modes"
+        v-model="selectedModeId"
+        class="progress-mode-selector"
+      />
+    </div>
     <div v-if="user">
       <CardMMR
         v-if="mmrStore.mmrData"
@@ -9,9 +17,8 @@
         :history="mmrHistory"
         :modes="modes"
         :selectedModeId="selectedModeId"
-        @update:selectedModeId="handleModeChange"
       />
-      <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" />
+      <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" :selectedModeId="selectedModeId" :modes="modes" />
     </div>
     <div v-else>
       <p>Veuillez vous connecter pour voir votre progression.</p>
@@ -32,6 +39,7 @@ import type { GameMode } from '@/types/gameMode'
 import { formatDate } from '@/utils/date'
 import CardMMR from '@/views/progress/CardMMR.vue'
 import CardRank from '@/views/progress/CardRank.vue'
+import ModeSelector from '@/views/progress/ModeSelector.vue'
 
 const user = ref<AuthUser | null>(null)
 const selectedModeId = ref<number | string>(1)
@@ -68,12 +76,11 @@ async function loadModes() {
   }
 }
 
-async function handleModeChange(modeId: number | string) {
-  selectedModeId.value = modeId
-  if (user.value) {
-    await mmrStore.fetchMMR(user.value.id, Number(selectedModeId.value))
+watch(selectedModeId, async (newModeId) => {
+  if (user.value && newModeId) {
+    await mmrStore.fetchMMR(user.value.id, Number(newModeId))
   }
-}
+})
 
 onMounted(async () => {
   const pbUser = authService.getUser()
@@ -95,9 +102,18 @@ watch(() => user.value?.id, async (newId: string | undefined) => {
 .progress-view {
   padding: 20px;
 }
-.progress-view h1 {
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+.progress-title {
   color: var(--color-cream);
-  margin: 0 0 1.5rem 0;
+  margin: 0;
+}
+.progress-mode-selector {
+  margin-left: auto;
 }
 .progress-section {
   margin-top: 32px;

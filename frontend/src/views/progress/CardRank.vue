@@ -5,14 +5,6 @@
 		<div class="rank-header">
 			<h2>Rang actuel</h2>
 		</div>
-		<div v-if="gameModes.length > 0" class="mode-selector">
-			<label for="mode-select">Mode :</label>
-			<select id="mode-select" v-model="selectedModeId" @change="loadRank">
-				<option v-for="mode in gameModes" :key="mode.id" :value="mode.id">
-					{{ mode.name }}
-				</option>
-			</select>
-		</div>
 		<div v-if="loading">Chargement...</div>
 		<div v-else-if="error" class="error">{{ error }}</div>
 		<div v-else>
@@ -24,12 +16,9 @@
 				<div class="xp-bar">
 					<div class="xp-bar-inner" :style="{ width: xpPercent + '%' }"></div>
 				</div>
+				<div>DEBUG: {{ xpPercent }}%</div>
 				<div class="xp-label">
-					{{ rankData && rankData.xpInDivision || 0 }} XP / {{ divisionXpMax }} XP pour la division
-				</div>
-				<div v-if="rankData && rankData.nextDivision" class="next-division">
-					Prochaine division : <span class="next-division-name">{{ rankData.nextDivision }}</span>
-					<span class="next-division-xp">({{ rankData.nextDivisionMinXp }} XP)</span>
+					{{ rankData && rankData.xp || 0 }} / {{ divisionXpMaxDisplay }} XP
 				</div>
 			</div>
 			<div v-else>
@@ -44,52 +33,57 @@
 <script setup lang="ts">
 
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
-import { fetchGameModes } from '@/services/gameMode'
 import { useRankStore } from '@/stores/rankStore'
 import type { GameMode } from '@/types/gameMode'
 
-const props = defineProps<{ userId: number }>()
+const props = defineProps<{ userId: number, selectedModeId: number | string, modes?: GameMode[] }>()
 const rankStore = useRankStore()
 const { rankData, loading, error } = storeToRefs(rankStore)
 
-const gameModes = ref<GameMode[]>([])
-const selectedModeId = ref<number|null>(null)
-
-async function loadGameModes() {
-	       const modes = await fetchGameModes()
-	       gameModes.value = modes
-	       if (modes.length > 0 && selectedModeId.value === null) {
-		       selectedModeId.value = modes[0]?.id ?? null
-	       }
-}
-
 async function loadRank() {
-	if (!selectedModeId.value) return
-	rankStore.rankData = null
-	rankStore.error = null
-	rankStore.loading = true
-	await rankStore.fetchRank(props.userId, selectedModeId.value)
+  if (!props.selectedModeId) return
+  rankStore.rankData = null
+  rankStore.error = null
+  rankStore.loading = true
+	await rankStore.fetchRank(props.userId, typeof props.selectedModeId === 'string' ? Number(props.selectedModeId) : props.selectedModeId)
 }
 
 onMounted(async () => {
-	await loadGameModes()
-	await loadRank()
+  await loadRank()
 })
 watch(() => props.userId, loadRank)
-watch(selectedModeId, loadRank)
+watch(() => props.selectedModeId, loadRank)
 
 const divisionXpMax = computed(() => {
 	if (!rankData.value || rankData.value.rank === 'Unranked') return 0
 	const rd = rankData.value
+	if (!rd.nextDivision && rd.xpToNext === 0 && rd.xpInDivision !== null && rd.xpInDivision >= 0) {
+		return (rd.xpInDivision ?? 0)
+	}
 	return ((rd.nextDivisionMinXp ?? rd.xp) as number) - ((rd.xp as number) - (rd.xpInDivision ?? 0))
 })
 
-const xpPercent = computed(() => {
-	if (!rankData.value || rankData.value.rank === 'Unranked' || !divisionXpMax.value) return 0
+const divisionXpMaxDisplay = computed(() => {
+	if (!rankData.value || rankData.value.rank === 'Unranked') return 0
 	const rd = rankData.value
-	return Math.round(100 * (rd.xpInDivision ?? 0) / divisionXpMax.value)
+	return rd.divisionMaxXp ?? 0
+})
+
+const xpPercent = computed(() => {
+	if (!rankData.value || rankData.value.rank === 'Unranked' || !divisionXpMax.value) {
+		console.log('DEBUG xpPercent: Pas de données ou Unranked ou divisionXpMax=0', rankData.value, divisionXpMax.value)
+		return 0
+	}
+	const rd = rankData.value
+	const percent = Math.round(100 * (rd.xpInDivision ?? 0) / (divisionXpMax.value || 1))
+	console.log('DEBUG xpPercent:', {
+		xpInDivision: rd.xpInDivision,
+		divisionXpMax: divisionXpMax.value,
+		percent
+	})
+	return Math.max(0, Math.min(100, percent))
 })
 </script>
 
@@ -145,7 +139,7 @@ const xpPercent = computed(() => {
 }
 .xp-bar-inner {
 	height: 100%;
-	background: linear-gradient(90deg, #4caf50 60%, #8bc34a 100%);
+	background: #f28b5b !important;
 	border-radius: 8px 0 0 8px;
 	transition: width 0.3s;
 }

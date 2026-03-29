@@ -2,14 +2,6 @@
   <div class="mmr-card">
     <div class="mmr-header">
       <h2>MMR <strong>{{ mmr }}</strong></h2>
-      <div class="mmr-mode-selector">
-        <ModeSelector
-          v-if="modes && modes.length"
-          :modes="modes"
-          :model-value="selectedModeId"
-          @update:modelValue="onModeChange"
-        />
-      </div>
     </div>
     <div class="mmr-graph">
       <LineChart :data="chartData" :options="chartOptions" />
@@ -27,7 +19,6 @@ import { Line } from 'vue-chartjs'
 import type { GameMode } from '@/types/gameMode'
 import type { MMRHistory } from '@/types/mmr'
 
-import ModeSelector from './ModeSelector.vue'
 Chart.register(...registerables)
 
 const props = defineProps({
@@ -36,11 +27,6 @@ const props = defineProps({
   modes: { type: Array as () => GameMode[], required: false, default: () => [] },
   selectedModeId: { type: [Number, String], required: false, default: 1 },
 })
-const emit = defineEmits(['update:selectedModeId'])
-
-function onModeChange(val: number | string) {
-  emit('update:selectedModeId', val)
-}
 
 const chartData = computed(() => ({
   labels: props.history.map((h: MMRHistory) => h.date),
