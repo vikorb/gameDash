@@ -252,25 +252,6 @@ router.post(
       return res.status(200).json({ status: "no_changes", user });
     }
 
-    // Sync PocketBase uniquement si email ou username changent
-    if (user.pocketbase_user_id && user.email && (email || username)) {
-      const currentPassword = parseString(
-        body.currentPassword,
-        "currentPassword",
-        { min: 1, max: 128 },
-      )!;
-      const { token: userToken } = await authPocketbaseUser(
-        user.email,
-        currentPassword,
-      );
-
-      const pbBody: Record<string, string> = {};
-      if (email) pbBody.email = email;
-      if (username) pbBody.username = username;
-
-      await updatePocketbaseUser(user.pocketbase_user_id, pbBody, userToken);
-    }
-
     const updatedRows = (await db<UserRow>("users")
       .where("id", id)
       .update({ ...updates, updated_at: db.fn.now() })
@@ -399,6 +380,57 @@ router.post(
     );
 
     return res.status(200).json({ status: "password_updated" });
+  }),
+);
+
+router.post(
+  "/:id/delete",
+  asyncHandler(async (req, res) => {
+    const id = parseParamId(req.params.id);
+
+    const user = await db<UserRow>("users").where("id", id).first();
+    if (!user) {
+      throw notFound("Utilisateur introuvable", "USER_NOT_FOUND", { id });
+    }
+
+    if (!user.pocketbase_user_id) {
+      throw badRequest("Pas de compte PocketBase lié", "NO_POCKETBASE_ACCOUNT");
+    }
+
+    if (!user.email) {
+      throw badRequest("Email manquant sur ce compte", "MISSING_EMAIL");
+    }
+
+    const body: unknown = req.body;
+    if (!isRecord(body)) {
+      throw badRequest("Invalid payload", "VALIDATION_ERROR");
+    }
+
+    const currentPassword = parseString(
+      body.currentPassword,
+      "currentPassword",
+      { min: 1, max: 128 },
+    )!;
+
+    await authPocketbaseUser(user.email, currentPassword);
+
+    if (user.deleted_at) {
+      return res.status(200).json({ status: "already_deleted", user });
+    }
+
+    const updatedRows = (await db<UserRow>("users")
+      .where("id", id)
+      .update({
+        status: 0,
+        deleted_at: db.fn.now(),
+        updated_at: db.fn.now(),
+      })
+      .returning("*")) as UserRow[];
+
+    return res.status(200).json({
+      status: "deleted",
+      user: updatedRows[0],
+    });
   }),
 );
 

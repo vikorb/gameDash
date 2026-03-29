@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 import api from '@/api'
-import { type AsyncState,run } from '@/stores/helpers/storeAsync'
+import { type AsyncState, run } from '@/stores/helpers/storeAsync'
 
 export type UserRole = 'player' | 'admin' | 'moderator'
 
@@ -11,7 +11,7 @@ export type UserProfile = {
   username: string | null
   email: string | null
   role: UserRole
-  status: string
+  status: number
   is_banned: boolean
   region: string | null
   bio: string | null
@@ -24,7 +24,7 @@ export type UserSyncPayload = {
   username?: string
   email?: string
   role?: string
-  status?: string
+  status?: number | string
   is_banned?: boolean
   region?: string
   bio?: string

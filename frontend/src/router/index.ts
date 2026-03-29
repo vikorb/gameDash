@@ -8,7 +8,7 @@ import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
 import MapFormView from '@/views/MapFormView.vue'
 import MapsListView from '@/views/MapsListView.vue'
-import ProfilView from '@/views/profil/ProfilView.vue'
+import ProfilView from '@/views/profile/ProfileView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
   if (!allowedRoles || allowedRoles.length === 0) return true

@@ -1,0 +1,104 @@
+{
+  "profile": {
+    "hero": {
+      "kicker": "Mon profil",
+      "title": "Bonjour {username}",
+      "subtitle": "Gère tes informations, ton avatar et ton mot de passe depuis cet espace.",
+      "avatarAlt": "Avatar du profil"
+    },
+    "sections": {
+      "profile": {
+        "title": "Informations du profil",
+        "subtitle": "Modifie les informations principales de ton compte."
+      },
+      "avatar": {
+        "title": "Avatar",
+        "subtitle": "Choisis une image pour personnaliser ton profil."
+      },
+      "security": {
+        "title": "Sécurité",
+        "subtitle": "Pour le rendu, le changement de mot de passe peut fonctionner en mode démo si l’API ne répond pas."
+      },
+      "delete": {
+        "title": "Suppression du profil",
+        "subtitle": "Cette action désactive ton compte et marque le profil comme supprimé."
+      }
+    },
+    "delete": {
+      "description": "Pour supprimer ton profil, saisis ton mot de passe actuel puis confirme l’action.",
+      "currentPassword": "Mot de passe actuel",
+      "currentPasswordPlaceholder": "Saisis ton mot de passe pour confirmer",
+      "submit": "Supprimer mon profil",
+      "confirmPopup": "Es-tu sûr de vouloir supprimer ton profil ? Cette action va désactiver ton compte."
+    },
+    "form": {
+      "username": "Nom d’utilisateur",
+      "email": "Email",
+      "region": "Région",
+      "regionPlaceholder": "Ex : Île-de-France",
+      "language": "Langue",
+      "languagePlaceholder": "Ex : fr",
+      "status": "Statut",
+      "role": "Rôle",
+      "bio": "Bio",
+      "bioPlaceholder": "Parle un peu de toi...",
+      "matchmaking": "Matchmaking (JSON)",
+      "matchmakingPlaceholder": "Ex : mode=ranked, platform=pc",
+      "submit": "Enregistrer le profil"
+    },
+    "password": {
+      "currentPassword": "Mot de passe actuel",
+      "currentPasswordPlaceholder": "Ton mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "Minimum 8 caractères",
+      "confirmPassword": "Confirmation",
+      "confirmPasswordPlaceholder": "Retape le mot de passe",
+      "submit": "Changer le mot de passe"
+    },
+    "avatar": {
+      "previewAlt": "Aperçu avatar",
+      "noFile": "Aucune nouvelle image sélectionnée",
+      "choose": "Choisir une image",
+      "save": "Enregistrer l’avatar"
+    },
+    "status": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "banned": "Banni",
+      "deleted": "Supprimé"
+    },
+    "states": {
+      "loading": "Chargement du profil..."
+    },
+    "common": {
+      "saving": "Enregistrement...",
+      "updating": "Mise à jour...",
+      "cancel": "Annuler",
+      "deleting": "Suppression..."
+    },
+    "notices": {
+      "profileUpdated": "Profil mis à jour avec succès.",
+      "avatarUpdated": "Avatar mis à jour avec succès.",
+      "avatarUpdatedDemo": "Avatar mis à jour.",
+      "passwordUpdated": "Mot de passe mis à jour avec succès.",
+      "passwordUpdatedDemo": "Mot de passe mis à jour.",
+      "profileDeleted": "Profil supprimé avec succès."
+    },
+    "errors": {
+      "load": "Impossible de charger le profil.",
+      "profileUpdate": "Impossible de mettre à jour le profil.",
+      "avatarUpdate": "Impossible de mettre à jour l’avatar.",
+      "passwordUpdate": "Impossible de mettre à jour le mot de passe.",
+      "sessionNotFound": "Impossible de retrouver l’utilisateur connecté.",
+      "invalidMatchmakingJson": "Le champ matchmaking doit contenir un JSON valide.",
+      "fileRead": "Impossible de lire le fichier.",
+      "usernameRequired": "Le nom d’utilisateur est requis.",
+      "emailRequired": "L’email est requis.",
+      "passwordCurrentRequired": "Le mot de passe actuel est requis.",
+      "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+      "passwordConfirmMismatch": "La confirmation du mot de passe ne correspond pas.",
+      "profileDelete": "Impossible de supprimer le profil.",
+      "deletePasswordRequired": "Le mot de passe actuel est requis pour supprimer le profil."
+    }
+  }
+}
