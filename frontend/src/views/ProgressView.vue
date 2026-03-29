@@ -1,4 +1,3 @@
-
 <template>
   <div class="progress-view" v-if="user">
     <h1>Progression de {{ user.username }}</h1>
@@ -12,10 +11,7 @@
         :selectedModeId="selectedModeId"
         @update:selectedModeId="handleModeChange"
       />
-      <div class="progress-section">
-        <h3>Autres progressions</h3>
-        <p>À venir : statistiques, succès, etc.</p>
-      </div>
+      <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" />
     </div>
     <div v-else>
       <p>Veuillez vous connecter pour voir votre progression.</p>
@@ -25,20 +21,25 @@
 
 
 <script setup lang="ts">
-import { computed,onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { fetchGameModes } from '@/services/gameMode'
 import type { AuthUser } from '@/services/pocketbase'
 import { authService } from '@/services/pocketbase'
 import { useMMRStore } from '@/stores/mmrStore'
+import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
 import { formatDate } from '@/utils/date'
 import CardMMR from '@/views/progress/CardMMR.vue'
+import CardRank from '@/views/progress/CardRank.vue'
 
 const user = ref<AuthUser | null>(null)
 const selectedModeId = ref<number | string>(1)
 const modes = ref<GameMode[]>([])
 const mmrStore = useMMRStore()
+const userStore = useUserStore()
+
+const postgresUserId = computed(() => userStore.profile?.id)
 
 const mmrHistory = computed(() => {
   if (!mmrStore.mmrData) return []
@@ -78,8 +79,15 @@ onMounted(async () => {
   const pbUser = authService.getUser()
   if (!pbUser) return
   user.value = pbUser
+  await userStore.hydrateFromSession(pbUser.id)
   await loadModes()
   await mmrStore.fetchMMR(pbUser.id, Number(selectedModeId.value))
+})
+
+watch(() => user.value?.id, async (newId: string | undefined) => {
+  if (newId) {
+    await userStore.hydrateFromSession(newId)
+  }
 })
 </script>
 

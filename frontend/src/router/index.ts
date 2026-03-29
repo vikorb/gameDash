@@ -30,6 +30,12 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
+      path: '/home/progress',
+      name: 'progress-home',
+      component: () => import('@/views/ProgressView.vue'),
+      meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
+    },
+    {
       path: '/home/tasks',
       name: 'tasks-home',
       component: RoleSectionView,

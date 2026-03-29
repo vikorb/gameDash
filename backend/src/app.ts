@@ -4,6 +4,7 @@ import cors from 'cors';
 import mapsRoutes from '@/routes/maps';
 import usersRoutes from '@/routes/users';
 import mmrRoutes from '@/routes/mmr';
+import ranksRoutes from '@/routes/ranks';
 import gameModesRoutes from '@/routes/game-modes';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { notFound } from '@/middlewares/notFound';
@@ -19,6 +20,7 @@ app.use('/api/maps', mapsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/mmr', mmrRoutes);
 app.use('/api/game-modes', gameModesRoutes);
+app.use('/api/ranks', ranksRoutes);
 
 app.get(
   '/api/health',
