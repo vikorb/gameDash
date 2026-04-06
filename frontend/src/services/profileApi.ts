@@ -1,3 +1,5 @@
+import api from '@/api'
+
 export type ProfileUser = {
   id: number
   pocketbase_user_id: string | null
@@ -20,11 +22,6 @@ type UserResponse = {
 
 type AvatarResponse = {
   avatar_url: string | null
-}
-
-type UpdateUserResponse = {
-  status: string
-  user: ProfileUser
 }
 
 type PasswordResponse = {
@@ -87,30 +84,12 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T
 }
 
-export async function getUserProfileById(id: number): Promise<ProfileUser> {
-  const data = await apiFetch<UserResponse>(`/users/${id}`, {
-    method: 'GET',
-  })
-
-  return data.user
-}
-
 export async function getUserProfileByPocketbaseId(pocketbaseUserId: string): Promise<ProfileUser> {
   const data = await apiFetch<UserResponse>(`/users/by-pocketbase/${pocketbaseUserId}`, {
     method: 'GET',
   })
 
   return data.user
-}
-
-export async function updateUserProfile(
-  id: number,
-  payload: Record<string, unknown>,
-): Promise<UpdateUserResponse> {
-  return apiFetch<UpdateUserResponse>(`/users/${id}`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
 }
 
 export async function getUserAvatar(id: number): Promise<string | null> {
@@ -147,4 +126,29 @@ export async function changeUserPassword(
     method: 'POST',
     body: JSON.stringify(payload),
   })
+}
+
+export async function getUserProfileById(userId: number) {
+  const response = await api.get<{ user: ProfileUser }>(`/users/${userId}`)
+  return response.data
+}
+
+export async function updateUserProfile(
+  userId: number,
+  payload: {
+    username: string
+    email: string
+    region?: string
+    bio?: string
+    language?: string
+    status?: number
+    role?: string
+    matchmaking_pref?: unknown
+  },
+) {
+  const response = await api.post<{ status: string; user: ProfileUser }>(
+    `/users/${userId}`,
+    payload,
+  )
+  return response.data
 }

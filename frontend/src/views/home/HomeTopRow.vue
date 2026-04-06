@@ -4,7 +4,7 @@
 
     <PlayerPlayButton
       v-if="showPlayButton"
-      to="/home/progress"
+      to="/progress"
       :label="playLabel"
       :title="playTitle"
       :aria-label="playAria"

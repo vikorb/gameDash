@@ -8,6 +8,8 @@ import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
 import MapFormView from '@/views/MapFormView.vue'
 import MapsListView from '@/views/MapsListView.vue'
+import ModerationUsersView from '@/views/moderation/ModerationUsersView.vue'
+import ModerationView from '@/views/ModerationView.vue'
 import ProfilView from '@/views/profile/ProfileView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
@@ -24,51 +26,75 @@ const router = createRouter({
     { path: '/home', name: 'home', component: HomeView, meta: { requiresAuth: true } },
     { path: '/profil', name: 'profil', component: ProfilView, meta: { requiresAuth: true } },
     {
-      path: '/home/progress',
+      path: '/progress',
       name: 'progress-home',
       component: RoleSectionView,
       props: { sectionKey: 'progress' },
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
-      path: '/home/tasks',
+      path: '/tasks',
       name: 'tasks-home',
       component: RoleSectionView,
       props: { sectionKey: 'tasks' },
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
-      path: '/home/activities',
+      path: '/activities',
       name: 'activities-home',
       component: RoleSectionView,
       props: { sectionKey: 'activities' },
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/home/shop',
+      path: '/shop',
       name: 'shop-home',
       component: RoleSectionView,
       props: { sectionKey: 'shop' },
       meta: { requiresAuth: true, roles: ['player', 'admin'] as UserRole[] },
     },
     {
-      path: '/home/maps',
+      path: '/maps',
       name: 'maps-list-home',
       component: MapsListView,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/home/maps/new',
+      path: '/maps/new',
       name: 'map-create-home',
       component: MapFormView,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
     {
-      path: '/home/maps/edit/:id',
+      path: '/maps/edit/:id',
       name: 'map-edit-home',
       component: MapFormView,
       props: true,
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
+    },
+    {
+      path: '/moderation',
+      name: 'moderation',
+      component: ModerationView,
+      props: true,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/users',
+      name: 'moderation-users',
+      component: ModerationUsersView,
+      props: true,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/users/:id',
+      name: 'moderation-user-detail',
+      component: ProfilView,
+      props: (route) => ({
+        adminMode: true,
+        userId: Number(route.params.id),
+      }),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
     },
     { path: '/test/:pathMatch(.*)*', redirect: '/home' },
   ],

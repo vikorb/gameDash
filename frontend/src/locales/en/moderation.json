@@ -1,0 +1,124 @@
+{
+  "moderation": {
+    "hero": {
+      "badge": "Admin only",
+      "title": "Moderation center",
+      "subtitle": "Manage users, prepare future moderation areas, and centralize sensitive actions from a single interface.",
+      "primaryAction": "Manage users",
+      "secondaryAction": "Activity log coming soon"
+    },
+    "highlight": {
+      "label": "Priority section",
+      "title": "User moderation",
+      "text": "Quick access to account management, statuses, and administrative actions."
+    },
+    "stats": {
+      "access": {
+        "label": "Access",
+        "value": "Administrators"
+      },
+      "entry": {
+        "label": "Entry point",
+        "value": "Users"
+      }
+    },
+    "sections": {
+      "title": "Moderation spaces",
+      "subtitle": "An organization inspired by modern moderation consoles, with a clear entry point by domain."
+    },
+    "badges": {
+      "available": "Available",
+      "comingSoon": "Coming soon"
+    },
+    "actions": {
+      "open": "Open",
+      "comingSoon": "Coming soon"
+    },
+    "cards": {
+      "users": {
+        "title": "Users",
+        "description": "Manage accounts, review profiles, track statuses, and trigger moderation actions.",
+        "items": {
+          "profiles": "Profiles",
+          "statuses": "Statuses",
+          "actions": "Admin actions"
+        }
+      },
+      "reports": {
+        "title": "Reports",
+        "description": "Group community-submitted reports for priority handling.",
+        "items": {
+          "reports": "Reports",
+          "priorities": "Priorities",
+          "sorting": "Sorting"
+        }
+      },
+      "content": {
+        "title": "Content",
+        "description": "Moderate content created or published on the platform.",
+        "items": {
+          "maps": "Maps",
+          "activities": "Activities",
+          "assets": "Assets"
+        }
+      },
+      "sanctions": {
+        "title": "Sanctions",
+        "description": "Apply and track warnings, suspensions, and bans.",
+        "items": {
+          "warn": "Warn",
+          "suspend": "Suspend",
+          "ban": "Ban"
+        }
+      },
+      "appeals": {
+        "title": "Appeals",
+        "description": "Review disputes and moderation decisions.",
+        "items": {
+          "claims": "Claims",
+          "decisions": "Decisions",
+          "followUp": "Follow-up"
+        }
+      },
+      "audit": {
+        "title": "Audit logs",
+        "description": "Track all sensitive actions performed by administrators.",
+        "items": {
+          "traceability": "Traceability",
+          "history": "History",
+          "security": "Security"
+        }
+      }
+    },
+    "roadmap": {
+      "title": "Recommended structure for later",
+      "subtitle": "These sections are commonly found in complete moderation interfaces.",
+      "cards": {
+        "reports": {
+          "title": "Reports",
+          "description": "Centralize user reports, content reports, and suspicious behavior."
+        },
+        "sanctions": {
+          "title": "Sanctions",
+          "description": "History of warnings, temporary bans, and permanent bans."
+        },
+        "content": {
+          "title": "Content",
+          "description": "Review or remove published items, maps, activities, or shared assets."
+        },
+        "appeals": {
+          "title": "Appeals",
+          "description": "Handle disputes when a user requests a review of a sanction."
+        },
+        "audit": {
+          "title": "Audit logs",
+          "description": "Track admin actions to secure moderation and simplify reviews."
+        },
+        "automation": {
+          "title": "Automatic rules",
+          "description": "Simple detection of accounts to monitor, suspicious content, or abnormal behavior."
+        }
+      }
+    }
+  }
+}

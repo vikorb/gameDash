@@ -99,6 +99,26 @@
       "passwordConfirmMismatch": "La confirmation du mot de passe ne correspond pas.",
       "profileDelete": "Impossible de supprimer le profil.",
       "deletePasswordRequired": "Le mot de passe actuel est requis pour supprimer le profil."
+    },
+    "admin": {
+      "sections": {
+        "moderation": {
+          "title": "Modération utilisateur",
+          "subtitle": "Actions administratives rapides sur ce compte."
+        }
+      },
+      "actions": {
+        "makePlayer": "Passer joueur",
+        "makeModerator": "Passer modérateur",
+        "makeAdmin": "Passer admin",
+        "ban": "Bannir",
+        "unban": "Débannir"
+      },
+      "notices": {
+        "roleUpdated": "Le rôle a bien été mis à jour.",
+        "userBanned": "L'utilisateur a bien été banni.",
+        "userUnbanned": "L'utilisateur a bien été débanni."
+      }
     }
   }
 }

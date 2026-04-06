@@ -32,61 +32,122 @@
           />
         </ProfileCard>
 
-        <ProfileCard>
+        <ProfileCard v-if="isAdminTargetView && user">
           <ProfileSectionHead
-            title-key="profile.sections.avatar.title"
-            subtitle-key="profile.sections.avatar.subtitle"
+            title-key="profile.admin.sections.moderation.title"
+            subtitle-key="profile.admin.sections.moderation.subtitle"
           />
 
-          <ProfileNotice v-if="avatarNotice" :type="avatarNotice.type" :text="avatarNotice.text" />
+          <ProfileNotice v-if="adminNotice" :type="adminNotice.type" :text="adminNotice.text" />
 
-          <ProfileAvatarCard
-            :avatar-url="displayedAvatar"
-            :file-name="avatarFile?.name ?? null"
-            :initial="displayInitial"
-            :has-file="!!avatarFile"
-            :loading="savingAvatar"
-            @change="handleAvatarFileChange"
-            @cancel="handleAvatarCancel"
-            @save="handleAvatarSubmit"
-          />
+          <div class="admin-actions">
+            <button
+              type="button"
+              class="admin-action-btn"
+              :disabled="savingAdminActions"
+              @click="handleAdminRoleQuickChange('player')"
+            >
+              {{ $t('profile.admin.actions.makePlayer') }}
+            </button>
+
+            <button
+              type="button"
+              class="admin-action-btn"
+              :disabled="savingAdminActions"
+              @click="handleAdminRoleQuickChange('moderator')"
+            >
+              {{ $t('profile.admin.actions.makeModerator') }}
+            </button>
+
+            <button
+              type="button"
+              class="admin-action-btn"
+              :disabled="savingAdminActions"
+              @click="handleAdminRoleQuickChange('admin')"
+            >
+              {{ $t('profile.admin.actions.makeAdmin') }}
+            </button>
+
+            <button
+              type="button"
+              class="admin-action-btn admin-action-btn--warn"
+              :disabled="savingAdminActions"
+              @click="handleAdminToggleBan"
+            >
+              {{
+                Number(user.status) === 3
+                  ? $t('profile.admin.actions.unban')
+                  : $t('profile.admin.actions.ban')
+              }}
+            </button>
+          </div>
         </ProfileCard>
 
-        <ProfileCard>
-          <ProfileSectionHead
-            title-key="profile.sections.security.title"
-            subtitle-key="profile.sections.security.subtitle"
-          />
+        <template v-if="canShowSensitiveSections">
+          <ProfileCard>
+            <ProfileSectionHead
+              title-key="profile.sections.avatar.title"
+              subtitle-key="profile.sections.avatar.subtitle"
+            />
 
-          <ProfileNotice
-            v-if="passwordNotice"
-            :type="passwordNotice.type"
-            :text="passwordNotice.text"
-          />
+            <ProfileNotice
+              v-if="avatarNotice"
+              :type="avatarNotice.type"
+              :text="avatarNotice.text"
+            />
 
-          <ProfilePasswordForm
-            :loading="savingPassword"
-            :reset-version="passwordResetVersion"
-            @submit="handlePasswordSubmit"
-            @cancel="handlePasswordCancel"
-          />
-        </ProfileCard>
+            <ProfileAvatarCard
+              :avatar-url="displayedAvatar"
+              :file-name="avatarFile?.name ?? null"
+              :initial="displayInitial"
+              :has-file="!!avatarFile"
+              :loading="savingAvatar"
+              @change="handleAvatarFileChange"
+              @cancel="handleAvatarCancel"
+              @save="handleAvatarSubmit"
+            />
+          </ProfileCard>
 
-        <ProfileCard>
-          <ProfileSectionHead
-            title-key="profile.sections.delete.title"
-            subtitle-key="profile.sections.delete.subtitle"
-          />
+          <ProfileCard>
+            <ProfileSectionHead
+              title-key="profile.sections.security.title"
+              subtitle-key="profile.sections.security.subtitle"
+            />
 
-          <ProfileNotice v-if="deleteNotice" :type="deleteNotice.type" :text="deleteNotice.text" />
+            <ProfileNotice
+              v-if="passwordNotice"
+              :type="passwordNotice.type"
+              :text="passwordNotice.text"
+            />
 
-          <ProfileDeleteSection
-            :loading="savingDelete"
-            :reset-version="deleteResetVersion"
-            @submit="handleDeleteProfile"
-            @cancel="handleDeleteCancel"
-          />
-        </ProfileCard>
+            <ProfilePasswordForm
+              :loading="savingPassword"
+              :reset-version="passwordResetVersion"
+              @submit="handlePasswordSubmit"
+              @cancel="handlePasswordCancel"
+            />
+          </ProfileCard>
+
+          <ProfileCard>
+            <ProfileSectionHead
+              title-key="profile.sections.delete.title"
+              subtitle-key="profile.sections.delete.subtitle"
+            />
+
+            <ProfileNotice
+              v-if="deleteNotice"
+              :type="deleteNotice.type"
+              :text="deleteNotice.text"
+            />
+
+            <ProfileDeleteSection
+              :loading="savingDelete"
+              :reset-version="deleteResetVersion"
+              @submit="handleDeleteProfile"
+              @cancel="handleDeleteCancel"
+            />
+          </ProfileCard>
+        </template>
       </ProfileGrid>
     </div>
   </div>
@@ -94,7 +155,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -105,6 +166,7 @@ import {
   type ProfileUser,
   updateUserProfile,
 } from '@/services/profileApi'
+import { useModerationStore } from '@/stores/moderationStore'
 import { useUserStore } from '@/stores/userStore'
 import ProfileAvatarCard from '@/views/profile/ProfileAvatarCard.vue'
 import ProfileCard from '@/views/profile/ProfileCard.vue'
@@ -142,13 +204,26 @@ type DeleteFormValues = {
   currentPassword: string
 }
 
+const props = withDefaults(
+  defineProps<{
+    adminMode?: boolean
+    userId?: number | null
+  }>(),
+  {
+    adminMode: false,
+    userId: null,
+  },
+)
+
 const deleteResetVersion = ref(0)
 const { t } = useI18n()
 const loading = ref(true)
 const savingProfile = ref(false)
 const savingPassword = ref(false)
+const savingAdminActions = ref(false)
 const loadError = ref('')
 const profileNotice = ref<Notice | null>(null)
+const adminNotice = ref<Notice | null>(null)
 const avatarNotice = ref<Notice | null>(null)
 const passwordNotice = ref<Notice | null>(null)
 const user = ref<ProfileUser | null>(null)
@@ -174,6 +249,9 @@ const profileForm = ref<ProfileFormValues>({
   matchmaking_pref: '',
 })
 
+const isAdminTargetView = computed(() => props.adminMode && typeof props.userId === 'number')
+const canShowSensitiveSections = computed(() => !isAdminTargetView.value)
+
 const displayedAvatar = computed(() => avatarPreview.value || avatarUrl.value || null)
 const displayInitial = computed(() => {
   const value = profileForm.value.username?.trim() || user.value?.username || 'U'
@@ -182,6 +260,10 @@ const displayInitial = computed(() => {
 
 function clearProfileNotice() {
   profileNotice.value = null
+}
+
+function clearAdminNotice() {
+  adminNotice.value = null
 }
 
 function clearAvatarNotice() {
@@ -251,11 +333,30 @@ function handlePasswordCancel() {
   passwordResetVersion.value += 1
 }
 
+const moderationStore = useModerationStore()
+
 async function loadProfile() {
   loading.value = true
   loadError.value = ''
 
   try {
+    if (isAdminTargetView.value && props.userId) {
+      moderationStore.hydrateSelectedUser()
+
+      const selectedUser = moderationStore.selectedUser
+
+      if (!selectedUser || Number(selectedUser.id) !== Number(props.userId)) {
+        throw new Error(t('profile.admin.errors.mockUserNotFound'))
+      }
+
+      user.value = selectedUser as unknown as ProfileUser
+      hydrateProfileForm(user.value)
+      avatarUrl.value = null
+      avatarFile.value = null
+      revokeAvatarPreview()
+      return
+    }
+
     const authUser = authService.getUser()
 
     if (!authUser?.id) {
@@ -313,6 +414,45 @@ async function handleProfileSubmit(values: ProfileFormValues) {
       ? safeJsonParse(values.matchmaking_pref)
       : null
 
+    if (props.adminMode) {
+      await new Promise((resolve) => window.setTimeout(resolve, 160))
+
+      const updatedUser = {
+        ...user.value,
+        username: values.username.trim(),
+        email: values.email.trim(),
+        region: optionalString(values.region) ?? null,
+        bio: values.bio,
+        language: optionalString(values.language) ?? null,
+        status: Number(values.status),
+        role: values.role || user.value.role,
+        matchmaking_pref: matchmakingPref,
+        updated_at: new Date().toISOString(),
+      }
+
+      user.value = updatedUser
+      moderationStore.patchSelectedUser({
+        username: updatedUser.username,
+        email: updatedUser.email,
+        region: updatedUser.region,
+        bio: updatedUser.bio,
+        language: updatedUser.language,
+        status: updatedUser.status as 0 | 1 | 2 | 3,
+        role: updatedUser.role as 'player' | 'admin' | 'moderator',
+        matchmaking_pref: updatedUser.matchmaking_pref,
+        updated_at: updatedUser.updated_at,
+      })
+
+      hydrateProfileForm(updatedUser)
+
+      profileNotice.value = {
+        type: 'success',
+        text: t('profile.notices.profileUpdated'),
+      }
+
+      return
+    }
+
     const response = await updateUserProfile(user.value.id, {
       username: values.username.trim(),
       email: values.email.trim(),
@@ -320,11 +460,16 @@ async function handleProfileSubmit(values: ProfileFormValues) {
       bio: values.bio,
       language: optionalString(values.language),
       status: Number(values.status),
+      role: undefined,
       matchmaking_pref: matchmakingPref,
     })
 
     user.value = response.user
-    userStore.profile = response.user as never
+
+    if (profile.value?.id === response.user.id) {
+      userStore.profile = response.user as never
+    }
+
     hydrateProfileForm(response.user)
 
     profileNotice.value = {
@@ -480,8 +625,92 @@ function handleDeleteCancel() {
   deleteResetVersion.value += 1
 }
 
+async function handleAdminRoleQuickChange(role: 'player' | 'moderator' | 'admin') {
+  if (!user.value) return
+
+  clearAdminNotice()
+  savingAdminActions.value = true
+
+  try {
+    await new Promise((resolve) => window.setTimeout(resolve, 160))
+
+    const nextUser = {
+      ...user.value,
+      role,
+      updated_at: new Date().toISOString(),
+    }
+
+    user.value = nextUser
+    moderationStore.patchSelectedUser({
+      role,
+      updated_at: nextUser.updated_at,
+    })
+    hydrateProfileForm(nextUser)
+
+    adminNotice.value = {
+      type: 'success',
+      text: t('profile.admin.notices.roleUpdated'),
+    }
+  } catch (error) {
+    adminNotice.value = {
+      type: 'error',
+      text: error instanceof Error ? error.message : t('profile.errors.profileUpdate'),
+    }
+  } finally {
+    savingAdminActions.value = false
+  }
+}
+
+async function handleAdminToggleBan() {
+  if (!user.value) return
+
+  clearAdminNotice()
+  savingAdminActions.value = true
+
+  const nextStatus = Number(user.value.status) === 3 ? 2 : 3
+
+  try {
+    await new Promise((resolve) => window.setTimeout(resolve, 160))
+
+    const nextUser = {
+      ...user.value,
+      status: nextStatus,
+      updated_at: new Date().toISOString(),
+    }
+
+    user.value = nextUser
+    moderationStore.patchSelectedUser({
+      status: nextStatus,
+      updated_at: nextUser.updated_at,
+    })
+    hydrateProfileForm(nextUser)
+
+    adminNotice.value = {
+      type: 'success',
+      text:
+        nextStatus === 3
+          ? t('profile.admin.notices.userBanned')
+          : t('profile.admin.notices.userUnbanned'),
+    }
+  } catch (error) {
+    adminNotice.value = {
+      type: 'error',
+      text: error instanceof Error ? error.message : t('profile.errors.profileUpdate'),
+    }
+  } finally {
+    savingAdminActions.value = false
+  }
+}
+
+watch(
+  () => [props.adminMode, props.userId],
+  () => {
+    void loadProfile()
+  },
+)
+
 onMounted(() => {
-  loadProfile()
+  void loadProfile()
 })
 </script>
 
@@ -513,9 +742,52 @@ onMounted(() => {
   color: var(--color-danger);
 }
 
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.admin-action-btn {
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--color-ink);
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.admin-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.admin-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.admin-action-btn--warn {
+  background: rgba(242, 139, 91, 0.14);
+  color: #8a5c1d;
+}
+
 @media (max-width: 720px) {
   .profile-page {
     padding: 1rem 0.9rem 2rem;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+  }
+
+  .admin-action-btn {
+    width: 100%;
   }
 }
 </style>

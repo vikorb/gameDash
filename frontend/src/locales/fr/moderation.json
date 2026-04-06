@@ -1,0 +1,124 @@
+{
+  "moderation": {
+    "hero": {
+      "badge": "Admin only",
+      "title": "Centre de modération",
+      "subtitle": "Gérez les utilisateurs, préparez les futures sections de modération et centralisez les actions sensibles depuis une seule interface.",
+      "primaryAction": "Gérer les utilisateurs",
+      "secondaryAction": "Journal d’activité bientôt disponible"
+    },
+    "highlight": {
+      "label": "Section prioritaire",
+      "title": "Modération des utilisateurs",
+      "text": "Accès rapide à la gestion des comptes, statuts et actions administratives."
+    },
+    "stats": {
+      "access": {
+        "label": "Accès",
+        "value": "Administrateurs"
+      },
+      "entry": {
+        "label": "Point d’entrée",
+        "value": "Users"
+      }
+    },
+    "sections": {
+      "title": "Espaces de modération",
+      "subtitle": "Une organisation inspirée des consoles de modération modernes, avec une entrée claire par domaine."
+    },
+    "badges": {
+      "available": "Disponible",
+      "comingSoon": "Bientôt"
+    },
+    "actions": {
+      "open": "Ouvrir",
+      "comingSoon": "Bientôt disponible"
+    },
+    "cards": {
+      "users": {
+        "title": "Utilisateurs",
+        "description": "Gérer les comptes, consulter les profils, suivre les statuts et déclencher des actions de modération.",
+        "items": {
+          "profiles": "Profils",
+          "statuses": "Statuts",
+          "actions": "Actions admin"
+        }
+      },
+      "reports": {
+        "title": "Signalements",
+        "description": "Regrouper les reports envoyés par la communauté pour traitement prioritaire.",
+        "items": {
+          "reports": "Reports",
+          "priorities": "Priorités",
+          "sorting": "Tri"
+        }
+      },
+      "content": {
+        "title": "Contenus",
+        "description": "Modérer les contenus créés ou publiés dans la plateforme.",
+        "items": {
+          "maps": "Maps",
+          "activities": "Activités",
+          "assets": "Assets"
+        }
+      },
+      "sanctions": {
+        "title": "Sanctions",
+        "description": "Appliquer et historiser les avertissements, suspensions et bannissements.",
+        "items": {
+          "warn": "Warn",
+          "suspend": "Suspendre",
+          "ban": "Bannir"
+        }
+      },
+      "appeals": {
+        "title": "Appels",
+        "description": "Permettre la revue des contestations et décisions de modération.",
+        "items": {
+          "claims": "Réclamations",
+          "decisions": "Décisions",
+          "followUp": "Suivi"
+        }
+      },
+      "audit": {
+        "title": "Audit logs",
+        "description": "Tracer toutes les actions sensibles réalisées par les administrateurs.",
+        "items": {
+          "traceability": "Traçabilité",
+          "history": "Historique",
+          "security": "Sécurité"
+        }
+      }
+    },
+    "roadmap": {
+      "title": "Structure recommandée pour la suite",
+      "subtitle": "Ces sections sont souvent présentes dans les interfaces de modération complètes.",
+      "cards": {
+        "reports": {
+          "title": "Signalements",
+          "description": "Centraliser les reports utilisateurs, contenus et comportements suspects."
+        },
+        "sanctions": {
+          "title": "Sanctions",
+          "description": "Historique des avertissements, bannissements temporaires et bannissements définitifs."
+        },
+        "content": {
+          "title": "Contenus",
+          "description": "Validation ou suppression des éléments publiés, maps, activités ou assets partagés."
+        },
+        "appeals": {
+          "title": "Appels",
+          "description": "Gestion des contestations lorsqu’un utilisateur demande la révision d’une sanction."
+        },
+        "audit": {
+          "title": "Logs d’audit",
+          "description": "Traçabilité des actions admin pour sécuriser la modération et faciliter les revues."
+        },
+        "automation": {
+          "title": "Règles automatiques",
+          "description": "Détection simple de comptes à surveiller, contenus suspects ou comportements anormaux."
+        }
+      }
+    }
+  }
+}

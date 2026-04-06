@@ -32,7 +32,7 @@
 
       <button type="button" class="base-nav__action" aria-label="Sign out" @click="handleLogout">
         <svg viewBox="0 0 24 24" role="img" focusable="false">
-          <path d="M12 2v10M6.2 4.9A8 8 0 1 0 17.8 4.9" />
+          <path :d="mdiLogout" />
         </svg>
       </button>
     </template>
@@ -40,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { mdiChartTimelineVariant, mdiFormatListChecks, mdiHome, mdiLogout, mdiStore } from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -69,10 +70,10 @@ const statusLabel = computed(() => {
 })
 
 const items = computed<NavItem[]>(() => [
-  { label: t('nav.home'), to: '/home', exact: true, icon: 'home' },
-  { label: t('nav.progress'), to: '/home/progress', icon: 'progress' },
-  { label: t('nav.tasks'), to: '/home/tasks', icon: 'tasks' },
-  { label: t('nav.shop'), to: '/home/shop', icon: 'shop' },
+  { label: t('nav.home'), to: '/home', exact: true, icon: mdiHome },
+  { label: t('nav.progress'), to: '/progress', icon: mdiChartTimelineVariant },
+  { label: t('nav.tasks'), to: '/tasks', icon: mdiFormatListChecks },
+  { label: t('nav.shop'), to: '/shop', icon: mdiStore },
 ])
 
 const langOptions = computed<LangOption<SupportedLocale>[]>(() => [
