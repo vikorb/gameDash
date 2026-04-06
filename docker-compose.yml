@@ -3,17 +3,19 @@ services:
     image: postgres:15-alpine
     container_name: gamedash_db
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: gameDash
-      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+    volumes:
+      - gamedash_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d gameDash"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   pocketbase:
     build: ./pocketbase
@@ -23,9 +25,9 @@ services:
     volumes:
       - pocketbase_data:/pb_data
     environment:
-      POCKETBASE_ADMIN_EMAIL: admin@example.com
-      POCKETBASE_ADMIN_PASSWORD: admin123456
-      POCKETBASE_ENCRYPTION_KEY: k8mP9xR2vL5wN7qT4yU6hJ3nB8cF1dG0sA9eZ7iO5pM2
+      POCKETBASE_ADMIN_EMAIL: ${POCKETBASE_ADMIN_EMAIL}
+      POCKETBASE_ADMIN_PASSWORD: ${POCKETBASE_ADMIN_PASSWORD}
+      POCKETBASE_ENCRYPTION_KEY: ${POCKETBASE_ENCRYPTION_KEY}
     restart: unless-stopped
 
   backend:
@@ -35,9 +37,9 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-      DATABASE_URL: postgres://user:root@db:5432/gameDash
-      PORT: 3000
-      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
     ports:
       - "3000:3000"
     depends_on:
@@ -54,11 +56,12 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://localhost:3000/api
-      VITE_POCKETBASE_URL: http://localhost:8090
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_POCKETBASE_URL: ${VITE_POCKETBASE_URL}
     depends_on:
       - backend
       - pocketbase
 
 volumes:
+  gamedash_db_data:
   pocketbase_data:
