@@ -1,6 +1,7 @@
 import { Router } from "express";
 import db from "@/database";
 import { asyncHandler } from "@/middlewares/asyncHandler";
+import { authenticateUser } from "@/middlewares/authenticateUser";
 import { badRequest, notFound } from "@/utils/httpError";
 import { parseParamId, parseString } from "@/utils/validators";
 import {
@@ -130,6 +131,7 @@ router.post(
 
 router.get(
   "/",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     ensureAdmin(req);
 
@@ -215,14 +217,13 @@ router.get(
       });
     }
 
-    ensureAdminOrSelf(req, user);
-
     return res.status(200).json({ user });
   }),
 );
 
 router.get(
   "/:id",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     const id = parseParamId(req.params.id);
     if (Number.isNaN(id)) {

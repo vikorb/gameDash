@@ -1,4 +1,5 @@
 import api from '@/api'
+import { pb } from '@/services/pocketbase'
 
 export type ProfileUser = {
   id: number
@@ -46,10 +47,13 @@ export async function deleteUserProfile(
 const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace(/\/$/, '')
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = pb.authStore.token
+
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
   })
