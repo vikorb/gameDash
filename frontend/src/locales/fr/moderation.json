@@ -1,9 +1,9 @@
 {
   "moderation": {
     "hero": {
-      "badge": "Admin only",
+      "badge": "Administration",
       "title": "Centre de modération",
-      "subtitle": "Gérez les utilisateurs, préparez les futures sections de modération et centralisez les actions sensibles depuis une seule interface.",
+      "subtitle": "Gérez les utilisateurs, centralisez les actions sensibles et pilotez les espaces de modération depuis une seule interface.",
       "primaryAction": "Gérer les utilisateurs",
       "secondaryAction": "Journal d’activité bientôt disponible"
     },
@@ -19,12 +19,12 @@
       },
       "entry": {
         "label": "Point d’entrée",
-        "value": "Users"
+        "value": "Utilisateurs"
       }
     },
     "sections": {
       "title": "Espaces de modération",
-      "subtitle": "Une organisation inspirée des consoles de modération modernes, avec une entrée claire par domaine."
+      "subtitle": "Une organisation claire et moderne, pensée pour accéder rapidement à chaque domaine de modération."
     },
     "badges": {
       "available": "Disponible",
@@ -46,16 +46,16 @@
       },
       "reports": {
         "title": "Signalements",
-        "description": "Regrouper les reports envoyés par la communauté pour traitement prioritaire.",
+        "description": "Centraliser les signalements envoyés par la communauté et en faciliter le traitement.",
         "items": {
-          "reports": "Reports",
+          "reports": "Signalements",
           "priorities": "Priorités",
           "sorting": "Tri"
         }
       },
       "content": {
         "title": "Contenus",
-        "description": "Modérer les contenus créés ou publiés dans la plateforme.",
+        "description": "Superviser les contenus publiés sur la plateforme et prendre rapidement les décisions nécessaires.",
         "items": {
           "maps": "Maps",
           "activities": "Activités",
@@ -64,16 +64,16 @@
       },
       "sanctions": {
         "title": "Sanctions",
-        "description": "Appliquer et historiser les avertissements, suspensions et bannissements.",
+        "description": "Appliquer, suivre et historiser les avertissements, suspensions et bannissements.",
         "items": {
-          "warn": "Warn",
+          "warn": "Avertir",
           "suspend": "Suspendre",
           "ban": "Bannir"
         }
       },
       "appeals": {
         "title": "Appels",
-        "description": "Permettre la revue des contestations et décisions de modération.",
+        "description": "Traiter les contestations et assurer le suivi des décisions de modération.",
         "items": {
           "claims": "Réclamations",
           "decisions": "Décisions",
@@ -81,43 +81,414 @@
         }
       },
       "audit": {
-        "title": "Audit logs",
-        "description": "Tracer toutes les actions sensibles réalisées par les administrateurs.",
-        "items": {
-          "traceability": "Traçabilité",
-          "history": "Historique",
-          "security": "Sécurité"
-        }
+        "badge": "Audit",
+        "title": "Journal d’activité",
+        "subtitle": "Suivez les actions sensibles, les décisions de modération et les événements récents depuis une vue claire et centralisée.",
+        "side": {
+          "label": "Traçabilité",
+          "title": "Historique des actions",
+          "text": "Consultez rapidement les opérations importantes réalisées dans les différents espaces de modération."
+        },
+        "stats": {
+          "total": "Total",
+          "today": "Dernières 24h",
+          "sanctions": "Sanctions",
+          "content": "Contenus"
+        },
+        "actions": {
+          "backToModeration": "Retour à la modération",
+          "resetFilters": "Réinitialiser les filtres"
+        },
+        "filters": {
+          "title": "Filtres",
+          "subtitle": "Affinez l’affichage du journal selon la ressource, le type d’action ou une recherche libre.",
+          "search": "Rechercher un acteur, une ressource ou une métadonnée",
+          "allActions": "Toutes les actions"
+        },
+        "list": {
+          "title": "Historique d’activité",
+          "subtitle": "Une timeline lisible pour suivre les dernières opérations réalisées."
+        },
+        "card": {
+          "resource": "Ressource :"
+        },
+        "emptyText": "Aucune entrée ne correspond aux filtres sélectionnés."
       }
     },
-    "roadmap": {
-      "title": "Structure recommandée pour la suite",
-      "subtitle": "Ces sections sont souvent présentes dans les interfaces de modération complètes.",
-      "cards": {
-        "reports": {
-          "title": "Signalements",
-          "description": "Centraliser les reports utilisateurs, contenus et comportements suspects."
+    "statuses": {
+      "new": "Nouveau",
+      "investigating": "En cours",
+      "resolved": "Résolu",
+      "dismissed": "Classé sans suite"
+    },
+    "severities": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "critical": "Critique"
+    },
+    "contentStatuses": {
+      "visible": "Visible",
+      "hidden": "Masqué",
+      "review": "À revoir",
+      "restricted": "Restreint"
+    },
+    "contentTypes": {
+      "map": "Carte",
+      "hunt": "Chasse",
+      "comment": "Commentaire",
+      "asset": "Asset"
+    },
+    "sanctionTypes": {
+      "warning": "Avertissement",
+      "temporaryBan": "Ban temporaire",
+      "permanentBan": "Ban permanent",
+      "mute": "Mute"
+    },
+    "sanctionStatuses": {
+      "draft": "Brouillon",
+      "active": "Active",
+      "expired": "Expirée",
+      "revoked": "Révoquée"
+    },
+    "appealStatuses": {
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "rejected": "Refusé",
+      "needsInfo": "Informations demandées"
+    },
+    "resourceTypes": {
+      "report": "Signalement",
+      "content": "Contenu",
+      "sanction": "Sanction",
+      "appeal": "Appel",
+      "user": "Utilisateur"
+    },
+    "auditActions": {
+      "report_assigned": "Signalement assigné",
+      "report_resolved": "Signalement résolu",
+      "content_hidden": "Contenu masqué",
+      "content_restored": "Contenu restauré",
+      "content_review_requested": "Contenu envoyé en revue",
+      "sanction_activated": "Sanction activée",
+      "sanction_revoked": "Sanction révoquée",
+      "appeal_accepted": "Appel accepté",
+      "appeal_rejected": "Appel refusé",
+      "appeal_info_requested": "Informations complémentaires demandées"
+    },
+    "severity": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "critical": "Critique"
+    },
+    "contentOrigins": {
+      "community": "Communauté",
+      "automated": "Automatique",
+      "internal": "Interne"
+    },
+    "pages": {
+      "common": {
+        "results": "résultats",
+        "emptyTitle": "Aucun élément trouvé",
+        "unassigned": "Non assigné",
+        "noEndDate": "Sans fin",
+        "filters": {
+          "allStatuses": "Tous les statuts",
+          "allSeverities": "Toutes les priorités",
+          "allTypes": "Tous les types",
+          "allResources": "Toutes les ressources"
         },
-        "sanctions": {
-          "title": "Sanctions",
-          "description": "Historique des avertissements, bannissements temporaires et bannissements définitifs."
-        },
-        "content": {
-          "title": "Contenus",
-          "description": "Validation ou suppression des éléments publiés, maps, activités ou assets partagés."
-        },
-        "appeals": {
-          "title": "Appels",
-          "description": "Gestion des contestations lorsqu’un utilisateur demande la révision d’une sanction."
-        },
-        "audit": {
-          "title": "Logs d’audit",
-          "description": "Traçabilité des actions admin pour sécuriser la modération et faciliter les revues."
-        },
-        "automation": {
-          "title": "Règles automatiques",
-          "description": "Détection simple de comptes à surveiller, contenus suspects ou comportements anormaux."
+        "actions": {
+          "reset": "Réinitialiser"
         }
+      },
+      "reports": {
+        "badge": "Signalements",
+        "title": "Centre des signalements",
+        "subtitle": "Une vue claire pour prioriser, assigner et clôturer les signalements en quelques clics.",
+        "side": {
+          "label": "Pilotage",
+          "title": "Gestion centralisée",
+          "text": "Retrouvez l’ensemble des signalements dans une interface claire, pensée pour accélérer leur traitement.",
+          "chips": {
+            "fastReview": "Revue rapide",
+            "assignment": "Assignation",
+            "priority": "Priorités"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Signalements présents dans la file",
+          "pending": "Nouveaux",
+          "pendingCaption": "À traiter rapidement",
+          "inProgress": "En cours",
+          "inProgressCaption": "Déjà pris par la modération"
+        },
+        "list": {
+          "title": "Liste des signalements",
+          "subtitle": "Filtre par statut, priorité ou recherche libre."
+        },
+        "filters": {
+          "search": "Rechercher un sujet, une cible, un reporter ou une raison"
+        },
+        "card": {
+          "target": "Cible :",
+          "reporter": "Reporter :",
+          "reason": "Motif :",
+          "assignedTo": "Assigné à :"
+        },
+        "actions": {
+          "assign": "M’assigner",
+          "resolve": "Marquer comme résolu",
+          "open": "Ouvrir",
+          "startReview": "Commencer l'évaluation"
+        },
+        "emptyText": "Aucun signalement ne correspond aux filtres sélectionnés."
+      },
+      "reportDetail": {
+        "badge": "Détail du signalement",
+        "subtitle": "Consultez le dossier, analysez le contexte et prenez une décision de modération.",
+
+        "side": {
+          "label": "Centre de décision",
+          "title": "Traitement du dossier",
+          "text": "Suivez l’état du signalement, ajoutez du contexte interne et centralisez les échanges de modération."
+        },
+
+        "meta": {
+          "status": "Statut",
+          "statusCaption": "État actuel du traitement",
+          "severity": "Sévérité",
+          "severityCaption": "Niveau de priorité du dossier",
+          "assignedTo": "Assigné à",
+          "assignedCaption": "Responsable actuel du suivi",
+          "attachments": "Pièces jointes",
+          "attachmentsCaption": "Images et fichiers liés au dossier"
+        },
+
+        "fields": {
+          "target": "Cible",
+          "targetType": "Type de cible",
+          "reporter": "Auteur du signalement",
+          "reason": "Motif",
+          "createdAt": "Créé le",
+          "updatedAt": "Dernière mise à jour",
+          "summary": "Résumé",
+          "evidence": "Éléments fournis",
+          "attachments": "Pièces jointes",
+          "images": "Images",
+          "files": "Fichiers"
+        },
+
+        "cards": {
+          "overview": "Vue d’ensemble",
+          "overviewSubtitle": "Informations principales du signalement et contexte initial.",
+          "actions": "Actions de modération",
+          "actionsSubtitle": "Assignez le dossier et faites avancer son traitement.",
+          "reply": "Réponse",
+          "replySubtitle": "Envoyez une réponse visible dans le fil du signalement.",
+          "internalNotes": "Notes internes",
+          "internalNotesSubtitle": "Ajoutez des commentaires réservés à l’équipe de modération.",
+          "activity": "Historique d’activité",
+          "activitySubtitle": "Chronologie des actions effectuées sur ce dossier.",
+          "attachments": "Pièces jointes",
+          "attachmentsSubtitle": "Ajoutez des images ou documents mock au dossier de modération."
+        },
+
+        "actions": {
+          "backToReports": "Retour aux signalements",
+          "applyAssignment": "Assigner",
+          "assignToMe": "M’assigner",
+          "setInvestigating": "Passer en analyse",
+          "resolve": "Résoudre",
+          "dismiss": "Classer sans suite",
+          "reopen": "Rouvrir",
+          "sendReply": "Envoyer la réponse",
+          "addNote": "Ajouter la note",
+          "addAttachment": "Ajouter la pièce jointe",
+          "removeAttachment": "Supprimer",
+          "previewAttachment": "Ouvrir"
+        },
+
+        "placeholders": {
+          "assignee": "Nom du modérateur ou de l’équipe",
+          "reply": "Rédigez une réponse à destination du dossier ou du reporter...",
+          "internalNote": "Ajoutez une note interne visible uniquement par la modération...",
+          "attachmentAsset": "Sélectionner un asset mock",
+          "attachmentDescription": "Description facultative de la pièce jointe"
+        },
+
+        "emptyActivity": "Aucune activité n’a encore été enregistrée sur ce dossier.",
+        "emptyAttachments": "Aucune pièce jointe n’est encore associée à ce dossier.",
+        "notFoundTitle": "Signalement introuvable",
+        "notFoundText": "Le dossier demandé n’existe pas ou n’est plus disponible."
+      },
+      "content": {
+        "badge": "Contenus",
+        "title": "Modération de contenu",
+        "subtitle": "Contrôlez rapidement les cartes, chasses, commentaires et assets avec des actions simples, des filtres puissants et une vue pensée pour la décision.",
+        "side": {
+          "label": "Visibilité",
+          "title": "Décisions de modération",
+          "text": "Consultez les contenus signalés, priorisez les cas sensibles, ajustez leur visibilité et facilitez leur revue depuis une seule interface.",
+          "chips": {
+            "visibility": "Visibilité",
+            "review": "Revue",
+            "quickActions": "Actions rapides"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Éléments surveillés",
+          "actionable": "À traiter",
+          "actionableCaption": "Demandent une action ou une revue",
+          "review": "À revoir",
+          "reviewCaption": "Nécessitent une décision",
+          "hidden": "Masqués",
+          "hiddenCaption": "Temporairement retirés",
+          "highPriority": "Priorité haute",
+          "highPriorityCaption": "Cas sensibles ou urgents"
+        },
+        "list": {
+          "title": "Bibliothèque sous revue",
+          "subtitle": "Une vue claire pour filtrer, prioriser et prendre des décisions rapidement.",
+          "filtered": "{count} filtre(s) actif(s)"
+        },
+        "filters": {
+          "search": "Rechercher un titre, un auteur, une catégorie, un tag ou une note",
+          "allSeverities": "Toutes les sévérités",
+          "allOrigins": "Toutes les origines",
+          "sortUpdatedDesc": "Tri : activité récente",
+          "sortCreatedDesc": "Tri : création récente",
+          "sortFlagsDesc": "Tri : le plus signalé",
+          "sortSeverityDesc": "Tri : sévérité"
+        },
+        "card": {
+          "author": "Auteur :",
+          "category": "Catégorie :",
+          "flags": "Signalements :",
+          "reports": "Rapports :",
+          "lastAction": "Dernière action :",
+          "lastActionFallback": "Aucune action récente",
+          "lastActionValue": "{actor} · {date}",
+          "note": "Note de modération"
+        },
+        "actions": {
+          "backToModeration": "Retour à la modération",
+          "resetFilters": "Réinitialiser les filtres",
+          "review": "Mettre en revue",
+          "inReview": "Déjà en revue",
+          "hide": "Masquer",
+          "restore": "Restaurer"
+        },
+        "emptyText": "Aucun contenu ne correspond aux filtres sélectionnés."
+      },
+      "sanctions": {
+        "badge": "Sanctions",
+        "title": "Gestion des sanctions",
+        "subtitle": "Activez, révoquez et consultez les sanctions appliquées aux utilisateurs dans un flux clair et structuré.",
+        "side": {
+          "label": "Décisions",
+          "title": "Suivi des sanctions",
+          "text": "Gardez une vision claire des sanctions en brouillon, actives, expirées ou révoquées.",
+          "chips": {
+            "active": "Actives",
+            "draft": "Brouillons",
+            "revoke": "Révocation"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Sanctions listées",
+          "active": "Actives",
+          "activeCaption": "Mesures actuellement appliquées",
+          "draft": "Brouillons",
+          "draftCaption": "En attente de validation"
+        },
+        "list": {
+          "title": "Registre des sanctions",
+          "subtitle": "Filtre par type ou statut pour retrouver rapidement une décision."
+        },
+        "filters": {
+          "search": "Rechercher un joueur, un motif, un modérateur ou une note"
+        },
+        "card": {
+          "moderator": "Par :",
+          "reason": "Motif :",
+          "start": "Début :"
+        },
+        "actions": {
+          "activate": "Activer la sanction",
+          "revoke": "Révoquer"
+        },
+        "emptyText": "Aucune sanction ne correspond aux filtres sélectionnés."
+      },
+      "appeals": {
+        "badge": "Appels",
+        "title": "Gestion des appels",
+        "subtitle": "Un espace clair pour traiter les contestations, demander des compléments et notifier une décision.",
+        "side": {
+          "label": "Réexamen",
+          "title": "Suivi des contestations",
+          "text": "Traitez les demandes de révision avec une interface lisible, structurée et adaptée au suivi des décisions.",
+          "chips": {
+            "pending": "En attente",
+            "context": "Contexte",
+            "decision": "Décision"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Appels enregistrés",
+          "pending": "En attente",
+          "pendingCaption": "À traiter en priorité",
+          "needsInfo": "Informations demandées",
+          "needsInfoCaption": "Nécessitent un retour du joueur"
+        },
+        "list": {
+          "title": "Boîte de réception des appels",
+          "subtitle": "Retrouve facilement les demandes et prends une décision cohérente."
+        },
+        "filters": {
+          "search": "Rechercher un joueur, un message ou une note"
+        },
+        "card": {
+          "sanction": "Sanction :",
+          "note": "Note :"
+        },
+        "actions": {
+          "requestInfo": "Demander plus d’infos",
+          "reject": "Refuser",
+          "accept": "Accepter"
+        },
+        "emptyText": "Aucun appel ne correspond aux filtres sélectionnés."
+      },
+      "audit": {
+        "badge": "Audit",
+        "title": "Journal d’audit",
+        "subtitle": "Une timeline claire pour suivre les actions de modération et renforcer la traçabilité administrative.",
+        "side": {
+          "label": "Traçabilité",
+          "title": "Historique des actions",
+          "text": "Consultez les actions sensibles réalisées dans les différents espaces de modération.",
+          "chips": {
+            "traceability": "Traçabilité",
+            "history": "Historique",
+            "security": "Sécurité"
+          }
+        },
+        "list": {
+          "title": "Historique d’activité",
+          "subtitle": "Filtre par ressource ou recherche un acteur, un identifiant ou une cible."
+        },
+        "filters": {
+          "search": "Rechercher un acteur, une ressource ou une métadonnée"
+        },
+        "card": {
+          "resource": "Ressource :"
+        },
+        "emptyText": "Aucune entrée d’audit ne correspond aux filtres sélectionnés."
       }
     }
   }

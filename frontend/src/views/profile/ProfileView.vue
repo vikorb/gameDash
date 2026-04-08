@@ -166,7 +166,7 @@ import {
   type ProfileUser,
   updateUserProfile,
 } from '@/services/profileApi'
-import { useModerationStore } from '@/stores/moderationStore'
+import { useModerationUsersStore } from '@/stores/moderation'
 import { useUserStore } from '@/stores/userStore'
 import ProfileAvatarCard from '@/views/profile/ProfileAvatarCard.vue'
 import ProfileCard from '@/views/profile/ProfileCard.vue'
@@ -333,7 +333,7 @@ function handlePasswordCancel() {
   passwordResetVersion.value += 1
 }
 
-const moderationStore = useModerationStore()
+const moderationStore = useModerationUsersStore()
 
 async function loadProfile() {
   loading.value = true

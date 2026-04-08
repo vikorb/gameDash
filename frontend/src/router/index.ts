@@ -96,6 +96,45 @@ const router = createRouter({
       }),
       meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
     },
+    {
+      path: '/moderation/reports',
+      name: 'moderation-reports',
+      component: () => import('@/views/moderation/report/ModerationReportsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/reports/:id',
+      name: 'moderation-report-detail',
+      component: () => import('@/views/moderation/report/ModerationReportDetailView.vue'),
+      props: (route) => ({
+        id: String(route.params.id),
+      }),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/content',
+      name: 'moderation-content',
+      component: () => import('@/views/moderation/ModerationContentView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/sanctions',
+      name: 'moderation-sanctions',
+      component: () => import('@/views/moderation/ModerationSanctionsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/appeals',
+      name: 'moderation-appeals',
+      component: () => import('@/views/moderation/ModerationAppealsView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/audit',
+      name: 'moderation-audit',
+      component: () => import('@/views/moderation/ModerationAuditView.vue'),
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
     { path: '/test/:pathMatch(.*)*', redirect: '/home' },
   ],
 })

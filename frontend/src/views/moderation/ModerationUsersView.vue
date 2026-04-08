@@ -11,6 +11,14 @@
         </div>
 
         <div class="page-header__actions">
+          <button
+            type="button"
+            class="toolbar-btn toolbar-btn--primary"
+            @click="goBackToModeration"
+          >
+            {{ t('moderation.cards.audit.actions.backToModeration') }}
+          </button>
+
           <button type="button" class="toolbar-btn toolbar-btn--ghost" @click="resetFilters">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path :d="mdiRefresh" />
@@ -361,7 +369,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import { useModerationStore } from '@/stores/moderationStore'
+import { useModerationUsersStore } from '@/stores/moderation'
 
 type UserRole = 'player' | 'admin' | 'moderator'
 type UserStatus = 0 | 1 | 2 | 3
@@ -819,6 +827,10 @@ async function initPage() {
   await loadUsers()
 }
 
+function goBackToModeration() {
+  router.push('/moderation')
+}
+
 function getSortableValue(user: UserProfile, sortBy: UserSortBy) {
   if (sortBy === 'username') return (user.username ?? '').toLowerCase()
   if (sortBy === 'email') return (user.email ?? '').toLowerCase()
@@ -915,15 +927,24 @@ function formatDate(value: string | null) {
 }
 
 function patchLocalUser(userId: number, payload: Partial<UserProfile>) {
+  const updatedAt = new Date().toISOString()
+
   allUsers.value = allUsers.value.map((user) =>
     user.id === userId
       ? {
           ...user,
           ...payload,
-          updated_at: new Date().toISOString(),
+          updated_at: updatedAt,
         }
       : user,
   )
+
+  if (moderationStore.selectedUser?.id === userId) {
+    moderationStore.patchSelectedUser({
+      ...payload,
+      updated_at: updatedAt,
+    })
+  }
 }
 
 async function runLocalAction(
@@ -972,7 +993,7 @@ async function toggleBan(user: UserProfile) {
   )
 }
 
-const moderationStore = useModerationStore()
+const moderationStore = useModerationUsersStore()
 
 function viewUser(user: UserProfile) {
   moderationStore.setSelectedUser(user)

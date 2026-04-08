@@ -16,7 +16,7 @@
               {{ t('moderation.hero.primaryAction') }}
             </button>
 
-            <button type="button" class="btn btn--ghost" disabled>
+            <button type="button" class="btn btn--ghost" @click="router.push('/moderation/audit')">
               {{ t('moderation.hero.secondaryAction') }}
             </button>
           </div>
@@ -79,10 +79,6 @@
                   <path :d="section.icon" />
                 </svg>
               </div>
-
-              <span :class="['section-card__badge', section.soon ? 'is-soon' : 'is-live']">
-                {{ section.badge }}
-              </span>
             </div>
 
             <div class="section-card__body">
@@ -110,47 +106,6 @@
                 {{ t('moderation.actions.comingSoon') }}
               </button>
             </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="roadmap-block">
-        <div class="section-heading">
-          <h2 class="section-heading__title">{{ t('moderation.roadmap.title') }}</h2>
-          <p class="section-heading__subtitle">
-            {{ t('moderation.roadmap.subtitle') }}
-          </p>
-        </div>
-
-        <div class="roadmap-grid">
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.reports.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.reports.description') }}</p>
-          </article>
-
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.sanctions.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.sanctions.description') }}</p>
-          </article>
-
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.content.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.content.description') }}</p>
-          </article>
-
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.appeals.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.appeals.description') }}</p>
-          </article>
-
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.audit.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.audit.description') }}</p>
-          </article>
-
-          <article class="roadmap-card">
-            <h3>{{ t('moderation.roadmap.cards.automation.title') }}</h3>
-            <p>{{ t('moderation.roadmap.cards.automation.description') }}</p>
           </article>
         </div>
       </section>
@@ -184,7 +139,6 @@ type ModerationSection = {
   title: string
   description: string
   icon: string
-  badge: string
   items: string[]
   to?: string
   soon?: boolean
@@ -197,7 +151,6 @@ const sections = computed<ModerationSection[]>(() => [
     title: t('moderation.cards.users.title'),
     description: t('moderation.cards.users.description'),
     icon: mdiAccountGroup,
-    badge: t('moderation.badges.available'),
     items: [
       t('moderation.cards.users.items.profiles'),
       t('moderation.cards.users.items.statuses'),
@@ -211,72 +164,67 @@ const sections = computed<ModerationSection[]>(() => [
     title: t('moderation.cards.reports.title'),
     description: t('moderation.cards.reports.description'),
     icon: mdiAlertOutline,
-    badge: t('moderation.badges.comingSoon'),
     items: [
       t('moderation.cards.reports.items.reports'),
       t('moderation.cards.reports.items.priorities'),
       t('moderation.cards.reports.items.sorting'),
     ],
-    soon: true,
+    to: '/moderation/reports',
   },
   {
     key: 'content',
     title: t('moderation.cards.content.title'),
     description: t('moderation.cards.content.description'),
     icon: mdiImageSearchOutline,
-    badge: t('moderation.badges.comingSoon'),
     items: [
       t('moderation.cards.content.items.maps'),
       t('moderation.cards.content.items.activities'),
       t('moderation.cards.content.items.assets'),
     ],
-    soon: true,
+    to: '/moderation/content',
   },
   {
     key: 'sanctions',
     title: t('moderation.cards.sanctions.title'),
     description: t('moderation.cards.sanctions.description'),
     icon: mdiGavel,
-    badge: t('moderation.badges.comingSoon'),
     items: [
       t('moderation.cards.sanctions.items.warn'),
       t('moderation.cards.sanctions.items.suspend'),
       t('moderation.cards.sanctions.items.ban'),
     ],
-    soon: true,
+    to: '/moderation/sanctions',
   },
   {
     key: 'appeals',
     title: t('moderation.cards.appeals.title'),
     description: t('moderation.cards.appeals.description'),
     icon: mdiFileDocumentAlertOutline,
-    badge: t('moderation.badges.comingSoon'),
     items: [
       t('moderation.cards.appeals.items.claims'),
       t('moderation.cards.appeals.items.decisions'),
       t('moderation.cards.appeals.items.followUp'),
     ],
-    soon: true,
+    to: '/moderation/appeals',
   },
   {
     key: 'audit',
     title: t('moderation.cards.audit.title'),
     description: t('moderation.cards.audit.description'),
     icon: mdiClipboardAccountOutline,
-    badge: t('moderation.badges.comingSoon'),
     items: [
       t('moderation.cards.audit.items.traceability'),
       t('moderation.cards.audit.items.history'),
       t('moderation.cards.audit.items.security'),
     ],
-    soon: true,
+    to: '/moderation/audit',
   },
 ])
 
 onMounted(() => {
-  const role = profile.value?.role
+  const role = profile.value?.role ?? ''
 
-  if (role !== 'admin') {
+  if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
   }
 })
