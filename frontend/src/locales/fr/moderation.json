@@ -508,50 +508,78 @@
           "pending": "En attente",
           "pendingCaption": "À traiter en priorité",
           "needsInfo": "Informations demandées",
-          "needsInfoCaption": "Nécessitent un retour du joueur"
+          "needsInfoCaption": "Nécessitent un retour du joueur",
+          "decided": "Décidés",
+          "decidedCaption": "Appels déjà tranchés"
         },
         "list": {
           "title": "Boîte de réception des appels",
-          "subtitle": "Retrouve facilement les demandes et prends une décision cohérente."
+          "subtitle": "Retrouve facilement les demandes et prends une décision cohérente.",
+          "filtered": "{count} filtre(s) actif(s)"
         },
         "filters": {
-          "search": "Rechercher un joueur, un message ou une note"
+          "search": "Rechercher un joueur, un message ou une note",
+          "allSanctionTypes": "Toutes les sanctions",
+          "sortPendingFirst": "Tri : à traiter d'abord",
+          "sortNewest": "Tri : plus récents",
+          "sortOldest": "Tri : plus anciens"
         },
         "card": {
           "sanction": "Sanction :",
-          "note": "Note :"
+          "note": "Note :",
+          "submittedAt": "Soumis le :",
+          "decisionLabel": "Décision :"
         },
         "actions": {
           "requestInfo": "Demander plus d’infos",
           "reject": "Refuser",
-          "accept": "Accepter"
+          "accept": "Accepter",
+          "backToModeration": "Retour à la modération",
+          "resetFilters": "Réinitialiser les filtres"
         },
         "emptyText": "Aucun appel ne correspond aux filtres sélectionnés."
       },
       "audit": {
         "badge": "Audit",
         "title": "Journal d’audit",
-        "subtitle": "Une timeline claire pour suivre les actions de modération et renforcer la traçabilité administrative.",
+        "subtitle": "Une vue claire et structurée pour suivre les actions de modération, renforcer la traçabilité et retrouver rapidement les événements sensibles.",
         "side": {
           "label": "Traçabilité",
           "title": "Historique des actions",
-          "text": "Consultez les actions sensibles réalisées dans les différents espaces de modération.",
+          "text": "Consultez les opérations sensibles réalisées dans les différents espaces de modération et suivez leur chronologie dans une interface pensée pour l’analyse.",
           "chips": {
             "traceability": "Traçabilité",
             "history": "Historique",
             "security": "Sécurité"
-          },
-          "actions": {
-            "backToModeration": "Retour à la modération",
-            "resetFilters": "Réinitialiser les filtres"
           }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Événements historisés",
+          "today": "Dernières 24h",
+          "todayCaption": "Activité récente détectée",
+          "sanctions": "Sanctions",
+          "sanctionsCaption": "Actions liées aux mesures disciplinaires",
+          "content": "Contenus",
+          "contentCaption": "Actions liées à la modération des contenus"
+        },
+        "actions": {
+          "backToModeration": "Retour à la modération",
+          "resetFilters": "Réinitialiser les filtres"
+        },
+        "filters": {
+          "title": "Filtres",
+          "subtitle": "Affinez l’affichage du journal selon la ressource, le type d’action ou une recherche libre.",
+          "search": "Rechercher un acteur, une ressource, un identifiant ou une métadonnée",
+          "allActions": "Toutes les actions",
+          "sortNewest": "Tri : plus récents",
+          "sortOldest": "Tri : plus anciens",
+          "sortActor": "Tri : acteur (A-Z)",
+          "filtered": "{count} filtre(s) actif(s)"
         },
         "list": {
           "title": "Historique d’activité",
-          "subtitle": "Filtre par ressource ou recherche un acteur, un identifiant ou une cible."
-        },
-        "filters": {
-          "search": "Rechercher un acteur, une ressource ou une métadonnée"
+          "subtitle": "Parcourez la timeline, retrouvez les opérations récentes et filtrez rapidement par type d’événement."
         },
         "card": {
           "resource": "Ressource :"
