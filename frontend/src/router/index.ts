@@ -120,8 +120,13 @@ const router = createRouter({
     {
       path: '/moderation/sanctions',
       name: 'moderation-sanctions',
-      component: () => import('@/views/moderation/ModerationSanctionsView.vue'),
+      component: () => import('@/views/moderation/sanction/ModerationSanctionsView.vue'),
       meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/moderation/sanctions/:id',
+      name: 'moderationSanctionDetail',
+      component: () => import('@/views/moderation/sanction/ModerationSanctionDetailView.vue'),
     },
     {
       path: '/moderation/appeals',

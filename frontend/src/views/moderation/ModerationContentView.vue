@@ -45,9 +45,7 @@
         </article>
 
         <article class="stat-card">
-          <span class="stat-card__label">{{
-            t('moderation.pages.content.stats.actionable')
-          }}</span>
+          <span class="stat-card__label">{{ t('moderation.pages.content.stats.actionable') }}</span>
           <strong class="stat-card__value">{{ contentSummary.actionableCount }}</strong>
           <div class="stat-card__caption">
             {{ t('moderation.pages.content.stats.actionableCaption') }}
@@ -382,7 +380,7 @@ function resetFilters() {
 }
 
 function goBackToModeration() {
-  void router.push('/home/moderation')
+  void router.push('/moderation')
 }
 
 function getContentStatusLabel(status: ModerationContentStatus) {

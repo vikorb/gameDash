@@ -187,6 +187,13 @@
       "automated": "Automatique",
       "internal": "Interne"
     },
+    "sanctionScopes": {
+      "account": "Compte",
+      "chat": "Chat",
+      "ugc": "UGC",
+      "profile": "Profil",
+      "matchmaking": "Matchmaking"
+    },
     "pages": {
       "common": {
         "results": "résultats",
@@ -387,42 +394,99 @@
       "sanctions": {
         "badge": "Sanctions",
         "title": "Gestion des sanctions",
-        "subtitle": "Activez, révoquez et consultez les sanctions appliquées aux utilisateurs dans un flux clair et structuré.",
+        "subtitle": "Appliquez, suivez et gérez l'ensemble des mesures disciplinaires de la plateforme.",
         "side": {
-          "label": "Décisions",
-          "title": "Suivi des sanctions",
-          "text": "Gardez une vision claire des sanctions en brouillon, actives, expirées ou révoquées.",
+          "label": "Discipline",
+          "title": "Registre des sanctions",
+          "text": "Gérez le cycle de vie des sanctions, de leur préparation en brouillon jusqu'à leur expiration ou révocation.",
           "chips": {
             "active": "Actives",
             "draft": "Brouillons",
-            "revoke": "Révocation"
+            "revoke": "Révoquées"
           }
         },
         "stats": {
           "total": "Total",
-          "totalCaption": "Sanctions listées",
+          "totalCaption": "Sanctions enregistrées",
           "active": "Actives",
-          "activeCaption": "Mesures actuellement appliquées",
+          "activeCaption": "Mesures en cours d'application",
           "draft": "Brouillons",
-          "draftCaption": "En attente de validation"
+          "draftCaption": "En attente de validation",
+          "expiringSoon": "Échéance proche",
+          "expiringSoonCaption": "Sanctions actives qui expirent bientôt"
         },
         "list": {
-          "title": "Registre des sanctions",
-          "subtitle": "Filtre par type ou statut pour retrouver rapidement une décision."
+          "title": "Registre des décisions",
+          "subtitle": "Retrouvez et filtrez toutes les sanctions appliquées aux utilisateurs."
         },
         "filters": {
-          "search": "Rechercher un joueur, un motif, un modérateur ou une note"
+          "search": "Rechercher un utilisateur, un motif ou une note",
+          "allScopes": "Tous les périmètres",
+          "sortUpdated": "Dernière mise à jour",
+          "sortEndingSoon": "Fin la plus proche",
+          "sortSeverity": "Sévérité la plus forte"
         },
         "card": {
-          "moderator": "Par :",
           "reason": "Motif :",
-          "start": "Début :"
+          "moderator": "Modérateur :",
+          "start": "Début :",
+          "policy": "Politique :",
+          "updated": "Mis à jour :",
+          "appeals": "Appels :",
+          "until": "Jusqu’au {date}"
         },
         "actions": {
           "activate": "Activer la sanction",
-          "revoke": "Révoquer"
+          "revoke": "Révoquer",
+          "viewDetails": "Voir le détail",
+          "backToList": "Retour au registre"
         },
-        "emptyText": "Aucune sanction ne correspond aux filtres sélectionnés."
+        "detail": {
+          "badge": "Dossier sanction",
+          "side": {
+            "label": "Décision",
+            "title": "Vue détaillée",
+            "text": "Consultez le motif, le cycle de vie, les éléments associés et l’historique de la mesure."
+          },
+          "summary": {
+            "title": "Synthèse de décision",
+            "subtitle": "Contexte opérationnel et informations de suivi."
+          },
+          "evidence": {
+            "title": "Éléments associés",
+            "subtitle": "Références et indices utiles pour justifier ou revoir la sanction.",
+            "empty": "Aucun élément associé à ce dossier."
+          },
+          "timeline": {
+            "title": "Historique",
+            "subtitle": "Traçabilité des actions menées sur la sanction.",
+            "empty": "Aucune activité n’a encore été enregistrée."
+          },
+          "lifecycle": {
+            "title": "Cycle de vie",
+            "subtitle": "Dates clés et suivi administratif."
+          },
+          "links": {
+            "title": "Liens du dossier",
+            "subtitle": "Rapports et appels liés à cette décision.",
+            "reports": "Rapports liés",
+            "appeals": "Appels ouverts",
+            "none": "Aucun"
+          },
+          "info": {
+            "reason": "Motif",
+            "scope": "Périmètre",
+            "policy": "Politique",
+            "assignedTo": "Assigné à",
+            "createdBy": "Créée par",
+            "createdAt": "Créée le",
+            "updatedAt": "Dernière mise à jour",
+            "startAt": "Prise d’effet",
+            "endAt": "Fin de mesure"
+          },
+          "emptyTitle": "Sanction introuvable",
+          "emptyText": "Le dossier demandé n’existe pas ou n’est plus disponible."
+        }
       },
       "appeals": {
         "badge": "Appels",
@@ -476,6 +540,10 @@
             "traceability": "Traçabilité",
             "history": "Historique",
             "security": "Sécurité"
+          },
+          "actions": {
+            "backToModeration": "Retour à la modération",
+            "resetFilters": "Réinitialiser les filtres"
           }
         },
         "list": {

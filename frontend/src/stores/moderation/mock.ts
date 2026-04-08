@@ -13,6 +13,7 @@ import type {
   ModerationReportTargetType,
   ModerationResourceType,
   ModerationSanction,
+  ModerationSanctionScope,
   ModerationSanctionStatus,
   ModerationSanctionType,
   ModerationSeverity,
@@ -112,10 +113,6 @@ function randomFutureIso() {
     hours: pickIndex(24),
     minutes: pickIndex(60),
   })
-}
-
-function maybeFutureIso(enabled: boolean) {
-  return enabled ? randomFutureIso() : ''
 }
 
 function isoBetween(startIso: string, endIso: string) {
@@ -366,25 +363,56 @@ export function generateContentItems(count: number): ModerationContentItem[] {
   })
 }
 
+const sanctionScopes: ModerationSanctionScope[] = [
+  'account',
+  'chat',
+  'ugc',
+  'profile',
+  'matchmaking',
+]
+
 export function generateSanctions(count: number): ModerationSanction[] {
   const types: ModerationSanctionType[] = ['warning', 'temporaryBan', 'permanentBan', 'mute']
-  const statuses: ModerationSanctionStatus[] = ['draft', 'active', 'expired', 'revoked']
 
   return Array.from({ length: count }, (_, index) => {
     const type = pickOne(types)
-    const status = pickOne(statuses)
-    const hasEndDate = type === 'temporaryBan' || type === 'mute'
+    const status = pickOne(getAllowedSanctionStatuses(type))
+    const targetName = pickOne(playerNames)
+    const createdBy = pickOne(moderatorNames)
+    const assignedTo = status === 'draft' && pickIndex(10) < 4 ? null : pickOne(moderatorNames)
+    const createdAt = randomRecentIso()
+    const startAt = status === 'draft' ? randomFutureIso() : isoBetween(createdAt, nowIso())
+    const endAt = getSanctionEndAt(type, status)
+    const scope = pickOne(sanctionScopes)
 
     return {
       id: `san-${pad(index + 1)}`,
-      targetName: pickOne(playerNames),
+      targetName,
+      targetEmail: `${sanitizeEmailHandle(targetName)}@gamedash.test`,
       type,
       status,
+      severity: getSanctionSeverity(type, status),
+      scope,
       reason: pickOne(sanctionReasons),
-      createdBy: pickOne(moderatorNames),
-      startAt: randomRecentIso(),
-      endAt: maybeFutureIso(hasEndDate && status !== 'revoked'),
+      summary: pickOne(sanctionSummaries),
+      createdBy,
+      assignedTo,
+      createdAt,
+      startAt,
+      endAt,
+      lastUpdatedAt: isoBetween(createdAt, nowIso()),
       note: pickOne(sanctionNotes),
+      policyLabel: pickOne(sanctionPolicies),
+      appealCount: status === 'revoked' ? pickIndex(2) + 1 : pickIndex(3),
+      relatedReportIds: pickManyUnique(reportReferencePool, 1, 3),
+      evidence: buildSanctionEvidence(index, scope),
+      activity: buildSanctionActivity({
+        createdAt,
+        createdBy,
+        assignedTo,
+        status,
+        targetName,
+      }),
     }
   })
 }
@@ -582,4 +610,167 @@ function buildInitialReportActivity(params: {
   }
 
   return items
+}
+
+const sanctionSummaries = [
+  'La sanction a été préparée à partir de plusieurs éléments concordants et nécessite un suivi précis.',
+  'La mesure s’inscrit dans un cadre de modération progressif avec possibilité de réévaluation.',
+  'Le dossier contient des éléments suffisants pour justifier une action et conserver une traçabilité complète.',
+]
+
+const sanctionPolicies = [
+  'Respect des échanges communautaires',
+  'Charte de publication',
+  'Protection des utilisateurs',
+  'Règles de comportement compétitif',
+]
+
+const reportReferencePool = Array.from(
+  { length: MODERATION_MOCK_COUNTS.reports },
+  (_, index) => `rep-${pad(index + 1)}`,
+)
+
+function sanitizeEmailHandle(value: string) {
+  const sanitized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, '.')
+    .replace(/^\.+|\.+$/gu, '')
+
+  return sanitized || 'player'
+}
+
+function getAllowedSanctionStatuses(type: ModerationSanctionType): ModerationSanctionStatus[] {
+  switch (type) {
+    case 'temporaryBan':
+    case 'mute':
+      return ['draft', 'active', 'expired', 'revoked']
+    case 'warning':
+    case 'permanentBan':
+      return ['draft', 'active', 'revoked']
+  }
+}
+
+function getSanctionSeverity(
+  type: ModerationSanctionType,
+  status: ModerationSanctionStatus,
+): ModerationSeverity {
+  if (status === 'revoked') {
+    return pickOne(['low', 'medium'])
+  }
+
+  switch (type) {
+    case 'warning':
+      return pickOne(['low', 'medium'])
+    case 'mute':
+      return pickOne(['medium', 'high'])
+    case 'temporaryBan':
+      return pickOne(['medium', 'high'])
+    case 'permanentBan':
+      return pickOne(['high', 'critical'])
+  }
+}
+
+export function getDefaultSanctionEndAt(type: ModerationSanctionType) {
+  switch (type) {
+    case 'temporaryBan':
+      return isoRelative({ days: 3 + pickIndex(5), hours: pickIndex(12) })
+    case 'mute':
+      return isoRelative({ hours: 12 + pickIndex(72) })
+    default:
+      return ''
+  }
+}
+
+function getSanctionEndAt(type: ModerationSanctionType, status: ModerationSanctionStatus) {
+  if (type !== 'temporaryBan' && type !== 'mute') {
+    return ''
+  }
+
+  switch (status) {
+    case 'draft':
+    case 'active':
+      return getDefaultSanctionEndAt(type)
+    case 'expired':
+      return isoRelative({ days: -(pickIndex(5) + 1), hours: -pickIndex(18) })
+    case 'revoked':
+      return isoRelative({ hours: -(pickIndex(24) + 1), minutes: -pickIndex(60) })
+  }
+}
+
+function buildSanctionEvidence(
+  index: number,
+  scope: ModerationSanctionScope,
+): ModerationSanction['evidence'] {
+  return [
+    {
+      id: createModerationId('sanction-evidence'),
+      label: 'Reference',
+      value: `SAN-${pad(index + 1)}`,
+    },
+    {
+      id: createModerationId('sanction-evidence'),
+      label: 'Scope',
+      value: scope,
+    },
+    {
+      id: createModerationId('sanction-evidence'),
+      label: 'Reports',
+      value: pickOne(reportReferencePool),
+    },
+  ]
+}
+
+function buildSanctionActivity(params: {
+  createdAt: string
+  createdBy: string
+  assignedTo: string | null
+  status: ModerationSanctionStatus
+  targetName: string
+}): ModerationSanction['activity'] {
+  const items: ModerationSanction['activity'] = [
+    {
+      id: createModerationId('sanction-activity'),
+      actor: params.createdBy,
+      message: `Draft created for ${params.targetName}`,
+      createdAt: params.createdAt,
+    },
+  ]
+
+  if (params.assignedTo) {
+    items.push({
+      id: createModerationId('sanction-activity'),
+      actor: 'System',
+      message: `Case assigned to ${params.assignedTo}`,
+      createdAt: isoBetween(params.createdAt, nowIso()),
+    })
+  }
+
+  if (params.status === 'active') {
+    items.push({
+      id: createModerationId('sanction-activity'),
+      actor: params.assignedTo ?? params.createdBy,
+      message: 'Sanction activated',
+      createdAt: isoBetween(params.createdAt, nowIso()),
+    })
+  }
+
+  if (params.status === 'expired') {
+    items.push({
+      id: createModerationId('sanction-activity'),
+      actor: 'System',
+      message: 'Sanction expired automatically',
+      createdAt: isoBetween(params.createdAt, nowIso()),
+    })
+  }
+
+  if (params.status === 'revoked') {
+    items.push({
+      id: createModerationId('sanction-activity'),
+      actor: params.assignedTo ?? params.createdBy,
+      message: 'Sanction revoked',
+      createdAt: isoBetween(params.createdAt, nowIso()),
+    })
+  }
+
+  return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }

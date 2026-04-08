@@ -491,3 +491,135 @@ body {
 .card-action:hover {
   transform: translateY(-1px);
 }
+
+.audit-hero__actions {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.audit-hero__actions--center {
+  justify-content: center;
+}
+
+.btn--ghost {
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(81, 96, 121, 0.18);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--ghost:hover {
+  transform: translateY(-1px);
+}
+
+.toolbar--sanctions {
+  grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(170px, 0.5fr));
+}
+
+.moderation-card--sanction {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-top__end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.detail-grid {
+  margin-top: 1.4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+  gap: 1rem;
+}
+
+.detail-main,
+.detail-side {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.info-card {
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(81, 96, 121, 0.12);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.info-card__label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.info-card__value {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.stack-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.stack-item {
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(81, 96, 121, 0.1);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.stack-item__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.stack-item__value {
+  margin-top: 0.35rem;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.stack-item__value--wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.timeline-card--dense {
+  padding: 0.95rem 1rem;
+}
+
+.empty-state--compact {
+  padding: 1.25rem;
+}
+
+@media (max-width: 1180px) {
+  .toolbar--sanctions,
+  .detail-grid,
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .card-top__end {
+    align-items: flex-start;
+  }
+}

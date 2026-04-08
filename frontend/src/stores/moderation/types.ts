@@ -113,16 +113,43 @@ export type ModerationContentItem = {
   moderationNote: string
 }
 
+export type ModerationSanctionScope = 'account' | 'chat' | 'ugc' | 'profile' | 'matchmaking'
+
+export type ModerationSanctionEvidence = {
+  id: string
+  label: string
+  value: string
+}
+
+export type ModerationSanctionActivity = {
+  id: string
+  actor: string
+  message: string
+  createdAt: string
+}
+
 export type ModerationSanction = {
   id: string
   targetName: string
+  targetEmail: string | null
   type: ModerationSanctionType
   status: ModerationSanctionStatus
+  severity: ModerationSeverity
+  scope: ModerationSanctionScope
   reason: string
+  summary: string
   createdBy: string
+  assignedTo: string | null
+  createdAt: string
   startAt: string
   endAt: string
+  lastUpdatedAt: string
   note: string
+  policyLabel: string
+  appealCount: number
+  relatedReportIds: string[]
+  evidence: ModerationSanctionEvidence[]
+  activity: ModerationSanctionActivity[]
 }
 
 export type ModerationAppeal = {
