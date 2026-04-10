@@ -8,7 +8,10 @@
         <div class="slots">
           <div v-for="i in 4" :key="'my'+i" class="slot" :class="{ empty: !myTeam[i-1], me: myTeam[i-1]?.isMe }">
             <template v-if="myTeam[i-1]">
-              <span class="player-name">{{ myTeam[i-1].name }}</span>
+              <div class="player-info">
+                <span class="player-name">{{ myTeam[i-1].name }}</span>
+                <span class="player-stats">{{ myTeam[i-1].rank }} {{ myTeam[i-1].division }} &bull; {{ myTeam[i-1].mmr }} MMR</span>
+              </div>
             </template>
             <template v-else>
               <span class="waiting-text">Waiting...</span>
@@ -25,7 +28,10 @@
         <div class="slots">
           <div v-for="i in 4" :key="'opp'+i" class="slot" :class="{ empty: !opponentTeam[i-1] }">
             <template v-if="opponentTeam[i-1]">
-              <span class="player-name">{{ opponentTeam[i-1].name }}</span>
+              <div class="player-info">
+                <span class="player-name">{{ opponentTeam[i-1].name }}</span>
+                <span class="player-stats">{{ opponentTeam[i-1].rank }} {{ opponentTeam[i-1].division }} &bull; {{ opponentTeam[i-1].mmr }} MMR</span>
+              </div>
             </template>
             <template v-else>
               <span class="waiting-text">Waiting...</span>
@@ -150,12 +156,25 @@ defineProps<{
   border: 1px dashed rgba(196, 198, 197, 0.2);
 }
 
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
 .player-name {
   color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.player-stats {
+  font-size: 0.85rem;
+  color: rgba(196, 198, 197, 0.7);
+  font-weight: normal;
 }
 
 .waiting-text {

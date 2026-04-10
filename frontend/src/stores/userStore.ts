@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import api from '@/api'
+import { pb } from '@/services/pocketbase'
 import { type AsyncState,run } from '@/stores/helpers/storeAsync'
 
 export type UserRole = 'player' | 'admin' | 'moderator'
@@ -110,7 +111,19 @@ export const useUserStore = defineStore('userStore', {
         return
       }
 
-      await this.fetchByPocketBaseId(pocketbaseUserId)
+      try {
+        await this.fetchByPocketBaseId(pocketbaseUserId)
+      } catch (err: any) {
+        // If the backend returns 404, it means the user exists in PocketBase but not in Postgres.
+        // This is a corrupt state. We clear the session gracefully.
+        if (err?.response?.status === 404) {
+          console.warn("User not found in backend database. Clearing session.")
+          this.clearProfile()
+          pb.authStore.clear()
+        } else {
+          throw err
+        }
+      }
     },
   },
 })
