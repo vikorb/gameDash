@@ -16,7 +16,6 @@
 				<div class="xp-bar">
 					<div class="xp-bar-inner" :style="{ width: xpPercent + '%' }"></div>
 				</div>
-				<div>DEBUG: {{ xpPercent }}%</div>
 				<div class="xp-label">
 					{{ rankData && rankData.xp || 0 }} / {{ divisionXpMaxDisplay }} XP
 				</div>
@@ -59,10 +58,11 @@ watch(() => props.selectedModeId, loadRank)
 const divisionXpMax = computed(() => {
 	if (!rankData.value || rankData.value.rank === 'Unranked') return 0
 	const rd = rankData.value
-	if (!rd.nextDivision && rd.xpToNext === 0 && rd.xpInDivision !== null && rd.xpInDivision >= 0) {
-		return (rd.xpInDivision ?? 0)
-	}
-	return ((rd.nextDivisionMinXp ?? rd.xp) as number) - ((rd.xp as number) - (rd.xpInDivision ?? 0))
+	if (rd.xpInDivision === null || rd.divisionMaxXp === null) return 0
+
+	// Use current division bounds only to avoid relying on possibly inconsistent next-division metadata.
+	const divisionMinXp = rd.xp - rd.xpInDivision
+	return Math.max(1, rd.divisionMaxXp - divisionMinXp)
 })
 
 const divisionXpMaxDisplay = computed(() => {
@@ -73,16 +73,10 @@ const divisionXpMaxDisplay = computed(() => {
 
 const xpPercent = computed(() => {
 	if (!rankData.value || rankData.value.rank === 'Unranked' || !divisionXpMax.value) {
-		console.log('DEBUG xpPercent: Pas de données ou Unranked ou divisionXpMax=0', rankData.value, divisionXpMax.value)
 		return 0
 	}
 	const rd = rankData.value
 	const percent = Math.round(100 * (rd.xpInDivision ?? 0) / (divisionXpMax.value || 1))
-	console.log('DEBUG xpPercent:', {
-		xpInDivision: rd.xpInDivision,
-		divisionXpMax: divisionXpMax.value,
-		percent
-	})
 	return Math.max(0, Math.min(100, percent))
 })
 </script>
