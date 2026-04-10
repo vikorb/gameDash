@@ -15,6 +15,7 @@ export class Player {
     
     queueEnteringTime: number | null = null;
     roomId: string | null = null;
+    socketId: string | null = null;
 
     constructor(
         id: number | string,

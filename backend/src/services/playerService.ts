@@ -5,7 +5,7 @@ import { Player } from '../types/player';
  * Retrieves a user combined with their mmr for a specific game mode,
  * to be used as a player object in the matchmaking queue.
  */
-export async function getPlayerForQueue(userId: number | string, modeId: number): Promise<Player | null> {
+export async function getPlayerForQueue(userId: number | string, modeId: number, socketId?: string): Promise<Player | null> {
   const row = await db('users')
     .leftJoin('player_mmr', function () {
       this.on('users.id', '=', 'player_mmr.user_id')
@@ -42,7 +42,7 @@ export async function getPlayerForQueue(userId: number | string, modeId: number)
   const randomRank = ranks[Math.floor(Math.random() * ranks.length)];
   const randomDivision = Math.floor(Math.random() * 4) + 1; // 1 to 4
 
-  return new Player(
+  const player = new Player(
     row.id,
     row.pocketbase_user_id,
     row.username,
@@ -52,6 +52,10 @@ export async function getPlayerForQueue(userId: number | string, modeId: number)
     row.mmr ?? 1000,
     randomRank,
     randomDivision,
-    'online' // default status when fetched for queue
+    'online'
   );
+
+  if (socketId) player.socketId = socketId;
+
+  return player;
 }

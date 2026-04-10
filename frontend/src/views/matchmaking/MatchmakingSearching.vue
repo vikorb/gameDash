@@ -14,6 +14,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useUserStore } from '@/stores/userStore'
+import { socket } from '@/services/socket'
 
 const emit = defineEmits<{
   (e: 'cancel'): void
@@ -34,31 +35,66 @@ const userStore = useUserStore()
 onMounted(() => {
   intervalId = setInterval(() => {
     timeElapsed.value++
-    // Fake matchmaking logic: wait 10 seconds
-    if (timeElapsed.value >= 10) {
-      if (intervalId) clearInterval(intervalId)
-      
-      // trigger match found
-      // 2 players on his team (3 total including him)
-      // 2 players on the opponent team
-      // Max size is 4 per team
-      emit('match-found', {
-        myTeam: [
-          { id: '1', name: userStore.profile?.username || 'You', isMe: true },
-          { id: '2', name: 'RogueKnight', isMe: false },
-          { id: '3', name: 'ShadowNinja', isMe: false },
-        ],
-        opponentTeam: [
-          { id: '4', name: 'DarkMage', isMe: false },
-          { id: '5', name: 'IronClad', isMe: false },
-        ]
-      })
-    }
   }, 1000)
+
+  // Connect socket and join queue
+  if (!socket.connected) {
+    socket.connect()
+  }
+
+  const pocketbaseUserId = userStore.profile?.pocketbase_user_id;
+
+  if (pocketbaseUserId) {
+    // We hardcode modeId to 1 for this prototype
+    socket.emit('join_queue', { pocketbaseUserId, modeId: 1 })
+  } else {
+    console.error("No Pocketbase User ID available to join queue.")
+  }
+
+  socket.on('match_found', (data: any) => {
+    if (intervalId) clearInterval(intervalId)
+    
+    // Parse players from both teams according to our backend Player model
+    const teams = data.game.teams || [];
+    
+    // Identify which team "I" am on
+    let myTeamIndex = 0;
+    teams.forEach((team: any[], index: number) => {
+      if (team.some(p => p.pocketbase_user_id === pocketbaseUserId)) {
+        myTeamIndex = index;
+      }
+    });
+
+    const myTeam = teams[myTeamIndex]?.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      isMe: p.pocketbase_user_id === pocketbaseUserId
+    })) || [];
+
+    const opponentTeamIndex = myTeamIndex === 0 ? 1 : 0;
+    const opponentTeam = teams[opponentTeamIndex] ? teams[opponentTeamIndex].map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      isMe: false
+    })) : [];
+
+    emit('match-found', {
+      myTeam,
+      opponentTeam
+    })
+  })
+
+  socket.on('queue_error', (error: any) => {
+    console.error('Queue error:', error)
+  })
 })
 
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
+  // Ensure we safely disconnect / leave when navigating away
+  socket.emit('leave_queue')
+  socket.off('match_found')
+  socket.off('queue_error')
 })
 </script>
 
