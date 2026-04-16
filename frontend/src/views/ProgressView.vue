@@ -16,9 +16,9 @@
         :rank="mmrStore.mmrData.rank"
         :history="mmrHistory"
         :modes="modes"
-        :selectedModeId="selectedModeId"
+        :selectedModeId="selectedModeId ?? 0"
       />
-      <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" :selectedModeId="selectedModeId" :modes="modes" />
+      <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" :selectedModeId="selectedModeId ?? 0" :modes="modes" />
     </div>
     <div v-else>
       <p>Veuillez vous connecter pour voir votre progression.</p>
