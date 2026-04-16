@@ -17,7 +17,12 @@
         <div class="filter-separator"></div>
         <div class="filter-item">
           <span class="filter-item-label">Période</span>
-          <DateFilter v-model="selectedDateRange" />
+          <DateFilter v-model="selectedDateRange" @update:modelValue="onPresetChange" />
+        </div>
+        <div class="filter-separator"></div>
+        <div class="filter-item">
+          <span class="filter-item-label">Plage personnalisée</span>
+          <DateRangePicker v-model:from="customFrom" v-model:to="customTo" />
         </div>
       </div>
     </div>
@@ -43,7 +48,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
@@ -58,11 +62,19 @@ import CardMMR from '@/views/progress/CardMMR.vue'
 import CardRank from '@/views/progress/CardRank.vue'
 import type { DateRange } from '@/views/progress/DateFilter.vue'
 import DateFilter from '@/views/progress/DateFilter.vue'
+import DateRangePicker from '@/views/progress/DateRangePicker.vue'
 import ModeSelector from '@/views/progress/ModeSelector.vue'
 
 const user = ref<AuthUser | null>(null)
 const selectedModeId = ref<number | string>(1)
 const selectedDateRange = ref<DateRange>('all')
+const customFrom = ref<string>('')
+const customTo = ref<string>('')
+
+function onPresetChange() {
+  customFrom.value = ''
+  customTo.value = ''
+}
 const modes = ref<GameMode[]>([])
 const mmrStore = useMMRStore()
 const userStore = useUserStore()
@@ -81,11 +93,22 @@ function getDateThreshold(range: DateRange): Date | null {
 
 const mmrHistory = computed(() => {
   if (!mmrStore.mmrData) return []
-  const threshold = getDateThreshold(selectedDateRange.value)
   const rawHistory = mmrStore.mmrData.history ?? []
-  const filtered = threshold
-    ? rawHistory.filter(h => new Date(h.date).getTime() >= threshold.getTime())
-    : rawHistory
+  let filtered = rawHistory
+
+  if (customFrom.value || customTo.value) {
+    const from = customFrom.value ? new Date(customFrom.value).getTime() : -Infinity
+    const to = customTo.value ? new Date(customTo.value + 'T23:59:59').getTime() : Infinity
+    filtered = rawHistory.filter(h => {
+      const t = new Date(h.date).getTime()
+      return t >= from && t <= to
+    })
+  } else {
+    const threshold = getDateThreshold(selectedDateRange.value)
+    if (threshold) {
+      filtered = rawHistory.filter(h => new Date(h.date).getTime() >= threshold.getTime())
+    }
+  }
   const hist = filtered.map(h => ({ ...h, date: formatDate(h.date), isCurrent: false }))
   const current = {
     date: formatDate(new Date().toISOString()),
@@ -138,7 +161,6 @@ watch(() => user.value?.id, async (newId: string | undefined) => {
   padding: 20px;
 }
 
-/* Barre de filtres */
 .progress-filters-bar {
   display: flex;
   align-items: center;

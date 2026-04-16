@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment */
+
 import express, { Request, Response } from "express";
 import db from "../database";
 import type { MMRResult, MMRHistory } from "../types/mmr";
 
-const { getCurrentMMR, getMMRHistory }: { getCurrentMMR: (userId: number, modeId: number) => Promise<MMRResult>, getMMRHistory: (userId: number, modeId: number) => Promise<MMRHistory[]> } = require("../services/mmr");
+import { getCurrentMMR, getMMRHistory } from "../services/mmr";
 const router = express.Router();
 
 router.get("/", async (req: Request, res: Response) => {
