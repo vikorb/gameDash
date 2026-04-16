@@ -150,7 +150,35 @@ router.post(
       })
       .returning("*")) as UserRow[];
 
-    return res.status(201).json({ status: "created", user: createdRows[0] });
+    const newUser = createdRows[0];
+
+    const gameModes = await db("game_modes").select("id");
+
+    if (gameModes.length > 0) {
+      await db("player_mmr")
+        .insert(
+          gameModes.map((gm: { id: number }) => ({
+            user_id: newUser.id,
+            mode_id: gm.id,
+            mmr: 1000,
+          })),
+        )
+        .onConflict(["user_id", "mode_id"])
+        .ignore();
+
+      await db("user_ranks")
+        .insert(
+          gameModes.map((gm: { id: number }) => ({
+            user_id: newUser.id,
+            game_modes_id: gm.id,
+            xp: 0,
+          })),
+        )
+        .onConflict(["user_id", "game_modes_id"])
+        .ignore();
+    }
+
+    return res.status(201).json({ status: "created", user: newUser });
   }),
 );
 
