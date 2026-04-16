@@ -167,7 +167,6 @@ const xpPercent = computed(() => {
 	color: #c00;
 }
 
-/* Transition */
 .rank-fade-enter-active,
 .rank-fade-leave-active {
 	transition: opacity 0.25s ease, transform 0.25s ease;
