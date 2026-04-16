@@ -69,7 +69,6 @@ const divisionXpMax = computed(() => {
 	const rd = rankData.value
 	if (rd.xpInDivision === null || rd.divisionMaxXp === null) return 0
 
-	// Use current division bounds only to avoid relying on possibly inconsistent next-division metadata.
 	const divisionMinXp = rd.xp - rd.xpInDivision
 	return Math.max(1, rd.divisionMaxXp - divisionMinXp)
 })
