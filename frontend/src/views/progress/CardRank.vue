@@ -5,25 +5,31 @@
 		<div class="rank-header">
 			<h2>Rang actuel</h2>
 		</div>
-		<div v-if="loading">Chargement...</div>
-		<div v-else-if="error" class="error">{{ error }}</div>
-		<div v-else>
-			<div class="rank-info">
-				<span class="rank" v-if="rankData">{{ rankData.rank }}</span>
-				<span v-if="rankData && rankData.division" class="division">{{ rankData.division }}</span>
+		<Transition name="rank-fade" mode="out-in">
+			<div v-if="loading" key="loading" class="rank-state">
+				<span class="rank-skeleton rank-skeleton--title"></span>
+				<span class="rank-skeleton rank-skeleton--sub"></span>
+				<span class="rank-skeleton rank-skeleton--bar"></span>
 			</div>
-			<div v-if="rankData && rankData.rank !== 'Unranked'">
-				<div class="xp-bar">
-					<div class="xp-bar-inner" :style="{ width: xpPercent + '%' }"></div>
+			<div v-else-if="error" key="error" class="rank-state error">{{ error }}</div>
+			<div v-else :key="rankKey" class="rank-state">
+				<div class="rank-info">
+					<span class="rank" v-if="rankData">{{ rankData.rank }}</span>
+					<span v-if="rankData && rankData.division" class="division">{{ rankData.division }}</span>
 				</div>
-				<div class="xp-label">
-					{{ rankData && rankData.xp || 0 }} / {{ divisionXpMaxDisplay }} XP
+				<div v-if="rankData && rankData.rank !== 'Unranked'">
+					<div class="xp-bar">
+						<div class="xp-bar-inner" :style="{ width: xpPercent + '%' }"></div>
+					</div>
+					<div class="xp-label">
+						{{ rankData && rankData.xp || 0 }} / {{ divisionXpMaxDisplay }} XP
+					</div>
+				</div>
+				<div v-else>
+					<em>Unranked</em>
 				</div>
 			</div>
-			<div v-else>
-				<em>Unranked</em>
-			</div>
-		</div>
+		</Transition>
 	</div>
 </template>
 
@@ -32,7 +38,7 @@
 <script setup lang="ts">
 
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { useRankStore } from '@/stores/rankStore'
 import type { GameMode } from '@/types/gameMode'
@@ -41,12 +47,15 @@ const props = defineProps<{ userId: number, selectedModeId: number | string, mod
 const rankStore = useRankStore()
 const { rankData, loading, error } = storeToRefs(rankStore)
 
+const rankKey = ref(0)
+
 async function loadRank() {
   if (!props.selectedModeId) return
   rankStore.rankData = null
   rankStore.error = null
   rankStore.loading = true
 	await rankStore.fetchRank(props.userId, typeof props.selectedModeId === 'string' ? Number(props.selectedModeId) : props.selectedModeId)
+  rankKey.value++
 }
 
 onMounted(async () => {
@@ -157,5 +166,51 @@ const xpPercent = computed(() => {
 }
 .error {
 	color: #c00;
+}
+
+/* Transition */
+.rank-fade-enter-active,
+.rank-fade-leave-active {
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.rank-fade-enter-from {
+	opacity: 0;
+	transform: translateY(8px);
+}
+.rank-fade-leave-to {
+	opacity: 0;
+	transform: translateY(-8px);
+}
+
+.rank-state {
+	min-height: 80px;
+}
+
+.rank-skeleton {
+	display: block;
+	border-radius: 6px;
+	background: linear-gradient(90deg, #1e2736 25%, #263044 50%, #1e2736 75%);
+	background-size: 200% 100%;
+	animation: skeleton-shimmer 1.4s infinite;
+}
+.rank-skeleton--title {
+	width: 55%;
+	height: 28px;
+	margin-bottom: 10px;
+}
+.rank-skeleton--sub {
+	width: 30%;
+	height: 18px;
+	margin-bottom: 14px;
+}
+.rank-skeleton--bar {
+	width: 100%;
+	height: 16px;
+	border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+	0%   { background-position: 200% 0; }
+	100% { background-position: -200% 0; }
 }
 </style>

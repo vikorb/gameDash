@@ -25,11 +25,10 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed,onMounted, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import BaseCard from '@/components/ui/BaseCard.vue'
-import { fetchGameModes } from '@/services/gameMode'
 import { useMMRStore } from '@/stores/mmrStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
@@ -37,8 +36,14 @@ import ModeSelector from '@/views/progress/ModeSelector.vue';
 
 const { t } = useI18n({ useScope: 'global' })
 
-const modes = ref<GameMode[]>([])
-const selectedModeId = ref<number | string>(1)
+const props = defineProps<{
+  modes?: GameMode[]
+  selectedModeId?: number | string
+}>()
+const emit = defineEmits<{ 'update:selectedModeId': [value: number | string] }>()
+
+const modes = computed(() => props.modes ?? [])
+const selectedModeId = computed(() => props.selectedModeId ?? 1)
 
 const userStore = useUserStore()
 const mmrStore = useMMRStore()
@@ -49,13 +54,6 @@ const displayedMMR = computed(() => {
   return typeof mmrData.value?.mmr === 'number' ? mmrData.value.mmr : '-'
 })
 
-async function loadModes() {
-  modes.value = await fetchGameModes()
-  if (modes.value.length > 0 && modes.value[0]) {
-    selectedModeId.value = modes.value[0].id
-  }
-}
-
 async function loadMMR() {
   if (profile.value?.pocketbase_user_id && selectedModeId.value) {
     await mmrStore.fetchMMR(profile.value.pocketbase_user_id, Number(selectedModeId.value))
@@ -63,11 +61,10 @@ async function loadMMR() {
 }
 
 function onModeChange(val: number | string) {
-  selectedModeId.value = val
+  emit('update:selectedModeId', val)
 }
 
 onMounted(async () => {
-  await loadModes()
   await loadMMR()
 })
 
