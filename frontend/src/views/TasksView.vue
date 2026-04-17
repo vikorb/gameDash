@@ -12,14 +12,14 @@
     </div>
 
     <HistoricMatchsTable
-      :matches="matches"
-      :total="total"
-      :limit="limit"
-      :offset="offset"
-      :loading="loading"
-      :error="error"
-      @prev-page="prevPage"
-      @next-page="nextPage"
+      :matches="store.matches"
+      :total="store.total"
+      :limit="store.limit"
+      :offset="store.offset"
+      :loading="store.loading"
+      :error="store.error?.message ?? null"
+      @prev-page="store.prevPage(postgresUserId!)"
+      @next-page="store.nextPage(postgresUserId!)"
     />
   </div>
 </template>
@@ -29,54 +29,33 @@ import { computed, onMounted, ref, watch } from 'vue'
 
 import HistoricMatchsTable from '@/components/tasks/HistoricMatchsTable.vue'
 import { fetchGameModes } from '@/services/gameMode'
-import { fetchMatchHistory, type MatchEntry } from '@/services/matches'
+import { useMatchHistoricStore } from '@/stores/matchHistoricStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
 
 const userStore = useUserStore()
+const store = useMatchHistoricStore()
 const postgresUserId = computed(() => userStore.profile?.id)
 
 const modes = ref<GameMode[]>([])
-const selectedModeId = ref<number | undefined>(undefined)
-const matches = ref<MatchEntry[]>([])
-const total = ref(0)
-const limit = 20
-const offset = ref(0)
-const loading = ref(false)
-const error = ref<string | null>(null)
 
-async function load() {
-  if (!postgresUserId.value) return
-  loading.value = true
-  error.value = null
-  try {
-    const res = await fetchMatchHistory(postgresUserId.value, selectedModeId.value, limit, offset.value)
-    matches.value = res.matches
-    total.value = res.total
-  } catch {
-    error.value = 'Impossible de charger l\'historique des matchs.'
-  } finally {
-    loading.value = false
-  }
-}
-
-function prevPage() {
-  offset.value = Math.max(0, offset.value - limit)
-}
-
-function nextPage() {
-  offset.value += limit
-}
+const selectedModeId = computed({
+  get: () => store.selectedModeId,
+  set: (val) => {
+    if (postgresUserId.value) store.setMode(postgresUserId.value, val)
+  },
+})
 
 onMounted(async () => {
   modes.value = await fetchGameModes()
-  await load()
+  if (postgresUserId.value) await store.fetch(postgresUserId.value)
 })
 
-watch([selectedModeId, offset], load)
-watch(() => postgresUserId.value, async () => {
-  offset.value = 0
-  await load()
+watch(() => postgresUserId.value, async (id) => {
+  if (id) {
+    store.reset()
+    await store.fetch(id)
+  }
 })
 </script>
 
