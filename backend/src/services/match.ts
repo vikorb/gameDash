@@ -27,11 +27,14 @@ export type ParticipantRow = {
 export type MatchHistoryParams = {
   userId: number;
   modeId?: number;
+  result?: string;
+  dateFrom?: string;
+  dateTo?: string;
   limit: number;
   offset: number;
 };
 
-export async function getMatchHistory({ userId, modeId, limit, offset }: MatchHistoryParams) {
+export async function getMatchHistory({ userId, modeId, result, dateFrom, dateTo, limit, offset }: MatchHistoryParams) {
   if (isNaN(userId)) throw badRequest('userId invalide', 'VALIDATION_ERROR');
 
   const query = db('match_participants as mp')
@@ -63,6 +66,9 @@ export async function getMatchHistory({ userId, modeId, limit, offset }: MatchHi
     .offset(offset);
 
   if (modeId) query.where('m.game_mode_id', modeId);
+  if (result) query.where('mp.result', result);
+  if (dateFrom) query.whereRaw('DATE(m.played_at) >= ?', [dateFrom]);
+  if (dateTo) query.whereRaw('DATE(m.played_at) <= ?', [dateTo]);
 
   const rows = await query as MatchRow[];
 
@@ -117,7 +123,12 @@ export async function getMatchHistory({ userId, modeId, limit, offset }: MatchHi
   const total = await db('match_participants as mp')
     .join('matches as m', 'm.id', 'mp.match_id')
     .where('mp.user_id', userId)
-    .modify((q) => { if (modeId) q.where('m.game_mode_id', modeId); })
+    .modify((q) => {
+      if (modeId) q.where('m.game_mode_id', modeId);
+      if (result) q.where('mp.result', result);
+      if (dateFrom) q.whereRaw('DATE(m.played_at) >= ?', [dateFrom]);
+      if (dateTo) q.whereRaw('DATE(m.played_at) <= ?', [dateTo]);
+    })
     .count('mp.id as count')
     .first<{ count: string }>();
 

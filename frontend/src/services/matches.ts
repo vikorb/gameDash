@@ -37,11 +37,17 @@ export type MatchHistoryResponse = {
 export async function fetchMatchHistory(
   userId: number,
   modeId?: number,
+  result?: string,
+  dateFrom?: string,
+  dateTo?: string,
   limit = 20,
   offset = 0,
 ): Promise<MatchHistoryResponse> {
   const params: Record<string, string | number> = { userId, limit, offset }
   if (modeId) params.modeId = modeId
+  if (result) params.result = result
+  if (dateFrom) params.dateFrom = dateFrom
+  if (dateTo) params.dateTo = dateTo
   const { data } = await api.get<MatchHistoryResponse>('/matches', { params })
   return data
 }

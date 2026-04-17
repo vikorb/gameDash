@@ -10,6 +10,9 @@ export const useMatchHistoricStore = defineStore('matchHistoric', {
     limit: 20,
     offset: 0,
     selectedModeId: undefined as number | undefined,
+    selectedResult: undefined as string | undefined,
+    dateFrom: undefined as string | undefined,
+    dateTo: undefined as string | undefined,
     loading: false,
     error: null as AsyncState['error'],
   }),
@@ -24,7 +27,15 @@ export const useMatchHistoricStore = defineStore('matchHistoric', {
   actions: {
     async fetch(userId: number) {
       return run(this, async () => {
-        const res = await fetchMatchHistory(userId, this.selectedModeId, this.limit, this.offset)
+        const res = await fetchMatchHistory(
+          userId,
+          this.selectedModeId,
+          this.selectedResult,
+          this.dateFrom,
+          this.dateTo,
+          this.limit,
+          this.offset,
+        )
         this.matches = res.matches
         this.total = res.total
       })
@@ -32,6 +43,19 @@ export const useMatchHistoricStore = defineStore('matchHistoric', {
 
     async setMode(userId: number, modeId: number | undefined) {
       this.selectedModeId = modeId
+      this.offset = 0
+      await this.fetch(userId)
+    },
+
+    async setResult(userId: number, result: string | undefined) {
+      this.selectedResult = result
+      this.offset = 0
+      await this.fetch(userId)
+    },
+
+    async setDateRange(userId: number, dateFrom: string | undefined, dateTo: string | undefined) {
+      this.dateFrom = dateFrom
+      this.dateTo = dateTo
       this.offset = 0
       await this.fetch(userId)
     },
@@ -53,6 +77,9 @@ export const useMatchHistoricStore = defineStore('matchHistoric', {
       this.total = 0
       this.offset = 0
       this.selectedModeId = undefined
+      this.selectedResult = undefined
+      this.dateFrom = undefined
+      this.dateTo = undefined
       this.error = null
     },
   },
