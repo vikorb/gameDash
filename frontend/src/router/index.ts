@@ -38,8 +38,7 @@ const router = createRouter({
     {
       path: '/home/tasks',
       name: 'tasks-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'tasks' },
+      component: () => import('@/views/TasksView.vue'),
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
