@@ -19,7 +19,7 @@
       <strong class="value">57%</strong>
     </div>
 
-    <p class="competitive-link">{{ t('home.player_dashboard.competitive.link') }}</p>
+    <RouterLink to="/progress" class="competitive-link">{{ t('home.player_dashboard.competitive.link') }}</RouterLink>
   </BaseCard>
 </template>
 
