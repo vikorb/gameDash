@@ -1,11 +1,16 @@
 
 import { mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ProgressView from '../../../src/views/ProgressView.vue'
 
 vi.mock('../../../src/views/progress/CardMMR.vue', () => ({
   default: { template: '<div class="card-mmr-mock" />' }
+}))
+
+vi.mock('../../../src/views/progress/CardRank.vue', () => ({
+  default: { template: '<div class="card-rank-mock" />' }
 }))
 
 vi.mock('../../../src/views/progress/ModeSelector.vue', () => ({
@@ -28,6 +33,27 @@ vi.mock('@/stores/mmrStore', () => ({
   })
 }))
 
+vi.mock('@/stores/userStore', () => ({
+  useUserStore: () => ({
+    profile: { id: 1, pocketbase_user_id: 'u1', role: 'player' },
+    loading: false,
+    error: null,
+    hydrateFromSession: vi.fn(),
+    syncOrFetchProfile: vi.fn(),
+    fetchByPocketBaseId: vi.fn(),
+    clearProfile: vi.fn()
+  })
+}))
+
+vi.mock('@/stores/rankStore', () => ({
+  useRankStore: () => ({
+    rankData: null,
+    loading: false,
+    error: null,
+    fetchRank: vi.fn()
+  })
+}))
+
 vi.mock('@/services/pocketbase', () => ({
   authService: {
     isAuthenticated: () => true,
@@ -39,6 +65,7 @@ describe('ProgressView', () => {
   let wrapper: ReturnType<typeof mount>
 
   beforeEach(async () => {
+    setActivePinia(createPinia())
     wrapper = mount(ProgressView)
     await new Promise(resolve => setTimeout(resolve, 0))
   })

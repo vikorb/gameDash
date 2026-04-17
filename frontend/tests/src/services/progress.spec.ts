@@ -16,10 +16,6 @@ vi.mock('@/services/pocketbase', () => ({
   }
 }))
 
-vi.mock('../../../src/views/progress/ModeSelector.vue', () => ({
-  default: { template: '<div class="mode-selector-mock" />' }
-}))
-
 const modes = [
   { id: 1, name: 'Classé' },
   { id: 2, name: 'Normal' }
@@ -39,12 +35,11 @@ describe('CardMMR', () => {
         selectedModeId: 1
       },
       global: {
-        stubs: ['LineChart', 'ModeSelector']
+        stubs: ['LineChart']
       }
     })
     expect(wrapper.text()).toContain('MMR')
     expect(wrapper.text()).toContain('1200')
-    expect(wrapper.findComponent({ name: 'ModeSelector' }).exists()).toBe(true)
   })
 
   it('émet update:selectedModeId quand le mode change', async () => {
@@ -56,7 +51,7 @@ describe('CardMMR', () => {
         selectedModeId: 1
       },
       global: {
-        stubs: ['LineChart', 'ModeSelector']
+        stubs: ['LineChart']
       }
     })
     await wrapper.vm.$emit('update:selectedModeId', 2)
