@@ -27,11 +27,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
-import HistoricMatchsTable from '@/components/tasks/HistoricMatchsTable.vue'
 import { fetchGameModes } from '@/services/gameMode'
 import { useMatchHistoricStore } from '@/stores/matchHistoricStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
+import HistoricMatchsTable from '@/views/tasks/HistoricMatchsTable.vue'
 
 const userStore = useUserStore()
 const store = useMatchHistoricStore()

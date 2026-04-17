@@ -28,11 +28,11 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import ModeSelector from '@/components/game-mode/ModeSelector.vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import { useMMRStore } from '@/stores/mmrStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
-import ModeSelector from '@/views/progress/ModeSelector.vue';
 
 const { t } = useI18n({ useScope: 'global' })
 

@@ -51,6 +51,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
+import ModeSelector from '@/components/game-mode/ModeSelector.vue'
 import { fetchGameModes } from '@/services/gameMode'
 import type { AuthUser } from '@/services/pocketbase'
 import { authService } from '@/services/pocketbase'
@@ -63,7 +64,6 @@ import CardRank from '@/views/progress/CardRank.vue'
 import type { DateRange } from '@/views/progress/DateFilter.vue'
 import DateFilter from '@/views/progress/DateFilter.vue'
 import DateRangePicker from '@/views/progress/DateRangePicker.vue'
-import ModeSelector from '@/views/progress/ModeSelector.vue'
 
 const user = ref<AuthUser | null>(null)
 const selectedModeId = ref<number | string>(1)
