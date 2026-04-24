@@ -64,7 +64,15 @@ export async function seed(knex: Knex): Promise<void> {
         winner_team_id: winnerIndex === 0 ? teamAId : teamBId,
       });
 
-      type ParticipantInsert = { match_id: number; team_id: number; user_id: number; result: string; xp_gained: number; mmr_gained: number };
+      type ParticipantInsert = {
+        match_id: number;
+        team_id: number;
+        user_id: number;
+        result: string;
+        xp_gained: number;
+        mmr_gained: number;
+        nb_kills: number;
+      };
       type HistoryInsert = { user_id: number; mode_id: number; mmr: number; date: string };
 
       const buildParticipantRows = (
@@ -83,11 +91,22 @@ export async function seed(knex: Knex): Promise<void> {
           const xpGained = result === 'win'
             ? Math.floor(Math.random() * 150) + 100
             : Math.floor(Math.random() * 50) + 10;
+          const nbKills = result === 'win'
+            ? Math.floor(Math.random() * 10) + 4
+            : Math.floor(Math.random() * 7);
 
           mmrCache.set(cacheKey, mmrAfter);
 
           return {
-            participant: { match_id: matchId, team_id: teamId, user_id: p.id, result, xp_gained: xpGained, mmr_gained: mmrGained },
+            participant: {
+              match_id: matchId,
+              team_id: teamId,
+              user_id: p.id,
+              result,
+              xp_gained: xpGained,
+              mmr_gained: mmrGained,
+              nb_kills: nbKills,
+            },
             history: { user_id: p.id, mode_id: mode.id, mmr: mmrAfter, date: playedAt.toISOString() },
           };
         });

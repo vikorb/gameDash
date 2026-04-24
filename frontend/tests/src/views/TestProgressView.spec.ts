@@ -17,6 +17,10 @@ vi.mock('../../../src/views/progress/ModeSelector.vue', () => ({
   default: { template: '<div class="mode-selector-mock" />' }
 }))
 
+vi.mock('../../../src/views/progress/RateCard.vue', () => ({
+  default: { template: '<div class="rate-card-mock" />' }
+}))
+
 vi.mock('../../../src/services/gameMode', () => ({
   fetchGameModes: vi.fn(() => Promise.resolve([
     { id: 1, name: 'Classé', is_active: true, created_at: '', updated_at: '' },

@@ -31,6 +31,14 @@
       <h1 class="progress-title">Progression de {{ user.username }}</h1>
     </div>
 
+    <RateCard
+      v-if="postgresUserId"
+      :user-id="Number(postgresUserId)"
+      :mode-id="Number(selectedModeId)"
+      :date-from="rateDateFrom"
+      :date-to="rateDateTo"
+    />
+
     <div v-if="user">
       <CardMMR
         v-if="mmrStore.mmrData"
@@ -64,6 +72,7 @@ import CardRank from '@/views/progress/CardRank.vue'
 import type { DateRange } from '@/views/progress/DateFilter.vue'
 import DateFilter from '@/views/progress/DateFilter.vue'
 import DateRangePicker from '@/views/progress/DateRangePicker.vue'
+import RateCard from '@/views/progress/RateCard.vue'
 
 const user = ref<AuthUser | null>(null)
 const selectedModeId = ref<number | string>(1)
@@ -90,6 +99,18 @@ function getDateThreshold(range: DateRange): Date | null {
   if (range === 'year')    { now.setFullYear(now.getFullYear() - 1); return now }
   return null
 }
+
+const rateDateFrom = computed(() => {
+  if (customFrom.value) return customFrom.value
+  const threshold = getDateThreshold(selectedDateRange.value)
+  if (!threshold) return undefined
+  return threshold.toISOString().split('T')[0]
+})
+
+const rateDateTo = computed(() => {
+  if (customTo.value) return customTo.value
+  return undefined
+})
 
 const mmrHistory = computed(() => {
   if (!mmrStore.mmrData) return []

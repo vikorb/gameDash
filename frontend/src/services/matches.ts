@@ -21,6 +21,7 @@ export type MatchEntry = {
   result: 'win' | 'loss' | 'draw' | 'pending'
   xp_gained: number
   mmr_gained: number
+  nb_kills: number
   mmr_before: number | null
   mmr_after: number | null
   mmr_delta: number

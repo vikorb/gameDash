@@ -20,6 +20,7 @@ const mockResponse = {
       result: 'win',
       xp_gained: 120,
       mmr_gained: 25,
+      nb_kills: 8,
       mmr_before: 1500,
       mmr_after: 1525,
       mmr_delta: 25,

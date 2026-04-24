@@ -12,6 +12,7 @@ export type MatchRow = {
   result: string;
   xp_gained: number;
   mmr_gained: number;
+  nb_kills: number;
   mmr_after: number | null;
 };
 
@@ -53,6 +54,7 @@ export async function getMatchHistory({ userId, modeId, result, dateFrom, dateTo
       'mp.result',
       'mp.xp_gained',
       'mp.mmr_gained',
+      'mp.nb_kills',
       db.raw(`(
         SELECT mh.mmr FROM mmr_history mh
         WHERE mh.user_id = mp.user_id
@@ -114,6 +116,7 @@ export async function getMatchHistory({ userId, modeId, result, dateFrom, dateTo
       result: row.result,
       xp_gained: row.xp_gained,
       mmr_gained: row.mmr_gained,
+      nb_kills: row.nb_kills,
       mmr_after: row.mmr_after ?? null,
       mmr_before: row.mmr_after != null ? row.mmr_after - row.mmr_gained : null,
       teams: Object.values(teams),

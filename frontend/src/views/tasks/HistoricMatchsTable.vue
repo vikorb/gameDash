@@ -12,6 +12,7 @@
             <th>Mode</th>
             <th>Résultat</th>
             <th>XP gagné</th>
+            <th>Kills</th>
             <th>MMR avant</th>
             <th>MMR après</th>
             <th>Variation MMR</th>
@@ -28,6 +29,7 @@
               </span>
             </td>
             <td class="xp">+{{ match.xp_gained }} XP</td>
+            <td>{{ match.nb_kills }}</td>
             <td>{{ match.mmr_before ?? '–' }}</td>
             <td>{{ match.mmr_after ?? '–' }}</td>
             <td :class="(match.mmr_gained ?? 0) >= 0 ? 'mmr-up' : 'mmr-down'">
