@@ -25,6 +25,12 @@ const history = [
   { date: '2024-01-02', mmr: 1250 }
 ]
 
+const lineChartStub = {
+  name: 'LineChart',
+  template: '<div class="line-chart-stub" />',
+  props: ['data', 'options']
+}
+
 describe('CardMMR', () => {
   it('affiche le MMR et le ModeSelector', () => {
     const wrapper = mount(CardMMR, {
@@ -35,11 +41,32 @@ describe('CardMMR', () => {
         selectedModeId: 1
       },
       global: {
-        stubs: ['LineChart']
+        stubs: { LineChart: lineChartStub }
       }
     })
     expect(wrapper.text()).toContain('MMR')
     expect(wrapper.text()).toContain('1200')
+  })
+
+  it('affiche la mediane calculee depuis l historique', () => {
+    const wrapper = mount(CardMMR, {
+      props: {
+        mmr: 1200,
+        history,
+        modes,
+        selectedModeId: 1
+      },
+      global: {
+        stubs: { LineChart: lineChartStub }
+      }
+    })
+
+    const chart = wrapper.findComponent(lineChartStub)
+    const datasets = chart.props('data').datasets
+    const medianDataset = datasets.find((dataset: { label?: string }) => dataset.label === 'Mediane')
+
+    expect(medianDataset).toBeTruthy()
+    expect(medianDataset.data).toEqual([1225, 1225])
   })
 
   it('émet update:selectedModeId quand le mode change', async () => {
@@ -51,7 +78,7 @@ describe('CardMMR', () => {
         selectedModeId: 1
       },
       global: {
-        stubs: ['LineChart']
+        stubs: { LineChart: lineChartStub }
       }
     })
     await wrapper.vm.$emit('update:selectedModeId', 2)

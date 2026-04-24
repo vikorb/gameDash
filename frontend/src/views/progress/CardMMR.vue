@@ -9,7 +9,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 
 import { Chart, registerables } from 'chart.js'
@@ -28,6 +27,25 @@ const props = defineProps({
   selectedModeId: { type: [Number, String], required: false, default: 1 },
 })
 
+const medianMMR = computed<number | null>(() => {
+  const values = props.history
+    .map((h: MMRHistory) => h.mmr)
+    .filter((value: unknown): value is number => typeof value === 'number')
+    .sort((a, b) => a - b)
+
+  if (values.length === 0) return null
+
+  const middle = Math.floor(values.length / 2)
+
+  if (values.length % 2 === 1) {
+    return values[middle] ?? null
+  }
+
+  const left = values[middle - 1] ?? 0
+  const right = values[middle] ?? 0
+  return (left + right) / 2
+})
+
 const chartData = computed(() => ({
   labels: props.history.map((h: MMRHistory) => h.date),
   datasets: [
@@ -42,6 +60,17 @@ const chartData = computed(() => ({
       pointBackgroundColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#fff'),
       pointBorderColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#f28b5b'),
       pointBorderWidth: props.history.map((h: MMRHistory) => h.isCurrent ? 3 : 1),
+    },
+    {
+      label: 'Mediane',
+      data: props.history.map(() => medianMMR.value),
+      borderColor: 'rgba(255, 255, 255, 0.5)',
+      borderDash: [8, 6],
+      borderWidth: 2,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      tension: 0,
+      fill: false,
     },
   ],
 }))
