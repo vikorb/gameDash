@@ -14,10 +14,7 @@
       <strong class="value">{{ displayedMMR }}</strong>
     </div>
 
-    <div class="competitive-line">
-      <span class="label">{{ t('home.player_dashboard.competitive.winrate') }}</span>
-      <strong class="value">57%</strong>
-    </div>
+    <WinrateCard v-if="postgresUserId" :user-id="postgresUserId" :mode-id="Number(selectedModeId)" />
 
     <RouterLink to="/progress" class="competitive-link">{{ t('home.player_dashboard.competitive.link') }}</RouterLink>
   </BaseCard>
@@ -33,6 +30,7 @@ import BaseCard from '@/components/ui/BaseCard.vue'
 import { useMMRStore } from '@/stores/mmrStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
+import WinrateCard from '@/views/home/WinrateCard.vue'
 
 const { t } = useI18n({ useScope: 'global' })
 
@@ -49,6 +47,7 @@ const userStore = useUserStore()
 const mmrStore = useMMRStore()
 const { profile } = storeToRefs(userStore)
 const { mmrData } = storeToRefs(mmrStore)
+const postgresUserId = computed(() => profile.value?.id)
 
 const displayedMMR = computed(() => {
   return typeof mmrData.value?.mmr === 'number' ? mmrData.value.mmr : '-'
