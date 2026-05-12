@@ -136,7 +136,17 @@
       "saveEdit": "Enregistrer les modifications",
       "saving": "Sauvegarde…",
       "createdSuccess": "Map créée et publiée !",
-      "savedSuccess": "Modifications enregistrées."
+      "savedSuccess": "Modifications enregistrées.",
+      "screenshots": {
+        "title": "Captures d'écran",
+        "subtitle": "{count}/{max} capture(s) — La première sera l'image principale",
+        "add": "Ajouter",
+        "uploading": "Envoi en cours…",
+        "remove": "Supprimer cette capture",
+        "moveUp": "Déplacer vers la gauche",
+        "moveDown": "Déplacer vers la droite",
+        "maxReached": "Limite de {max} captures atteinte"
+      }
     },
     "mine": {
       "badge": "Mes créations",

@@ -50,16 +50,15 @@
         </aside>
       </header>
 
-      <!-- ── Main grid ──────────────────────────────────────────── -->
+      <!-- ── 2-col layout ────────────────────────────────────────── -->
       <div class="maps-form-grid">
-        <!-- Left: form fields -->
+        <!-- ── LEFT ──────────────────────────────────────────────── -->
         <div class="form-col">
-          <!-- Map info surface -->
+          <!-- Map info -->
           <section class="surface">
             <div class="surface-header">
               <h2 class="surface-title">{{ t('maps.form.mapInfo') }}</h2>
             </div>
-
             <div class="form-field">
               <label class="form-label">{{ t('maps.form.titleLabel') }} *</label>
               <input
@@ -69,10 +68,11 @@
                 :placeholder="t('maps.form.titlePlaceholder')"
                 maxlength="60"
               />
-              <span v-if="errors.title" class="form-error">{{ errors.title }}</span>
-              <span class="form-hint">{{ form.title.length }}/60</span>
+              <div class="form-row-meta">
+                <span v-if="errors.title" class="form-error">{{ errors.title }}</span>
+                <span class="form-hint form-hint--right">{{ form.title.length }}/60</span>
+              </div>
             </div>
-
             <div class="form-field">
               <label class="form-label">{{ t('maps.form.descLabel') }}</label>
               <textarea
@@ -82,9 +82,8 @@
                 rows="4"
                 maxlength="500"
               />
-              <span class="form-hint">{{ form.description.length }}/500</span>
+              <span class="form-hint form-hint--right">{{ form.description.length }}/500</span>
             </div>
-
             <div class="form-field">
               <label class="form-label">{{ t('maps.form.statusLabel') }}</label>
               <select v-model="form.status" class="select">
@@ -93,20 +92,117 @@
                 <option value="stable">{{ t('maps.status.stable') }}</option>
               </select>
             </div>
-
             <div v-if="isEditMode && existingMap" class="form-meta">
-              <span class="form-meta__item">
-                {{ t('maps.form.currentVersionLabel') }}
-                <strong>v{{ existingMap.current_version_number }}</strong>
-              </span>
-              <span class="form-meta__item">
-                {{ t('maps.form.versionsCountLabel') }}
-                <strong>{{ existingMap.versions_count }}</strong>
-              </span>
+              <span class="form-meta__item"
+                >{{ t('maps.form.currentVersionLabel') }}
+                <strong>v{{ existingMap.current_version_number }}</strong></span
+              >
+              <span class="form-meta__item"
+                >{{ t('maps.form.versionsCountLabel') }}
+                <strong>{{ existingMap.versions_count }}</strong></span
+              >
             </div>
           </section>
 
-          <!-- Tags surface -->
+          <!-- ── Screenshots manager ─────────────────────────────── -->
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">{{ t('maps.form.screenshots.title') }}</h2>
+                <p class="surface-subtitle">
+                  {{
+                    t('maps.form.screenshots.subtitle', {
+                      count: realScreenshots.length,
+                      max: MAX_SCREENSHOTS,
+                    })
+                  }}
+                </p>
+              </div>
+              <span
+                v-if="realScreenshots.length > 0"
+                :class="[
+                  'ss-count-badge',
+                  { 'ss-count-badge--full': realScreenshots.length >= MAX_SCREENSHOTS },
+                ]"
+              >
+                {{ realScreenshots.length }}/{{ MAX_SCREENSHOTS }}
+              </span>
+            </div>
+
+            <TransitionGroup name="ss" tag="div" class="screenshots-grid">
+              <div v-for="(ss, idx) in screenshots" :key="ss.id" class="ss-card">
+                <div class="ss-card__thumb">
+                  <div v-if="ss.isLoading" class="ss-card__shimmer">
+                    <div class="ss-card__shimmer-bar" />
+                  </div>
+                  <img
+                    v-else
+                    :src="ss.url"
+                    :alt="`Screenshot ${idx + 1}`"
+                    class="ss-card__img"
+                    loading="lazy"
+                  />
+                  <div v-if="!ss.isLoading" class="ss-card__overlay">
+                    <span class="ss-card__pos">{{ idx + 1 }}</span>
+                    <button
+                      type="button"
+                      class="ss-card__remove"
+                      :aria-label="t('maps.form.screenshots.remove')"
+                      @click.stop="removeScreenshot(ss.id)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiClose" /></svg>
+                    </button>
+                  </div>
+                </div>
+                <div v-if="!ss.isLoading" class="ss-card__controls">
+                  <button
+                    type="button"
+                    class="ss-card__arrow"
+                    :disabled="idx === 0"
+                    :aria-label="t('maps.form.screenshots.moveUp')"
+                    @click="moveUp(idx)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiChevronUp" /></svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="ss-card__arrow"
+                    :disabled="idx === realScreenshots.length - 1"
+                    :aria-label="t('maps.form.screenshots.moveDown')"
+                    @click="moveDown(idx)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiChevronDown" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add button -->
+              <button
+                v-if="realScreenshots.length < MAX_SCREENSHOTS"
+                key="__add"
+                type="button"
+                class="ss-add-btn"
+                :disabled="isUploading"
+                @click="addScreenshot"
+              >
+                <div class="ss-add-btn__inner">
+                  <div v-if="isUploading" class="ss-spinner" />
+                  <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiPlus" /></svg>
+                  <span>{{
+                    isUploading
+                      ? t('maps.form.screenshots.uploading')
+                      : t('maps.form.screenshots.add')
+                  }}</span>
+                </div>
+              </button>
+            </TransitionGroup>
+
+            <p v-if="realScreenshots.length >= MAX_SCREENSHOTS" class="ss-max-notice">
+              {{ t('maps.form.screenshots.maxReached', { max: MAX_SCREENSHOTS }) }}
+            </p>
+          </section>
+
+          <!-- Tags -->
           <section class="surface">
             <div class="surface-header">
               <div>
@@ -129,7 +225,7 @@
             </div>
           </section>
 
-          <!-- New version surface (edit mode only) -->
+          <!-- New version (edit mode) -->
           <section v-if="isEditMode" class="surface">
             <div class="surface-header">
               <div>
@@ -150,7 +246,7 @@
           </section>
         </div>
 
-        <!-- Right: grid editor -->
+        <!-- ── RIGHT: grid editor ──────────────────────────────────── -->
         <div class="editor-col">
           <section class="surface">
             <div class="surface-header">
@@ -170,7 +266,6 @@
               </button>
             </div>
 
-            <!-- Block type selector -->
             <div class="block-toolbar">
               <button
                 v-for="bt in BLOCK_TYPES"
@@ -191,7 +286,6 @@
               </button>
             </div>
 
-            <!-- Grid -->
             <div class="map-grid" @mouseleave="isDragging = false" @mouseup="isDragging = false">
               <div v-for="(row, y) in grid" :key="y" class="map-grid__row">
                 <div
@@ -204,7 +298,6 @@
               </div>
             </div>
 
-            <!-- Stats bar -->
             <div class="editor-stats">
               <span
                 v-for="bt in BLOCK_TYPES.filter((b) => b.type !== 'empty')"
@@ -221,13 +314,8 @@
             </div>
           </section>
 
-          <!-- JSON preview surface -->
           <section class="surface">
-            <div
-              class="surface-header"
-              style="cursor: pointer"
-              @click="jsonExpanded = !jsonExpanded"
-            >
+            <div class="surface-header json-header" @click="jsonExpanded = !jsonExpanded">
               <div>
                 <h2 class="surface-title">{{ t('maps.form.jsonPreview') }}</h2>
                 <p class="surface-subtitle">
@@ -254,16 +342,16 @@
 
       <!-- ── Submit bar ──────────────────────────────────────────── -->
       <div class="form-actions">
-        <RouterLink to="/maps" class="btn btn--ghost maps-btn">
-          {{ t('maps.form.cancel') }}
-        </RouterLink>
+        <RouterLink to="/maps" class="btn btn--ghost maps-btn">{{
+          t('maps.form.cancel')
+        }}</RouterLink>
         <button
           type="button"
           class="btn btn--primary maps-btn"
           :disabled="isSaving"
           @click="handleSubmit"
         >
-          <span v-if="isSaving" class="test-btn__spinner" style="width: 18px; height: 18px" />
+          <span v-if="isSaving" class="btn-spinner" />
           <svg v-else viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
             <path :d="mdiContentSave" />
           </svg>
@@ -278,7 +366,6 @@
       </div>
     </div>
 
-    <!-- Toast -->
     <Transition name="toast">
       <div v-if="toast" :class="['toast', `toast--${toast.type}`]">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiCheck" /></svg>
@@ -289,7 +376,16 @@
 </template>
 
 <script setup lang="ts">
-import { mdiArrowLeft, mdiCheck, mdiChevronDown, mdiContentSave, mdiShuffle } from '@mdi/js'
+import {
+  mdiArrowLeft,
+  mdiCheck,
+  mdiChevronDown,
+  mdiChevronUp,
+  mdiClose,
+  mdiContentSave,
+  mdiPlus,
+  mdiShuffle,
+} from '@mdi/js'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
@@ -297,10 +393,7 @@ import { RouterLink, useRouter } from 'vue-router'
 import { useMapsStore } from '@/stores/mapsStore'
 import type { MapStatus, MapTag } from '@/types/maps'
 
-/* ── Props ───────────────────────────────────────────────────── */
 const props = defineProps<{ id?: string }>()
-
-/* ── Setup ───────────────────────────────────────────────────── */
 const store = useMapsStore()
 const router = useRouter()
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -308,17 +401,16 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const isEditMode = computed(() => !!props.id)
 const existingMap = computed(() => (props.id ? store.getMap(props.id) : null))
 
-/* ── Form state ──────────────────────────────────────────────── */
+/* ── Form ─────────────────────────────────────────────────────── */
 const form = reactive({
   title: '',
   description: '',
   status: 'draft' as MapStatus,
   releaseNotes: '',
 })
-const selectedTags = ref<MapTag[]>([])
 const errors = reactive({ title: '' })
+const selectedTags = ref<MapTag[]>([])
 
-/* ── Tags helpers ────────────────────────────────────────────── */
 function tagLabel(tag: MapTag) {
   return locale.value === 'fr' ? tag.label_fr : tag.label_en
 }
@@ -331,17 +423,81 @@ function toggleTag(tag: MapTag) {
   else selectedTags.value.push(tag)
 }
 
-/* ── Grid editor ─────────────────────────────────────────────── */
+/* ── Screenshots ──────────────────────────────────────────────── */
+interface DraftSS {
+  id: string
+  url: string
+  position: number
+  isLoading: boolean
+}
+const MAX_SCREENSHOTS = 5
+const screenshots = ref<DraftSS[]>([])
+const isUploading = ref(false)
+const realScreenshots = computed(() => screenshots.value.filter((s) => !s.isLoading))
+
+async function addScreenshot() {
+  if (realScreenshots.value.length >= MAX_SCREENSHOTS || isUploading.value) return
+  isUploading.value = true
+  const tempId = `loading-${Date.now()}`
+  screenshots.value.push({
+    id: tempId,
+    url: '',
+    position: screenshots.value.length,
+    isLoading: true,
+  })
+  await new Promise((r) => setTimeout(r, 700))
+  const seed = `gamedash-upload-${Date.now()}-${Math.floor(Math.random() * 99999)}`
+  const idx = screenshots.value.findIndex((s) => s.id === tempId)
+  if (idx >= 0)
+    screenshots.value[idx] = {
+      id: `ss-${Date.now()}`,
+      url: `https://picsum.photos/seed/${seed}/960/540`,
+      position: idx,
+      isLoading: false,
+    }
+  isUploading.value = false
+}
+
+function removeScreenshot(id: string) {
+  screenshots.value = screenshots.value
+    .filter((s) => s.id !== id)
+    .map((s, i) => ({ ...s, position: i }))
+}
+
+function moveUp(idx: number) {
+  if (idx === 0) return
+  const arr = [...screenshots.value]
+  ;[arr[idx - 1], arr[idx]] = [arr[idx]!, arr[idx - 1]!]
+  screenshots.value = arr.map((s, i) => ({ ...s, position: i }))
+}
+
+function moveDown(idx: number) {
+  if (idx >= realScreenshots.value.length - 1) return
+  const arr = [...screenshots.value]
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1]!, arr[idx]!]
+  screenshots.value = arr.map((s, i) => ({ ...s, position: i }))
+}
+
+function setCell(x: number, y: number) {
+  if (grid[y] && x >= 0 && x < GRID_SIZE) {
+    grid[y]![x] = selectedBlock.value
+  }
+}
+
+function startDrawing(x: number, y: number) {
+  isDragging.value = true
+  setCell(x, y)
+}
+
+function continueDrawing(x: number, y: number) {
+  if (!isDragging.value) return
+  setCell(x, y)
+}
+
+/* ── Grid editor ──────────────────────────────────────────────── */
 const GRID_SIZE = 14
-
 type BlockType = 'empty' | 'wall' | 'floor' | 'spawn' | 'objective'
-
-const BLOCK_TYPES: {
-  type: BlockType
-  label_fr: string
-  label_en: string
-  color: string
-}[] = [
+const BLOCK_TYPES: { type: BlockType; label_fr: string; label_en: string; color: string }[] = [
   { type: 'wall', label_fr: 'Mur', label_en: 'Wall', color: '#2e3244' },
   { type: 'floor', label_fr: 'Sol', label_en: 'Floor', color: '#e8d5c4' },
   { type: 'spawn', label_fr: 'Apparition', label_en: 'Spawn', color: '#3dbf7d' },
@@ -354,7 +510,6 @@ const grid = reactive<BlockType[][]>(
     Array.from({ length: GRID_SIZE }, (): BlockType => 'empty'),
   ),
 )
-
 const selectedBlock = ref<BlockType>('wall')
 const isDragging = ref(false)
 
@@ -402,37 +557,12 @@ function applyTemplate(r: (() => number) | null) {
   grid[mid]![mid] = 'objective'
 }
 
-function initGrid() {
-  if (props.id) {
-    const seed = parseInt(props.id.replace(/\D/g, '') || '42')
-    applyTemplate(makeMulberry(seed))
-  } else {
-    applyTemplate(null)
-  }
-}
-
 function randomize() {
   applyTemplate(makeMulberry(Math.floor(Math.random() * 999_999)))
 }
 
-function setCell(x: number, y: number) {
-  if (grid[y] && x >= 0 && x < GRID_SIZE) {
-    grid[y]![x] = selectedBlock.value
-  }
-}
-
-function startDrawing(x: number, y: number) {
-  isDragging.value = true
-  setCell(x, y)
-}
-
-function continueDrawing(x: number, y: number) {
-  if (!isDragging.value) return
-  setCell(x, y)
-}
-
 const blockCounts = computed(() => {
-  const counts: Record<BlockType, number> = {
+  const c: Record<BlockType, number> = {
     empty: 0,
     wall: 0,
     floor: 0,
@@ -441,37 +571,29 @@ const blockCounts = computed(() => {
   }
 
   for (let y = 0; y < GRID_SIZE; y++) {
-    const row = grid[y]
-    if (!row) continue
-
     for (let x = 0; x < GRID_SIZE; x++) {
-      const block = row[x]
-      if (!block) continue
-
-      counts[block]++
+      c[grid[y]![x]!]++
     }
   }
 
-  return counts
+  return c
 })
 
 const mapJson = computed(() => {
   const blocks: { x: number; y: number; type: BlockType; rotation: number }[] = []
 
   for (let y = 0; y < GRID_SIZE; y++) {
-    const row = grid[y]
-    if (!row) continue
-
     for (let x = 0; x < GRID_SIZE; x++) {
-      const block = row[x]
-      if (!block || block === 'empty') continue
+      const block = grid[y]![x]!
 
-      blocks.push({
-        x,
-        y,
-        type: block,
-        rotation: 0,
-      })
+      if (block !== 'empty') {
+        blocks.push({
+          x,
+          y,
+          type: block,
+          rotation: 0,
+        })
+      }
     }
   }
 
@@ -484,14 +606,14 @@ const mapJson = computed(() => {
 
 const jsonExpanded = ref(false)
 
-/* ── Save ────────────────────────────────────────────────────── */
+/* ── Save ─────────────────────────────────────────────────────── */
 const isSaving = ref(false)
 const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-function showToast(message: string, type: 'success' | 'error' = 'success') {
+function showToast(msg: string, type: 'success' | 'error' = 'success') {
   if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { message, type }
+  toast.value = { message: msg, type }
   toastTimer = setTimeout(() => {
     toast.value = null
   }, 3200)
@@ -505,7 +627,7 @@ async function handleSubmit() {
   }
   isSaving.value = true
   await new Promise((r) => setTimeout(r, 750))
-
+  const ssPayload = realScreenshots.value.map((s) => ({ url: s.url, position: s.position }))
   if (isEditMode.value && existingMap.value) {
     store.updateMap(existingMap.value.id, {
       title: form.title,
@@ -513,6 +635,7 @@ async function handleSubmit() {
       status: form.status,
       tags: selectedTags.value,
       releaseNotes: form.releaseNotes.trim() || undefined,
+      screenshots: ssPayload,
     })
     isSaving.value = false
     showToast(t('maps.form.savedSuccess'))
@@ -524,6 +647,7 @@ async function handleSubmit() {
       description: form.description,
       status: form.status,
       tags: selectedTags.value,
+      screenshots: ssPayload,
     })
     isSaving.value = false
     showToast(t('maps.form.createdSuccess'))
@@ -532,15 +656,19 @@ async function handleSubmit() {
   }
 }
 
-/* ── Init ────────────────────────────────────────────────────── */
+/* ── Init ─────────────────────────────────────────────────────── */
 onMounted(() => {
   window.scrollTo({ top: 0 })
-  initGrid()
+  const seed = props.id ? parseInt(props.id.replace(/\D/g, '') || '42') : 0
+  applyTemplate(seed > 0 ? makeMulberry(seed) : null)
   if (isEditMode.value && existingMap.value) {
     form.title = existingMap.value.title
     form.description = existingMap.value.description
     form.status = existingMap.value.status
     selectedTags.value = [...existingMap.value.tags]
+    screenshots.value = [...existingMap.value.screenshots]
+      .sort((a, b) => a.position - b.position)
+      .map((s) => ({ id: s.id, url: s.url, position: s.position, isLoading: false }))
   }
 })
 </script>
@@ -550,7 +678,7 @@ onMounted(() => {
   padding-bottom: 3rem;
 }
 
-/* ── Breadcrumb (shared pattern) ────────────────────────────── */
+/* Breadcrumb */
 .detail-nav {
   display: flex;
   align-items: center;
@@ -584,7 +712,7 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* ── Hero chip ──────────────────────────────────────────────── */
+/* Hero chip */
 .hero-chip-dot {
   display: inline-block;
   width: 10px;
@@ -594,7 +722,7 @@ onMounted(() => {
   vertical-align: middle;
 }
 
-/* ── 2-col form layout ──────────────────────────────────────── */
+/* Layout */
 .maps-form-grid {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(370px, 1.15fr);
@@ -602,7 +730,6 @@ onMounted(() => {
   margin-top: 1.4rem;
   align-items: start;
 }
-
 .form-col,
 .editor-col {
   display: grid;
@@ -610,15 +737,13 @@ onMounted(() => {
   align-content: start;
 }
 
-/* ── Form fields ────────────────────────────────────────────── */
+/* Form fields */
 .form-field {
   margin-top: 1rem;
 }
-
 .form-field:first-of-type {
   margin-top: 0;
 }
-
 .form-label {
   display: block;
   font-size: 0.82rem;
@@ -626,28 +751,30 @@ onMounted(() => {
   color: var(--color-text-muted);
   margin-bottom: 0.45rem;
 }
-
 .form-textarea {
   resize: vertical;
   min-height: 80px;
   font-family: inherit;
 }
-
+.form-row-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.3rem;
+}
 .form-error {
-  display: block;
-  margin-top: 0.35rem;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--color-danger);
 }
-
 .form-hint {
-  display: block;
-  margin-top: 0.3rem;
   font-size: 0.76rem;
   color: var(--color-text-muted);
 }
-
+.form-hint--right {
+  margin-left: auto;
+  text-align: right;
+}
 .form-meta {
   display: flex;
   gap: 1rem;
@@ -655,26 +782,261 @@ onMounted(() => {
   padding-top: 1rem;
   border-top: 1px dashed rgba(81, 96, 121, 0.18);
 }
-
 .form-meta__item {
   font-size: 0.84rem;
   color: var(--color-text-muted);
   display: flex;
   gap: 0.35rem;
 }
-
 .form-meta__item strong {
   color: var(--color-ink);
   font-weight: 800;
 }
 
-/* ── Tags picker ────────────────────────────────────────────── */
+/* ── Screenshot manager ─────────────────────────────────────── */
+.ss-count-badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(81, 96, 121, 0.1);
+  color: var(--color-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.ss-count-badge--full {
+  background: rgba(242, 139, 91, 0.15);
+  color: var(--color-primary);
+}
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  position: relative;
+}
+
+.ss-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+
+.ss-card__thumb {
+  position: relative;
+  aspect-ratio: 16/9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
+}
+.ss-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.ss-card:hover .ss-card__img {
+  transform: scale(1.05);
+}
+
+.ss-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0.45rem;
+  background: rgba(0, 0, 0, 0);
+  opacity: 0;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+.ss-card:hover .ss-card__overlay {
+  background: rgba(0, 0, 0, 0.42);
+  opacity: 1;
+}
+
+.ss-card__pos {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: rgba(46, 50, 68, 0.82);
+  color: var(--color-cream);
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ss-card__remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(214, 69, 69, 0.88);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease;
+  flex-shrink: 0;
+}
+.ss-card__remove:hover {
+  background: #e15b5b;
+  transform: scale(1.1);
+}
+.ss-card__remove svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.ss-card__shimmer {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ss-card__shimmer-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(81, 96, 121, 0.12) 25%,
+    rgba(81, 96, 121, 0.26) 50%,
+    rgba(81, 96, 121, 0.12) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.2s infinite ease-in-out;
+}
+@keyframes shimmer {
+  from {
+    background-position: -300px 0;
+  }
+  to {
+    background-position: 300px 0;
+  }
+}
+
+.ss-card__controls {
+  display: flex;
+  gap: 0.3rem;
+}
+.ss-card__arrow {
+  flex: 1;
+  padding: 0.28rem 0;
+  border-radius: 8px;
+  border: 1px solid rgba(81, 96, 121, 0.18);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.14s ease;
+}
+.ss-card__arrow svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.ss-card__arrow:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink);
+  border-color: rgba(242, 139, 91, 0.4);
+}
+.ss-card__arrow:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.ss-add-btn {
+  aspect-ratio: 16/9;
+  border-radius: 12px;
+  border: 2px dashed rgba(81, 96, 121, 0.22);
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-bottom: calc(0.38rem + 26px);
+}
+.ss-add-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: rgba(242, 139, 91, 0.07);
+  transform: translateY(-2px);
+}
+.ss-add-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.ss-add-btn__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.ss-add-btn__inner svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+.ss-add-btn__inner span {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ss-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(81, 96, 121, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+.ss-max-notice {
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* TransitionGroup */
+.ss-move {
+  transition: transform 0.28s ease;
+}
+.ss-enter-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.ss-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.ss-enter-from,
+.ss-leave-to {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+/* Tags */
 .tags-picker {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
-
 .tag-btn {
   padding: 0.32rem 0.65rem;
   border-radius: 999px;
@@ -684,32 +1046,25 @@ onMounted(() => {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    background-color 0.14s ease,
-    border-color 0.14s ease,
-    color 0.14s ease,
-    transform 0.14s ease;
+  transition: all 0.14s ease;
 }
-
 .tag-btn:hover {
   transform: translateY(-1px);
   border-color: rgba(242, 139, 91, 0.4);
 }
-
 .tag-btn.is-selected {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
   color: var(--color-cream);
   border-color: transparent;
 }
 
-/* ── Block toolbar ──────────────────────────────────────────── */
+/* Block toolbar */
 .block-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
   margin-bottom: 0.9rem;
 }
-
 .block-btn {
   display: inline-flex;
   align-items: center;
@@ -726,12 +1081,10 @@ onMounted(() => {
     border-color 0.14s ease,
     background-color 0.14s ease;
 }
-
 .block-btn.is-active {
   border-color: var(--color-primary);
   background: rgba(242, 139, 91, 0.1);
 }
-
 .block-btn__swatch {
   width: 14px;
   height: 14px;
@@ -739,10 +1092,10 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* ── Map grid ───────────────────────────────────────────────── */
+/* Grid */
 .map-grid {
   display: inline-grid;
-  grid-template-rows: repeat(v-bind(GRID_SIZE), 24px);
+  grid-template-rows: repeat(14, 24px);
   user-select: none;
   border-radius: 10px;
   overflow: hidden;
@@ -750,11 +1103,9 @@ onMounted(() => {
   cursor: crosshair;
   box-shadow: var(--shadow-sm);
 }
-
 .map-grid__row {
   display: flex;
 }
-
 .map-grid__cell {
   width: 24px;
   height: 24px;
@@ -763,11 +1114,9 @@ onMounted(() => {
   transition: opacity 0.08s ease;
   box-sizing: border-box;
 }
-
 .map-grid__cell:hover {
-  opacity: 0.7;
+  opacity: 0.72;
 }
-
 .map-grid__cell--empty {
   background: rgba(81, 96, 121, 0.06);
 }
@@ -784,14 +1133,13 @@ onMounted(() => {
   background: #f28b5b;
 }
 
-/* ── Editor stats bar ───────────────────────────────────────── */
+/* Editor stats */
 .editor-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 0.8rem;
 }
-
 .editor-stat {
   display: inline-flex;
   align-items: center;
@@ -803,12 +1151,10 @@ onMounted(() => {
   font-size: 0.76rem;
   font-weight: 700;
 }
-
 .editor-stat--total {
   background: rgba(46, 50, 68, 0.07);
   color: var(--color-ink);
 }
-
 .editor-stat__dot {
   width: 9px;
   height: 9px;
@@ -816,7 +1162,10 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* ── JSON preview ───────────────────────────────────────────── */
+/* JSON */
+.json-header {
+  cursor: pointer;
+}
 .json-toggle-icon {
   width: 22px;
   height: 22px;
@@ -824,11 +1173,9 @@ onMounted(() => {
   transition: transform 0.2s ease;
   flex-shrink: 0;
 }
-
 .json-toggle-icon.is-open {
   transform: rotate(180deg);
 }
-
 .json-preview {
   margin-top: 0.85rem;
   background: rgba(46, 50, 68, 0.92);
@@ -842,7 +1189,6 @@ onMounted(() => {
   line-height: 1.55;
   white-space: pre;
 }
-
 .collapse-enter-active,
 .collapse-leave-active {
   transition:
@@ -855,44 +1201,41 @@ onMounted(() => {
   transform: translateY(-6px);
 }
 
-/* ── Submit bar ─────────────────────────────────────────────── */
+/* Submit */
 .form-actions {
   margin-top: 1.4rem;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
 }
-
 .maps-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
 }
-
 .maps-btn__icon {
   width: 18px;
   height: 18px;
   fill: currentColor;
 }
 
-/* ── Spinner (shared) ───────────────────────────────────────── */
-.test-btn__spinner {
-  border: 2px solid rgba(252, 239, 225, 0.35);
-  border-top-color: var(--color-cream);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
+/* Spinner / Toast */
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+.btn-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(252, 239, 225, 0.35);
+  border-top-color: var(--color-cream);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
 
-/* ── Toast ──────────────────────────────────────────────────── */
 .toast {
   position: fixed;
   bottom: 1.8rem;
@@ -935,7 +1278,7 @@ onMounted(() => {
   transform: translateX(-50%) translateY(10px);
 }
 
-/* ── Responsive ─────────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 960px) {
   .maps-form-grid {
     grid-template-columns: 1fr;

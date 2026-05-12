@@ -136,7 +136,17 @@
       "saveEdit": "Save changes",
       "saving": "Saving…",
       "createdSuccess": "Map created and published!",
-      "savedSuccess": "Changes saved."
+      "savedSuccess": "Changes saved.",
+      "screenshots": {
+        "title": "Screenshots",
+        "subtitle": "{count}/{max} screenshot(s) — The first one will be the cover image",
+        "add": "Add",
+        "uploading": "Uploading…",
+        "remove": "Remove this screenshot",
+        "moveUp": "Move left",
+        "moveDown": "Move right",
+        "maxReached": "Limit of {max} screenshots reached"
+      }
     },
     "mine": {
       "badge": "My creations",

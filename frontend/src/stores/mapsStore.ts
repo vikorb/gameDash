@@ -509,22 +509,28 @@ export const useMapsStore = defineStore('maps', () => {
     description: string
     status: MapStatus
     tags: MapTag[]
+    screenshots: Array<{ url: string; position: number }>
   }): string {
     const id = `map-u${Date.now()}`
     const creator = creators.value[0]!
+
+    // Utilise les screenshots fournis, ou un placeholder si vide
+    const screenshotList =
+      data.screenshots.length > 0
+        ? data.screenshots.map((s, i) => ({
+            id: `ss-${id}-${i}`,
+            url: s.url,
+            position: s.position,
+          }))
+        : [{ id: `ss-${id}-0`, url: `https://picsum.photos/seed/${id}/960/540`, position: 0 }]
+
     const newMap: MapItem = {
       id,
       title: data.title,
       description: data.description,
       creator,
       tags: data.tags,
-      screenshots: [
-        {
-          id: `ss-new-0`,
-          url: `https://picsum.photos/seed/${id}/960/540`,
-          position: 0,
-        },
-      ],
+      screenshots: screenshotList,
       status: data.status,
       visibility: 'visible',
       featured: false,
@@ -554,6 +560,7 @@ export const useMapsStore = defineStore('maps', () => {
       user_vote: null,
       is_favorite: false,
     }
+
     maps.value.unshift(newMap)
     MY_MAP_IDS.add(id)
     return id
@@ -567,14 +574,27 @@ export const useMapsStore = defineStore('maps', () => {
       status?: MapStatus
       tags?: MapTag[]
       releaseNotes?: string
+      screenshots?: Array<{ url: string; position: number }>
     },
   ): void {
     const map = maps.value.find((m) => m.id === mapId)
     if (!map) return
+
     if (data.title !== undefined) map.title = data.title
     if (data.description !== undefined) map.description = data.description
     if (data.status !== undefined) map.status = data.status
     if (data.tags !== undefined) map.tags = data.tags
+
+    // Mise à jour des screenshots
+    if (data.screenshots !== undefined) {
+      map.screenshots = data.screenshots.map((s, i) => ({
+        id: `ss-${mapId}-upd-${i}`,
+        url: s.url,
+        position: s.position,
+      }))
+    }
+
+    // Nouvelle version si release notes fournis
     if (data.releaseNotes?.trim()) {
       const v = map.versions_count + 1
       map.versions.push({
@@ -588,6 +608,7 @@ export const useMapsStore = defineStore('maps', () => {
       map.versions_count = v
       map.current_version_number = v
     }
+
     map.updated_at = new Date().toISOString()
   }
 
