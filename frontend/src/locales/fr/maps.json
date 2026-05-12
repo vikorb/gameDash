@@ -1,0 +1,68 @@
+{
+  "maps": {
+    "badge": "Communauté",
+    "title": "Maps communautaires",
+    "subtitle": "Explorez les créations de la communauté, votez pour les meilleurs designs et lancez-vous dans votre prochaine partie.",
+    "actions": {
+      "create": "Créer une map",
+      "myMaps": "Mes maps"
+    },
+    "hero": {
+      "featured": "Map en vedette",
+      "score": "Score {score}"
+    },
+    "stats": {
+      "totalMaps": "Maps publiées",
+      "totalMapsCaption": "Toutes versions confondues",
+      "totalCreators": "Créateurs actifs",
+      "totalCreatorsCaption": "Sur les 30 derniers jours",
+      "testsToday": "Tests aujourd'hui",
+      "testsTodayCaption": "Mis à jour en temps réel",
+      "topScore": "Meilleur score",
+      "topScoreCaption": "Toutes maps confondues"
+    },
+    "browse": {
+      "title": "Découvrir les maps",
+      "subtitle": "{count} maps correspondent à votre recherche"
+    },
+    "filters": {
+      "search": "Rechercher une map, un créateur, un tag…",
+      "allTags": "Tous les tags",
+      "allStatus": "Tous les statuts",
+      "sort": {
+        "popular": "Tri : Populaires",
+        "recent": "Tri : Récentes",
+        "top": "Tri : Mieux notées",
+        "mostTested": "Tri : Plus testées"
+      }
+    },
+    "status": {
+      "draft": "Brouillon",
+      "beta": "Bêta",
+      "stable": "Stable"
+    },
+    "card": {
+      "by": "par",
+      "view": "Découvrir",
+      "tests": "Nombre de tests",
+      "favorites": "Favoris",
+      "score": "score",
+      "likeRate": "Taux d'appréciation",
+      "favorite": "Ajouter aux favoris",
+      "like": "J'aime",
+      "dislike": "Je n'aime pas",
+      "featured": "En vedette"
+    },
+    "empty": {
+      "title": "Aucune map ne correspond",
+      "text": "Essayez d'autres tags, modifiez votre recherche ou changez le tri."
+    },
+    "creators": {
+      "title": "Créateurs en vue",
+      "subtitle": "Les architectes les plus actifs de la communauté",
+      "mapsLabel": "maps",
+      "tests": "tests",
+      "likes": "likes"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "maps": {
+    "badge": "Community",
+    "title": "Community maps",
+    "subtitle": "Explore creations from the community, vote for the best designs and jump into your next match.",
+    "actions": {
+      "create": "Create a map",
+      "myMaps": "My maps"
+    },
+    "hero": {
+      "featured": "Featured map",
+      "score": "Score {score}"
+    },
+    "stats": {
+      "totalMaps": "Published maps",
+      "totalMapsCaption": "All versions combined",
+      "totalCreators": "Active creators",
+      "totalCreatorsCaption": "Over the last 30 days",
+      "testsToday": "Tests today",
+      "testsTodayCaption": "Updated in real time",
+      "topScore": "Top score",
+      "topScoreCaption": "Across all maps"
+    },
+    "browse": {
+      "title": "Discover maps",
+      "subtitle": "{count} maps match your search"
+    },
+    "filters": {
+      "search": "Search a map, creator, or tag…",
+      "allTags": "All tags",
+      "allStatus": "All statuses",
+      "sort": {
+        "popular": "Sort: Popular",
+        "recent": "Sort: Recent",
+        "top": "Sort: Top rated",
+        "mostTested": "Sort: Most tested"
+      }
+    },
+    "status": {
+      "draft": "Draft",
+      "beta": "Beta",
+      "stable": "Stable"
+    },
+    "card": {
+      "by": "by",
+      "view": "Discover",
+      "tests": "Test count",
+      "favorites": "Favorites",
+      "score": "score",
+      "likeRate": "Like rate",
+      "favorite": "Add to favorites",
+      "like": "Like",
+      "dislike": "Dislike",
+      "featured": "Featured"
+    },
+    "empty": {
+      "title": "No maps match",
+      "text": "Try other tags, change your search or pick another sort."
+    },
+    "creators": {
+      "title": "Featured creators",
+      "subtitle": "The community's most active architects",
+      "mapsLabel": "maps",
+      "tests": "tests",
+      "likes": "likes"
+    }
+  }
+}

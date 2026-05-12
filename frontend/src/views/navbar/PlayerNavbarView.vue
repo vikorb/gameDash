@@ -40,7 +40,14 @@
 </template>
 
 <script setup lang="ts">
-import { mdiChartTimelineVariant, mdiFormatListChecks, mdiHome, mdiLogout, mdiStore } from '@mdi/js'
+import {
+  mdiChartTimelineVariant,
+  mdiFormatListChecks,
+  mdiHome,
+  mdiLogout,
+  mdiMap,
+  mdiStore,
+} from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -73,6 +80,7 @@ const items = computed<NavItem[]>(() => [
   { label: t('nav.home'), to: '/home', exact: true, icon: mdiHome },
   { label: t('nav.progress'), to: '/progress', icon: mdiChartTimelineVariant },
   { label: t('nav.tasks'), to: '/tasks', icon: mdiFormatListChecks },
+  { label: t('nav.maps'), to: '/maps', icon: mdiMap },
   { label: t('nav.shop'), to: '/shop', icon: mdiStore },
 ])
 

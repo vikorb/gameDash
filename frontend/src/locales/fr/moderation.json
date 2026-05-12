@@ -5,7 +5,7 @@
       "title": "Centre de modération",
       "subtitle": "Gérez les utilisateurs, centralisez les actions sensibles et pilotez les espaces de modération depuis une seule interface.",
       "primaryAction": "Gérer les utilisateurs",
-      "secondaryAction": "Journal d’activité bientôt disponible"
+      "secondaryAction": "Journal d’activité"
     },
     "highlight": {
       "label": "Section prioritaire",
@@ -123,6 +123,7 @@
     },
     "severities": {
       "low": "Faible",
+      "medium": "Moyenne",
       "medium": "Moyenne",
       "high": "Élevée",
       "critical": "Critique"

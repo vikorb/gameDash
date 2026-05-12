@@ -6,8 +6,10 @@ import AuthView from '@/views/AuthView.vue'
 import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
-import MapFormView from '@/views/MapFormView.vue'
-import MapsListView from '@/views/MapsListView.vue'
+import MapFormView from '@/views/maps/MapFormView.vue'
+import MapsBrowseView from '@/views/maps/MapsBrowseView.vue'
+import MapsDetailView from '@/views/maps/MapsDetailView.vue'
+import MapsMineView from '@/views/maps/MapsMineView.vue'
 import ModerationUsersView from '@/views/moderation/ModerationUsersView.vue'
 import ModerationView from '@/views/ModerationView.vue'
 import ProfilView from '@/views/profile/ProfileView.vue'
@@ -55,22 +57,35 @@ const router = createRouter({
     },
     {
       path: '/maps',
-      name: 'maps-list-home',
-      component: MapsListView,
-      meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
+      name: 'maps-browse',
+      component: MapsBrowseView,
+      meta: { requiresAuth: true },
     },
     {
-      path: '/maps/new',
-      name: 'map-create-home',
+      path: '/maps/create',
+      name: 'maps-create',
       component: MapFormView,
-      meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
+      meta: { requiresAuth: true },
     },
     {
-      path: '/maps/edit/:id',
-      name: 'map-edit-home',
+      path: '/maps/mine',
+      name: 'maps-mine',
+      component: MapsMineView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/maps/:id',
+      name: 'maps-detail',
+      component: MapsDetailView,
+      props: true,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/maps/:id/edit',
+      name: 'maps-edit',
       component: MapFormView,
       props: true,
-      meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
+      meta: { requiresAuth: true },
     },
     {
       path: '/moderation',

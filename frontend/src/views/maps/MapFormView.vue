@@ -46,9 +46,6 @@ import {
   toSavePayload,
   validateMapForm,
 } from '@/utils/mapForm'
-import MapFormActions from '@/views/maps/form/MapFormActions.vue'
-import MapFormFields from '@/views/maps/form/MapFormFields.vue'
-import MapFormHeader from '@/views/maps/form/MapFormHeader.vue'
 
 const { t } = useI18n({ useScope: 'global' })
 const route = useRoute()
