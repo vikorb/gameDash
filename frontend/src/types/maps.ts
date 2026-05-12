@@ -64,3 +64,13 @@ export interface MapItem {
   user_vote: MapVote
   is_favorite: boolean
 }
+
+export interface MapComment {
+  id: string
+  mapId: string
+  author: { id: string; username: string }
+  content: string
+  likes_count: number
+  user_liked: boolean
+  created_at: string
+}

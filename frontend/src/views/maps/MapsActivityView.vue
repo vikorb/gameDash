@@ -1,7 +1,6 @@
 <template>
   <main class="moderation-page maps-activity-page">
     <div class="page-shell">
-      <!-- ── Breadcrumb ──────────────────────────────────────────── -->
       <nav class="detail-nav">
         <RouterLink to="/maps" class="detail-nav__back">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiArrowLeft" /></svg>
@@ -11,7 +10,6 @@
         <span class="detail-nav__current">{{ t('maps.activity.title') }}</span>
       </nav>
 
-      <!-- ── Hero ───────────────────────────────────────────────── -->
       <header class="page-hero">
         <div>
           <span class="page-badge">{{ t('maps.activity.badge') }}</span>
@@ -30,11 +28,12 @@
             <span>❤️ {{ store.favoriteMaps.length }} {{ t('maps.activity.tab.favorites') }}</span>
             <span>👍 {{ store.likedMaps.length }} {{ t('maps.activity.tab.liked') }}</span>
             <span>🎮 {{ store.testedMaps.length }} {{ t('maps.activity.tab.tested') }}</span>
+            <span>💬 {{ store.myComments.length }} {{ t('maps.activity.tab.commented') }}</span>
           </div>
         </aside>
       </header>
 
-      <!-- ── Tab bar ─────────────────────────────────────────────── -->
+      <!-- Tab bar -->
       <div class="activity-tabs">
         <button
           v-for="tab in TABS"
@@ -51,7 +50,7 @@
         </button>
       </div>
 
-      <!-- ── Content ─────────────────────────────────────────────── -->
+      <!-- Content -->
       <section class="surface activity-surface">
         <div class="surface-header">
           <div>
@@ -62,31 +61,86 @@
 
         <Transition name="tab-fade" mode="out-in">
           <div :key="activeTab">
-            <!-- Maps grid -->
-            <div v-if="displayedMaps.length > 0" class="maps-grid">
-              <MapCard v-for="map in displayedMaps" :key="map.id" :map="map" @view="onView" />
-            </div>
-
-            <!-- Empty state -->
-            <div v-else class="empty-state activity-empty">
-              <div class="activity-empty__icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path :d="currentTab.icon" />
-                </svg>
+            <!-- Map grids (favorites / liked / disliked / tested) -->
+            <template v-if="activeTab !== 'commented'">
+              <div v-if="displayedMaps.length > 0" class="maps-grid">
+                <MapCard v-for="map in displayedMaps" :key="map.id" :map="map" @view="onView" />
               </div>
-              <h3 class="empty-state__title">{{ t(currentTab.emptyTitle) }}</h3>
-              <p class="empty-state__text">{{ t(currentTab.emptyText) }}</p>
-              <RouterLink
-                to="/maps"
-                class="btn btn--primary maps-btn"
-                style="margin-top: 1.1rem; display: inline-flex; text-decoration: none"
-              >
-                <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
-                  <path :d="mdiCompass" />
-                </svg>
-                {{ t('maps.activity.explore') }}
-              </RouterLink>
-            </div>
+              <div v-else class="empty-state activity-empty">
+                <div class="activity-empty__icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="currentTab.icon" /></svg>
+                </div>
+                <h3 class="empty-state__title">{{ t(currentTab.emptyTitle) }}</h3>
+                <p class="empty-state__text">{{ t(currentTab.emptyText) }}</p>
+                <RouterLink
+                  to="/maps"
+                  class="btn btn--primary maps-btn"
+                  style="margin-top: 1.1rem; display: inline-flex; text-decoration: none"
+                >
+                  <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
+                    <path :d="mdiCompass" />
+                  </svg>
+                  {{ t('maps.activity.explore') }}
+                </RouterLink>
+              </div>
+            </template>
+
+            <!-- Comment history -->
+            <template v-else>
+              <div v-if="store.myComments.length > 0" class="comment-history-list">
+                <article v-for="comment in store.myComments" :key="comment.id" class="chi-card">
+                  <RouterLink :to="`/maps/${comment.mapId}`" class="chi-thumb">
+                    <img
+                      v-if="getMapThumb(comment.mapId)"
+                      :src="getMapThumb(comment.mapId)"
+                      :alt="getMapTitle(comment.mapId)"
+                      loading="lazy"
+                    />
+                    <div v-else class="chi-thumb-placeholder" />
+                  </RouterLink>
+
+                  <div class="chi-body">
+                    <div class="chi-map-name">{{ getMapTitle(comment.mapId) }}</div>
+                    <p class="chi-content">"{{ comment.content }}"</p>
+                    <div class="chi-meta">
+                      <span>{{ formatRelativeDate(comment.created_at) }}</span>
+                      <RouterLink :to="`/maps/${comment.mapId}`" class="chi-link">
+                        {{ t('maps.activity.comments.viewMap') }} →
+                      </RouterLink>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
+                    @click="store.toggleCommentLike(comment.id)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
+                    </svg>
+                    {{ comment.likes_count }}
+                  </button>
+                </article>
+              </div>
+
+              <div v-else class="empty-state activity-empty">
+                <div class="activity-empty__icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiCommentText" /></svg>
+                </div>
+                <h3 class="empty-state__title">{{ t('maps.activity.empty.commented.title') }}</h3>
+                <p class="empty-state__text">{{ t('maps.activity.empty.commented.text') }}</p>
+                <RouterLink
+                  to="/maps"
+                  class="btn btn--primary maps-btn"
+                  style="margin-top: 1.1rem; display: inline-flex; text-decoration: none"
+                >
+                  <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
+                    <path :d="mdiCompass" />
+                  </svg>
+                  {{ t('maps.activity.explore') }}
+                </RouterLink>
+              </div>
+            </template>
           </div>
         </Transition>
       </section>
@@ -97,8 +151,10 @@
 <script setup lang="ts">
 import {
   mdiArrowLeft,
+  mdiCommentText,
   mdiCompass,
   mdiHeart,
+  mdiHeartOutline,
   mdiPlayCircle,
   mdiThumbDown,
   mdiThumbUp,
@@ -112,10 +168,9 @@ import { useMapsStore } from '@/stores/mapsStore'
 
 const store = useMapsStore()
 const router = useRouter()
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 
-/* ── Tabs config ─────────────────────────────────────────────── */
-type TabKey = 'favorites' | 'liked' | 'disliked' | 'tested'
+type TabKey = 'favorites' | 'liked' | 'disliked' | 'tested' | 'commented'
 
 interface Tab {
   key: TabKey
@@ -159,11 +214,17 @@ const TABS: Tab[] = [
     emptyText: 'maps.activity.empty.tested.text',
     descKey: 'maps.activity.desc.tested',
   },
+  {
+    key: 'commented',
+    labelKey: 'maps.activity.tab.commented',
+    icon: mdiCommentText,
+    emptyTitle: 'maps.activity.empty.commented.title',
+    emptyText: 'maps.activity.empty.commented.text',
+    descKey: 'maps.activity.desc.commented',
+  },
 ]
 
-/* ── State ───────────────────────────────────────────────────── */
 const activeTab = ref<TabKey>('favorites')
-
 const currentTab = computed(() => TABS.find((t) => t.key === activeTab.value) ?? TABS[0]!)
 
 const displayedMaps = computed(() => {
@@ -177,12 +238,14 @@ const displayedMaps = computed(() => {
     case 'tested':
       return store.testedMaps
     default:
-      return store.favoriteMaps
+      return []
   }
 })
 
 const currentDescription = computed(() =>
-  t(currentTab.value.descKey, { count: displayedMaps.value.length }),
+  activeTab.value === 'commented'
+    ? t(currentTab.value.descKey, { count: store.myComments.length })
+    : t(currentTab.value.descKey, { count: displayedMaps.value.length }),
 )
 
 const totalActivity = computed(
@@ -205,12 +268,34 @@ function tabCount(key: TabKey) {
       return store.dislikedMaps.length
     case 'tested':
       return store.testedMaps.length
+    case 'commented':
+      return store.myComments.length
   }
 }
 
-/* ── Navigation ──────────────────────────────────────────────── */
 function onView(id: string) {
   router.push(`/maps/${id}`)
+}
+
+/* Comment history helpers */
+function getMapTitle(mapId: string) {
+  return store.getMap(mapId)?.title ?? mapId
+}
+function getMapThumb(mapId: string) {
+  return store.getMap(mapId)?.screenshots[0]?.url ?? ''
+}
+
+function formatRelativeDate(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const days = Math.floor(diff / 86_400_000),
+    isFr = locale.value === 'fr'
+  if (days === 0) return isFr ? "aujourd'hui" : 'today'
+  if (days === 1) return isFr ? 'hier' : 'yesterday'
+  if (days < 7) return isFr ? `il y a ${days} jours` : `${days} days ago`
+  const w = Math.floor(days / 7)
+  if (days < 30) return isFr ? `il y a ${w} sem.` : `${w}w ago`
+  const m = Math.floor(days / 30)
+  return isFr ? `il y a ${m} mois` : `${m}mo ago`
 }
 
 onMounted(() => {
@@ -223,7 +308,6 @@ onMounted(() => {
   padding-bottom: 3rem;
 }
 
-/* ── Breadcrumb ─────────────────────────────────────────────── */
 .detail-nav {
   display: flex;
   align-items: center;
@@ -257,14 +341,13 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* ── Tab bar ────────────────────────────────────────────────── */
+/* Tabs */
 .activity-tabs {
   display: flex;
   gap: 0.6rem;
   margin-top: 1.3rem;
   flex-wrap: wrap;
 }
-
 .activity-tab {
   display: inline-flex;
   align-items: center;
@@ -284,13 +367,11 @@ onMounted(() => {
     transform 0.18s ease,
     box-shadow 0.18s ease;
 }
-
 .activity-tab:hover {
   background: rgba(252, 239, 225, 0.18);
   color: rgba(252, 239, 225, 0.95);
   transform: translateY(-1px);
 }
-
 .activity-tab.is-active {
   background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
   border-color: transparent;
@@ -298,14 +379,12 @@ onMounted(() => {
   box-shadow: 0 8px 20px -10px rgba(242, 139, 91, 0.7);
   transform: translateY(-1px);
 }
-
 .activity-tab__icon {
   width: 18px;
   height: 18px;
   fill: currentColor;
   flex-shrink: 0;
 }
-
 .activity-tab__count {
   display: inline-flex;
   align-items: center;
@@ -319,24 +398,22 @@ onMounted(() => {
   font-weight: 800;
   line-height: 1;
 }
-
 .activity-tab.is-active .activity-tab__count {
   background: rgba(255, 255, 255, 0.28);
 }
 
-/* ── Activity surface ───────────────────────────────────────── */
 .activity-surface {
   margin-top: 1rem;
 }
 
-/* ── Maps grid (same as browse) ─────────────────────────────── */
+/* Map grid */
 .maps-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
-/* ── Tab transition ─────────────────────────────────────────── */
+/* Tab transition */
 .tab-fade-enter-active,
 .tab-fade-leave-active {
   transition:
@@ -349,7 +426,7 @@ onMounted(() => {
   transform: translateY(6px);
 }
 
-/* ── Empty state ────────────────────────────────────────────── */
+/* Empty state */
 .activity-empty {
   display: flex;
   flex-direction: column;
@@ -357,7 +434,6 @@ onMounted(() => {
   padding: 2.5rem 1rem;
   text-align: center;
 }
-
 .activity-empty__icon {
   width: 64px;
   height: 64px;
@@ -369,14 +445,130 @@ onMounted(() => {
   justify-content: center;
   margin-bottom: 1rem;
 }
-
 .activity-empty__icon svg {
   width: 30px;
   height: 30px;
   fill: var(--color-primary);
 }
 
-/* ── Shared helpers ─────────────────────────────────────────── */
+/* ── Comment history ────────────────────────────────────────── */
+.comment-history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.chi-card {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(81, 96, 121, 0.1);
+  border-radius: 18px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.chi-card:hover {
+  border-color: rgba(242, 139, 91, 0.25);
+  box-shadow: 0 4px 14px -8px rgba(46, 50, 68, 0.2);
+}
+
+.chi-thumb {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
+  flex-shrink: 0;
+}
+.chi-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+.chi-card:hover .chi-thumb img {
+  transform: scale(1.04);
+}
+.chi-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.chi-body {
+  min-width: 0;
+}
+.chi-map-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-ink);
+  margin-bottom: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chi-content {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-style: italic;
+}
+.chi-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+.chi-link {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.chi-link:hover {
+  text-decoration: underline;
+}
+
+.chi-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(81, 96, 121, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  flex-shrink: 0;
+  align-self: center;
+}
+.chi-like-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+.chi-like-btn:hover {
+  border-color: rgba(225, 91, 91, 0.35);
+  color: #8a4040;
+}
+.chi-like-btn.is-active {
+  background: rgba(225, 91, 91, 0.12);
+  color: #8a4040;
+  border-color: rgba(225, 91, 91, 0.32);
+}
+
+/* Shared */
 .maps-btn {
   display: inline-flex;
   align-items: center;
@@ -389,10 +581,15 @@ onMounted(() => {
   fill: currentColor;
 }
 
-/* ── Responsive ─────────────────────────────────────────────── */
+/* Responsive */
 @media (max-width: 1100px) {
   .maps-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .chi-card {
+    grid-template-columns: 120px 1fr auto;
   }
 }
 @media (max-width: 720px) {
@@ -405,6 +602,12 @@ onMounted(() => {
   .activity-tab {
     padding: 0.55rem 0.8rem;
     font-size: 0.82rem;
+  }
+  .chi-card {
+    grid-template-columns: 1fr auto;
+  }
+  .chi-thumb {
+    display: none;
   }
 }
 </style>

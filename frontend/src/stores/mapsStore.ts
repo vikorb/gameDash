@@ -1,7 +1,15 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-import type { MapCreator, MapItem, MapSortKey, MapStatus, MapTag, MapVote } from '@/types/maps'
+import type {
+  MapComment,
+  MapCreator,
+  MapItem,
+  MapSortKey,
+  MapStatus,
+  MapTag,
+  MapVote,
+} from '@/types/maps'
 
 /* -------------------------------------------------------------------------- */
 /*                              Mock data sources                             */
@@ -361,6 +369,204 @@ function seedUserActivity(maps: MapItem[]) {
   })
 }
 
+function daysAgoIso(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d.toISOString()
+}
+
+const SAMPLE_COMMENTS: MapComment[] = [
+  // map-0
+  {
+    id: 'c1',
+    mapId: 'map-0',
+    author: { id: 'a1', username: 'NovaArchitect' },
+    content: 'Très bonne map, les passages sont vraiment bien pensés !',
+    likes_count: 12,
+    user_liked: false,
+    created_at: daysAgoIso(2),
+  },
+  {
+    id: 'c2',
+    mapId: 'map-0',
+    author: { id: 'a2', username: 'VoidSculptor' },
+    content: "Le spawn est un peu trop proche de l'objectif, ça manque d'équilibre.",
+    likes_count: 5,
+    user_liked: false,
+    created_at: daysAgoIso(5),
+  },
+  {
+    id: 'c3',
+    mapId: 'map-0',
+    author: { id: 'user-me', username: 'Vous' },
+    content: "Vraiment une excellente map, j'y reviens souvent !",
+    likes_count: 3,
+    user_liked: false,
+    created_at: daysAgoIso(1),
+  },
+  // map-1
+  {
+    id: 'c4',
+    mapId: 'map-1',
+    author: { id: 'a3', username: 'PixelWeaver' },
+    content: "J'adore le design des couloirs, très immersif.",
+    likes_count: 8,
+    user_liked: false,
+    created_at: daysAgoIso(3),
+  },
+  {
+    id: 'c5',
+    mapId: 'map-1',
+    author: { id: 'a4', username: 'NeonForge' },
+    content: 'La partie centrale est vraiment bien exécutée, bravo !',
+    likes_count: 6,
+    user_liked: false,
+    created_at: daysAgoIso(7),
+  },
+  // map-2
+  {
+    id: 'c6',
+    mapId: 'map-2',
+    author: { id: 'a5', username: 'CrimsonByte' },
+    content: 'Map parfaite pour les débutants, je la recommande !',
+    likes_count: 14,
+    user_liked: false,
+    created_at: daysAgoIso(4),
+  },
+  {
+    id: 'c7',
+    mapId: 'map-2',
+    author: { id: 'a6', username: 'ZephyrCoder' },
+    content: 'Quelques bugs de collision dans le coin nord-est mais sinon top.',
+    likes_count: 3,
+    user_liked: false,
+    created_at: daysAgoIso(9),
+  },
+  // map-3
+  {
+    id: 'c8',
+    mapId: 'map-3',
+    author: { id: 'a7', username: 'LunaMapsmith' },
+    content: 'Les sightlines sont excellentes pour les snipers.',
+    likes_count: 9,
+    user_liked: false,
+    created_at: daysAgoIso(6),
+  },
+  {
+    id: 'c9',
+    mapId: 'map-3',
+    author: { id: 'a1', username: 'NovaArchitect' },
+    content: 'Layout original, ça change des maps classiques.',
+    likes_count: 7,
+    user_liked: false,
+    created_at: daysAgoIso(12),
+  },
+  {
+    id: 'c10',
+    mapId: 'map-3',
+    author: { id: 'user-me', username: 'Vous' },
+    content: 'Très bon design, quelques ajustements à faire sur le spawn.',
+    likes_count: 1,
+    user_liked: false,
+    created_at: daysAgoIso(8),
+  },
+  // map-4
+  {
+    id: 'c11',
+    mapId: 'map-4',
+    author: { id: 'a2', username: 'VoidSculptor' },
+    content: 'Belle progression dans les versions, vraiment aboutie.',
+    likes_count: 11,
+    user_liked: false,
+    created_at: daysAgoIso(1),
+  },
+  {
+    id: 'c12',
+    mapId: 'map-4',
+    author: { id: 'a3', username: 'PixelWeaver' },
+    content: 'Un vrai bijou pour le parkour, bouclée en 2 min record !',
+    likes_count: 16,
+    user_liked: false,
+    created_at: daysAgoIso(3),
+  },
+  // map-5
+  {
+    id: 'c13',
+    mapId: 'map-5',
+    author: { id: 'a4', username: 'NeonForge' },
+    content: 'Meilleure map du moment pour le mode ranked.',
+    likes_count: 21,
+    user_liked: false,
+    created_at: daysAgoIso(2),
+  },
+  {
+    id: 'c14',
+    mapId: 'map-5',
+    author: { id: 'a5', username: 'CrimsonByte' },
+    content: 'La zone centrale est trop ouverte, ça favorise trop les snipers.',
+    likes_count: 4,
+    user_liked: false,
+    created_at: daysAgoIso(14),
+  },
+  // map-7
+  {
+    id: 'c15',
+    mapId: 'map-7',
+    author: { id: 'a6', username: 'ZephyrCoder' },
+    content: 'Excellent travail sur la verticalité, ça donne du dynamisme.',
+    likes_count: 8,
+    user_liked: false,
+    created_at: daysAgoIso(5),
+  },
+  {
+    id: 'c16',
+    mapId: 'map-7',
+    author: { id: 'user-me', username: 'Vous' },
+    content: 'Map fun et bien équilibrée, bravo au créateur !',
+    likes_count: 5,
+    user_liked: false,
+    created_at: daysAgoIso(3),
+  },
+  // map-11
+  {
+    id: 'c17',
+    mapId: 'map-11',
+    author: { id: 'a7', username: 'LunaMapsmith' },
+    content: 'Un peu courte mais bien construite. Hâte de voir la prochaine version !',
+    likes_count: 6,
+    user_liked: false,
+    created_at: daysAgoIso(8),
+  },
+  {
+    id: 'c18',
+    mapId: 'map-11',
+    author: { id: 'a1', username: 'NovaArchitect' },
+    content: 'Les textures sont cohérentes et le flow est naturel.',
+    likes_count: 9,
+    user_liked: false,
+    created_at: daysAgoIso(11),
+  },
+  // map-14
+  {
+    id: 'c19',
+    mapId: 'map-14',
+    author: { id: 'a2', username: 'VoidSculptor' },
+    content: "J'adore cette map ! Les rotations sont parfaites.",
+    likes_count: 7,
+    user_liked: false,
+    created_at: daysAgoIso(6),
+  },
+  {
+    id: 'c20',
+    mapId: 'map-14',
+    author: { id: 'a3', username: 'PixelWeaver' },
+    content: 'Un peu difficile pour les débutants mais excellente pour les vétérans.',
+    likes_count: 12,
+    user_liked: false,
+    created_at: daysAgoIso(15),
+  },
+]
+
 /* -------------------------------------------------------------------------- */
 /*                                   Store                                    */
 /* -------------------------------------------------------------------------- */
@@ -612,6 +818,39 @@ export const useMapsStore = defineStore('maps', () => {
     map.updated_at = new Date().toISOString()
   }
 
+  const comments = ref<MapComment[]>(SAMPLE_COMMENTS)
+
+  function getCommentsForMap(mapId: string): MapComment[] {
+    return comments.value
+      .filter((c) => c.mapId === mapId)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  }
+
+  const myComments = computed(() =>
+    comments.value
+      .filter((c) => c.author.id === 'user-me')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+  )
+
+  function addComment(mapId: string, content: string): void {
+    comments.value.unshift({
+      id: `comment-${Date.now()}`,
+      mapId,
+      author: { id: 'user-me', username: 'Vous' },
+      content: content.trim(),
+      likes_count: 0,
+      user_liked: false,
+      created_at: new Date().toISOString(),
+    })
+  }
+
+  function toggleCommentLike(commentId: string): void {
+    const comment = comments.value.find((c) => c.id === commentId)
+    if (!comment) return
+    comment.user_liked = !comment.user_liked
+    comment.likes_count += comment.user_liked ? 1 : -1
+  }
+
   return {
     // state
     maps,
@@ -648,5 +887,10 @@ export const useMapsStore = defineStore('maps', () => {
     dislikedMaps,
     favoriteMaps,
     testedMaps,
+    comments,
+    myComments,
+    getCommentsForMap,
+    addComment,
+    toggleCommentLike,
   }
 })

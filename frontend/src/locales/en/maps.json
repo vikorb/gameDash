@@ -98,6 +98,15 @@
         "connecting": "Connexion au serveur…",
         "loading": "Chargement de la map…",
         "ready": "Test enregistré !"
+      },
+      "comments": {
+        "title": "Comments",
+        "subtitle": "{count} comment(s)",
+        "placeholder": "Share your thoughts on this map…",
+        "submit": "Post",
+        "posting": "Posting…",
+        "meBadge": "You",
+        "emptyText": "Be the first to comment on this map!"
       }
     },
     "form": {
@@ -206,13 +215,15 @@
         "favorites": "Favorites",
         "liked": "Liked",
         "disliked": "Disliked",
-        "tested": "Tested"
+        "tested": "Tested",
+        "commented": "Comments"
       },
       "desc": {
         "favorites": "{count} map(s) saved to favorites",
         "liked": "{count} map(s) liked",
         "disliked": "{count} map(s) disliked",
-        "tested": "{count} map(s) tested"
+        "tested": "{count} map(s) tested",
+        "commented": "{count} comment(s) posted"
       },
       "empty": {
         "favorites": {
@@ -230,7 +241,14 @@
         "tested": {
           "title": "No maps tested",
           "text": "Launch a match from any map's detail page and it will show up here."
+        },
+        "commented": {
+          "title": "No comments yet",
+          "text": "Browse maps and share your thoughts on your favorites!"
         }
+      },
+      "comments": {
+        "viewMap": "View map"
       }
     }
   }
