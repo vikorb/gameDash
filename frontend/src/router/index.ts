@@ -7,6 +7,7 @@ import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
 import MapFormView from '@/views/maps/MapFormView.vue'
+import MapsActivityView from '@/views/maps/MapsActivityView.vue'
 import MapsBrowseView from '@/views/maps/MapsBrowseView.vue'
 import MapsDetailView from '@/views/maps/MapsDetailView.vue'
 import MapsMineView from '@/views/maps/MapsMineView.vue'
@@ -21,6 +22,10 @@ const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(_to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0, behavior: 'smooth' }
+  },
   routes: [
     { path: '/', name: 'landing', component: LandingView },
     { path: '/login', name: 'login', component: AuthView },
@@ -85,6 +90,12 @@ const router = createRouter({
       name: 'maps-edit',
       component: MapFormView,
       props: true,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/maps/activity',
+      name: 'maps-activity',
+      component: MapsActivityView,
       meta: { requiresAuth: true },
     },
     {

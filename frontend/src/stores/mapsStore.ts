@@ -108,6 +108,68 @@ const DESCRIPTIONS = [
   'Cooperative map focused on team challenges and environmental puzzles.',
 ]
 
+const MY_USER_ID = 66
+const MY_CREATOR_ID = String(MY_USER_ID)
+
+const MY_CREATOR: MapCreator = {
+  id: MY_CREATOR_ID,
+  username: 'Moi',
+  region: 'EU',
+  avatarSeed: `user-${MY_USER_ID}`,
+  maps_count: 5,
+  total_tests: 8420,
+  total_likes: 4210,
+}
+
+const MY_MAP_IDS = new Set<string>(['map-0', 'map-3', 'map-7', 'map-14', 'map-22'])
+const PRETESTED_IDS = ['map-0', 'map-1', 'map-2', 'map-4', 'map-5', 'map-7', 'map-11']
+const MY_MAP_CONFIGS = [
+  {
+    id: 'my-map-1',
+    title: 'Lootopia Training Grounds',
+    description: 'Map personnelle pensée pour tester les mécaniques principales de GameDash.',
+    status: 'stable' as MapStatus,
+    tagSlugs: ['fps', 'parkour', 'urban'],
+    featured: true,
+  },
+  {
+    id: 'my-map-2',
+    title: 'Shadow Sprint Arena',
+    description:
+      'Arène rapide avec rotations courtes, idéale pour les duels et les tests de scoring.',
+    status: 'beta' as MapStatus,
+    tagSlugs: ['race', 'speedrun', 'night'],
+    featured: false,
+  },
+  {
+    id: 'my-map-3',
+    title: 'Bunker Dev Zone',
+    description:
+      'Zone de test fermée pour équilibrer les pièges, les vagues ennemies et les objectifs.',
+    status: 'draft' as MapStatus,
+    tagSlugs: ['bunker', 'zombie', 'hardcore'],
+    featured: false,
+  },
+  {
+    id: 'my-map-4',
+    title: 'Neon Capture District',
+    description:
+      'Carte compétitive orientée capture du drapeau avec plusieurs routes alternatives.',
+    status: 'stable' as MapStatus,
+    tagSlugs: ['ctf', 'scifi', 'urban'],
+    featured: true,
+  },
+  {
+    id: 'my-map-5',
+    title: 'Crystal Puzzle Run',
+    description:
+      'Parcours personnel basé sur des énigmes, des timings précis et des raccourcis cachés.',
+    status: 'beta' as MapStatus,
+    tagSlugs: ['puzzle', 'parkour', 'fantasy'],
+    featured: false,
+  },
+]
+
 /* -------------------------------------------------------------------------- */
 /*                               Seeded RNG                                   */
 /* -------------------------------------------------------------------------- */
@@ -239,10 +301,64 @@ function generateMap(idx: number, creators: MapCreator[]): MapItem {
   }
 }
 
+function getTagsBySlugs(slugs: string[]): MapTag[] {
+  return TAG_LIBRARY.filter((tag) => slugs.includes(tag.slug))
+}
+
+function generateMyMap(idx: number, config: (typeof MY_MAP_CONFIGS)[number]): MapItem {
+  const base = generateMap(1000 + idx, [MY_CREATOR])
+
+  return {
+    ...base,
+    id: config.id,
+    title: config.title,
+    description: config.description,
+    creator: MY_CREATOR,
+    tags: getTagsBySlugs(config.tagSlugs),
+    status: config.status,
+    visibility: 'visible',
+    featured: config.featured,
+    user_vote: null,
+    is_favorite: false,
+    screenshots: base.screenshots.map((screenshot, screenshotIdx) => ({
+      ...screenshot,
+      id: `my-map-${idx + 1}-ss-${screenshotIdx}`,
+      url: `https://picsum.photos/seed/gamedash-my-map-${idx + 1}-${screenshotIdx}/960/540`,
+    })),
+    versions: base.versions.map((version, versionIdx) => ({
+      ...version,
+      id: `my-map-${idx + 1}-version-${versionIdx + 1}`,
+      parent_version_id: versionIdx === 0 ? null : `my-map-${idx + 1}-version-${versionIdx}`,
+    })),
+  }
+}
+
 function generateMockData() {
-  const creators = Array.from({ length: 15 }).map((_, i) => generateCreator(i))
-  const maps = Array.from({ length: 40 }).map((_, i) => generateMap(i, creators))
-  return { creators, maps }
+  const generatedCreators = Array.from({ length: 15 }).map((_, i) => generateCreator(i))
+  const creators = [MY_CREATOR, ...generatedCreators]
+
+  const generatedMaps = Array.from({ length: 40 }).map((_, i) => generateMap(i, generatedCreators))
+  const myMaps = MY_MAP_CONFIGS.map((config, i) => generateMyMap(i, config))
+
+  return {
+    creators,
+    maps: [...myMaps, ...generatedMaps],
+  }
+}
+
+function seedUserActivity(maps: MapItem[]) {
+  const liked = [0, 2, 4, 7, 11, 16]
+  const disliked = [5, 13]
+  const favorited = [2, 4, 7]
+  liked.forEach((i) => {
+    if (maps[i]) maps[i]!.user_vote = 'like'
+  })
+  disliked.forEach((i) => {
+    if (maps[i]) maps[i]!.user_vote = 'dislike'
+  })
+  favorited.forEach((i) => {
+    if (maps[i]) maps[i]!.is_favorite = true
+  })
 }
 
 /* -------------------------------------------------------------------------- */
@@ -251,7 +367,9 @@ function generateMockData() {
 
 export const useMapsStore = defineStore('maps', () => {
   const initial = generateMockData()
+  seedUserActivity(initial.maps)
   const maps = ref<MapItem[]>(initial.maps)
+  const testedMapIds = ref<string[]>([...PRETESTED_IDS])
   const creators = ref<MapCreator[]>(initial.creators)
   const tagLibrary = ref<MapTag[]>(TAG_LIBRARY)
 
@@ -360,6 +478,117 @@ export const useMapsStore = defineStore('maps', () => {
     if (!map) return
     map.stats.tests_count += 1
     map.stats.last_activity_at = new Date().toISOString()
+    if (!testedMapIds.value.includes(mapId)) {
+      testedMapIds.value.push(mapId)
+    }
+  }
+
+  const myMaps = computed(() => maps.value.filter((m) => MY_MAP_IDS.has(m.id)))
+
+  const myTotalTests = computed(() => myMaps.value.reduce((sum, m) => sum + m.stats.tests_count, 0))
+  const myTotalLikes = computed(() => myMaps.value.reduce((sum, m) => sum + m.stats.likes_count, 0))
+  const myAvgScore = computed(() => {
+    if (!myMaps.value.length) return 0
+    return Math.round(myMaps.value.reduce((sum, m) => sum + m.stats.score, 0) / myMaps.value.length)
+  })
+  const myTopScore = computed(() =>
+    myMaps.value.reduce((max, m) => Math.max(max, m.stats.score), 0),
+  )
+
+  const likedMaps = computed(() => maps.value.filter((m) => m.user_vote === 'like'))
+  const dislikedMaps = computed(() => maps.value.filter((m) => m.user_vote === 'dislike'))
+  const favoriteMaps = computed(() => maps.value.filter((m) => m.is_favorite))
+  const testedMaps = computed(() => maps.value.filter((m) => testedMapIds.value.includes(m.id)))
+
+  function isMyMap(id: string) {
+    return MY_MAP_IDS.has(id)
+  }
+
+  function createMap(data: {
+    title: string
+    description: string
+    status: MapStatus
+    tags: MapTag[]
+  }): string {
+    const id = `map-u${Date.now()}`
+    const creator = creators.value[0]!
+    const newMap: MapItem = {
+      id,
+      title: data.title,
+      description: data.description,
+      creator,
+      tags: data.tags,
+      screenshots: [
+        {
+          id: `ss-new-0`,
+          url: `https://picsum.photos/seed/${id}/960/540`,
+          position: 0,
+        },
+      ],
+      status: data.status,
+      visibility: 'visible',
+      featured: false,
+      current_version_number: 1,
+      versions_count: 1,
+      versions: [
+        {
+          id: `${id}-v1`,
+          version_number: 1,
+          release_notes: 'Publication initiale.',
+          parent_version_id: null,
+          created_at: new Date().toISOString(),
+          snapshot_url: null,
+        },
+      ],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      stats: {
+        tests_count: 0,
+        likes_count: 0,
+        dislikes_count: 0,
+        favorites_count: 0,
+        score: 0,
+        retention: 0,
+        last_activity_at: new Date().toISOString(),
+      },
+      user_vote: null,
+      is_favorite: false,
+    }
+    maps.value.unshift(newMap)
+    MY_MAP_IDS.add(id)
+    return id
+  }
+
+  function updateMap(
+    mapId: string,
+    data: {
+      title?: string
+      description?: string
+      status?: MapStatus
+      tags?: MapTag[]
+      releaseNotes?: string
+    },
+  ): void {
+    const map = maps.value.find((m) => m.id === mapId)
+    if (!map) return
+    if (data.title !== undefined) map.title = data.title
+    if (data.description !== undefined) map.description = data.description
+    if (data.status !== undefined) map.status = data.status
+    if (data.tags !== undefined) map.tags = data.tags
+    if (data.releaseNotes?.trim()) {
+      const v = map.versions_count + 1
+      map.versions.push({
+        id: `${mapId}-v${v}`,
+        version_number: v,
+        release_notes: data.releaseNotes.trim(),
+        parent_version_id: `${mapId}-v${map.versions_count}`,
+        created_at: new Date().toISOString(),
+        snapshot_url: null,
+      })
+      map.versions_count = v
+      map.current_version_number = v
+    }
+    map.updated_at = new Date().toISOString()
   }
 
   return {
@@ -380,10 +609,23 @@ export const useMapsStore = defineStore('maps', () => {
     topScore,
     featuredMap,
     topCreators,
+    isMyMap,
     // actions
     getMap,
     toggleVote,
     toggleFavorite,
     recordTest,
+    myMaps,
+    myTotalTests,
+    myTotalLikes,
+    myAvgScore,
+    myTopScore,
+    createMap,
+    updateMap,
+    testedMapIds,
+    likedMaps,
+    dislikedMaps,
+    favoriteMaps,
+    testedMaps,
   }
 })

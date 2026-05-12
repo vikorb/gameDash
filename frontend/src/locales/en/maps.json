@@ -5,7 +5,8 @@
     "subtitle": "Explore creations from the community, vote for the best designs and jump into your next match.",
     "actions": {
       "create": "Create a map",
-      "myMaps": "My maps"
+      "myMaps": "My maps",
+      "activity": "My activity"
     },
     "hero": {
       "featured": "Featured map",
@@ -34,7 +35,8 @@
         "recent": "Sort: Recent",
         "top": "Sort: Top rated",
         "mostTested": "Sort: Most tested"
-      }
+      },
+      "reset": "Reset filters"
     },
     "status": {
       "draft": "Draft",
@@ -63,6 +65,163 @@
       "mapsLabel": "maps",
       "tests": "tests",
       "likes": "likes"
+    },
+    "detail": {
+      "backToMaps": "Maps communautaires",
+      "notFound": "Map introuvable",
+      "notFoundText": "Cette map n'existe pas ou a été retirée.",
+      "description": "Description",
+      "stats": "Statistiques",
+      "testCount": "Tests effectués",
+      "score": "Score",
+      "favorites": "Favoris",
+      "retention": "Rétention",
+      "lastActivity": "Dernière activité",
+      "versions": "Historique des versions",
+      "versionsSubtitle": "{count} version(s) publiée(s)",
+      "currentVersion": "Actuelle",
+      "creator": "Créateur",
+      "infos": "Informations",
+      "publishedAt": "Publié le",
+      "updatedAt": "Mis à jour le",
+      "versionsCount": "Nombre de versions",
+      "visibility": "Statut",
+      "byCreator": "Autres maps de {name}",
+      "byCreatorSub": "Du même architecte",
+      "edit": "Modifier",
+      "share": "Partager",
+      "linkCopied": "Lien copié !",
+      "noScreenshots": "Aucune capture disponible",
+      "testRecorded": "Test enregistré — merci pour votre participation !",
+      "testBtn": {
+        "idle": "Tester en jeu",
+        "connecting": "Connexion au serveur…",
+        "loading": "Chargement de la map…",
+        "ready": "Test enregistré !"
+      }
+    },
+    "form": {
+      "badgeCreate": "New map",
+      "badgeEdit": "Edit",
+      "createTitle": "Create a map",
+      "editTitle": "Edit map",
+      "createSubtitle": "Build your level, configure its properties and publish it to the community.",
+      "editorHeroLabel": "Block editor",
+      "editorHeroTitle": "Draw your level",
+      "editorHeroText": "Click or drag to place blocks. The JSON is generated in real time.",
+      "mapInfo": "Information",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Neon Spires, Bunker 47…",
+      "titleRequired": "Title is required.",
+      "descLabel": "Description",
+      "descPlaceholder": "Describe your map, its gameplay, special features…",
+      "statusLabel": "Publication status",
+      "currentVersionLabel": "Current version:",
+      "versionsCountLabel": "Versions:",
+      "tagsLabel": "Tags",
+      "tagsSelected": "{count} tag(s) selected",
+      "newVersionTitle": "New version",
+      "newVersionSub": "Leave blank for a simple update without creating a new version.",
+      "releaseNotesLabel": "Release notes",
+      "releaseNotesPlaceholder": "e.g. Reduced fire zone, added cover objects…",
+      "releaseNotesHint": "If filled in, a new version will be created automatically.",
+      "editorTitle": "Map editor",
+      "editorSub": "Click or drag to paint blocks on the grid.",
+      "randomize": "Generate",
+      "blocksTotal": "total blocks",
+      "jsonPreview": "JSON preview",
+      "jsonBlocks": "block(s) in scene",
+      "cancel": "Cancel",
+      "saveCreate": "Publish map",
+      "saveEdit": "Save changes",
+      "saving": "Saving…",
+      "createdSuccess": "Map created and published!",
+      "savedSuccess": "Changes saved."
+    },
+    "mine": {
+      "badge": "My creations",
+      "title": "My maps",
+      "subtitle": "Manage, update and track the performance of your community maps.",
+      "heroLabel": "Dashboard",
+      "mapsPublished": "maps published",
+      "heroText": "Track your performance and publish new versions directly from here.",
+      "stableCount": "{n} Stable",
+      "betaCount": "{n} Beta",
+      "draftCount": "{n} Draft",
+      "kpi": {
+        "maps": "My maps",
+        "mapsCaption": "All versions combined",
+        "tests": "Total tests",
+        "testsCaption": "Across all my maps",
+        "avgScore": "Average score",
+        "avgScoreCaption": "Across all maps",
+        "likes": "Total likes",
+        "likesCaption": "Community appreciation"
+      },
+      "chart": {
+        "title": "Map performance",
+        "subtitle": "Relative score of each map compared to your best"
+      },
+      "sort": {
+        "score": "Sort: Score",
+        "tests": "Sort: Tests",
+        "recent": "Sort: Recent"
+      },
+      "list": {
+        "title": "My maps",
+        "subtitle": "{count} map(s)"
+      },
+      "card": {
+        "cycleStatusHint": "Click to cycle status",
+        "newVersion": "Publish new version",
+        "releaseNotesLabel": "Release notes",
+        "releaseNotesPlaceholder": "e.g. Fixed spawn zone, better balancing…",
+        "publishVersion": "Publish",
+        "cancel": "Cancel"
+      },
+      "empty": {
+        "title": "No maps yet",
+        "text": "Create your first map and share it with the community."
+      }
+    },
+    "activity": {
+      "badge": "My history",
+      "title": "My activity",
+      "subtitle": "Find all the maps you've interacted with: favorites, votes and matches.",
+      "heroLabel": "Summary",
+      "totalInteractions": "unique maps",
+      "heroText": "All your community interactions in one place.",
+      "explore": "Explore maps",
+      "tab": {
+        "favorites": "Favorites",
+        "liked": "Liked",
+        "disliked": "Disliked",
+        "tested": "Tested"
+      },
+      "desc": {
+        "favorites": "{count} map(s) saved to favorites",
+        "liked": "{count} map(s) liked",
+        "disliked": "{count} map(s) disliked",
+        "tested": "{count} map(s) tested"
+      },
+      "empty": {
+        "favorites": {
+          "title": "No favorites yet",
+          "text": "Browse maps and click ❤ to save them here."
+        },
+        "liked": {
+          "title": "No likes yet",
+          "text": "Vote 👍 on maps you enjoyed!"
+        },
+        "disliked": {
+          "title": "No dislikes",
+          "text": "You're in a good mood. Keep it up!"
+        },
+        "tested": {
+          "title": "No maps tested",
+          "text": "Launch a match from any map's detail page and it will show up here."
+        }
+      }
     }
   }
 }

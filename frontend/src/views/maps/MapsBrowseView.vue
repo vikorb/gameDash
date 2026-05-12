@@ -21,6 +21,12 @@
               </svg>
               {{ t('maps.actions.myMaps') }}
             </RouterLink>
+            <RouterLink to="/maps/activity" class="btn btn--ghost maps-btn">
+              <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
+                <path :d="mdiHistory" />
+              </svg>
+              {{ t('maps.actions.activity') }}
+            </RouterLink>
           </div>
         </div>
 
@@ -74,6 +80,19 @@
               {{ t('maps.browse.subtitle', { count: filtered.length }) }}
             </p>
           </div>
+          <Transition name="fade-btn">
+            <button
+              v-if="hasActiveFilters"
+              type="button"
+              class="btn btn--ghost maps-btn"
+              @click="resetFilters"
+            >
+              <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
+                <path :d="mdiFilterRemove" />
+              </svg>
+              {{ t('maps.filters.reset') }}
+            </button>
+          </Transition>
         </div>
 
         <div class="toolbar maps-toolbar">
@@ -160,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { mdiChartTimelineVariant, mdiMagnify, mdiPlus } from '@mdi/js'
+import { mdiChartTimelineVariant, mdiFilterRemove, mdiHistory, mdiMagnify, mdiPlus } from '@mdi/js'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
@@ -187,6 +206,18 @@ function formatNumber(n: number) {
 
 function onView(id: string) {
   router.push(`/maps/${id}`)
+}
+
+const hasActiveFilters = computed(
+  () =>
+    !!store.search || !!store.selectedTag || !!store.selectedStatus || store.sortKey !== 'popular',
+)
+
+function resetFilters() {
+  store.search = ''
+  store.selectedTag = ''
+  store.selectedStatus = ''
+  store.sortKey = 'popular'
 }
 </script>
 
@@ -332,5 +363,17 @@ function onView(id: string) {
   .creators-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.fade-btn-enter-active,
+.fade-btn-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.fade-btn-enter-from,
+.fade-btn-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
 }
 </style>
