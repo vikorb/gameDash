@@ -119,6 +119,76 @@
           "description": "Simple detection of accounts to monitor, suspicious content, or abnormal behavior."
         }
       }
+    },
+    "content": {
+      "badge": "Content",
+      "title": "Content moderation",
+      "subtitle": "Review flagged maps, comments and assets. Click a card to see full details and take action.",
+      "side": {
+        "label": "Moderation",
+        "title": "Content under review",
+        "text": "Each item can be opened in a detail panel with direct access to moderation actions.",
+        "chips": {
+          "visibility": "Visibility",
+          "review": "Review",
+          "quickActions": "Quick actions"
+        }
+      },
+      "stats": {
+        "total": "Total",
+        "totalCaption": "Items loaded in the queue",
+        "actionable": "Actionable",
+        "actionableCaption": "Require a decision",
+        "review": "In review",
+        "reviewCaption": "Currently being examined",
+        "hidden": "Hidden",
+        "hiddenCaption": "Removed from public view",
+        "highPriority": "High priority",
+        "highPriorityCaption": "High or critical severity"
+      },
+      "list": {
+        "title": "Moderation queue",
+        "subtitle": "Click a card to open the full detail panel and access actions.",
+        "filtered": "{count} active filter(s)"
+      },
+      "filters": {
+        "search": "Search (title, author, tags…)",
+        "allSeverities": "All severities",
+        "allOrigins": "All origins",
+        "sortUpdatedDesc": "Sort: recently updated",
+        "sortCreatedDesc": "Sort: recently created",
+        "sortFlagsDesc": "Sort: most flagged",
+        "sortSeverityDesc": "Sort: severity descending"
+      },
+      "card": {
+        "category": "Category:",
+        "flags": "Flags:",
+        "reports": "Reports:",
+        "note": "Moderation note",
+        "lastAction": "Last action:",
+        "lastActionFallback": "No action recorded",
+        "lastActionValue": "{actor} · {date}"
+      },
+      "modal": {
+        "mapLabel": "Associated map",
+        "viewMap": "View map",
+        "preview": "Content preview",
+        "origin": "Origin",
+        "created": "Created",
+        "updated": "Updated",
+        "tags": "Tags",
+        "actionsHint": "Actions are recorded in the audit log.",
+        "mapLabelParent": "Parent map"
+      },
+      "actions": {
+        "backToModeration": "Back to moderation",
+        "resetFilters": "Reset filters",
+        "review": "Mark for review",
+        "inReview": "In review",
+        "hide": "Hide",
+        "restore": "Restore"
+      },
+      "emptyText": "No content matches the selected filters."
     }
   }
 }

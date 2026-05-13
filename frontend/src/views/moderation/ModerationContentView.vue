@@ -1,6 +1,7 @@
 <template>
   <section class="moderation-page">
     <div class="page-shell">
+      <!-- ─── Hero ─────────────────────────────────────────────────────── -->
       <header class="page-hero">
         <div class="page-hero__main">
           <div>
@@ -13,7 +14,6 @@
             <button type="button" class="btn btn--primary" @click="goBackToModeration">
               {{ t('moderation.pages.content.actions.backToModeration') }}
             </button>
-
             <button type="button" class="btn btn--ghost" @click="resetFilters">
               {{ t('moderation.pages.content.actions.resetFilters') }}
             </button>
@@ -26,7 +26,6 @@
             <div class="hero-side__title">{{ t('moderation.pages.content.side.title') }}</div>
             <p class="hero-side__text">{{ t('moderation.pages.content.side.text') }}</p>
           </div>
-
           <div class="hero-side__chips">
             <span>{{ t('moderation.pages.content.side.chips.visibility') }}</span>
             <span>{{ t('moderation.pages.content.side.chips.review') }}</span>
@@ -35,6 +34,7 @@
         </aside>
       </header>
 
+      <!-- ─── Stats ─────────────────────────────────────────────────────── -->
       <section class="stat-grid content-stat-grid">
         <article class="stat-card">
           <span class="stat-card__label">{{ t('moderation.pages.content.stats.total') }}</span>
@@ -43,7 +43,6 @@
             {{ t('moderation.pages.content.stats.totalCaption') }}
           </div>
         </article>
-
         <article class="stat-card">
           <span class="stat-card__label">{{ t('moderation.pages.content.stats.actionable') }}</span>
           <strong class="stat-card__value">{{ contentSummary.actionableCount }}</strong>
@@ -51,7 +50,6 @@
             {{ t('moderation.pages.content.stats.actionableCaption') }}
           </div>
         </article>
-
         <article class="stat-card">
           <span class="stat-card__label">{{ t('moderation.pages.content.stats.review') }}</span>
           <strong class="stat-card__value">{{ contentSummary.reviewCount }}</strong>
@@ -59,7 +57,6 @@
             {{ t('moderation.pages.content.stats.reviewCaption') }}
           </div>
         </article>
-
         <article class="stat-card">
           <span class="stat-card__label">{{ t('moderation.pages.content.stats.hidden') }}</span>
           <strong class="stat-card__value">{{ contentSummary.hiddenCount }}</strong>
@@ -67,7 +64,6 @@
             {{ t('moderation.pages.content.stats.hiddenCaption') }}
           </div>
         </article>
-
         <article class="stat-card">
           <span class="stat-card__label">{{
             t('moderation.pages.content.stats.highPriority')
@@ -79,20 +75,20 @@
         </article>
       </section>
 
+      <!-- ─── List + toolbar ───────────────────────────────────────────── -->
       <section class="surface">
         <div class="surface-header">
           <div>
             <h2 class="surface-title">{{ t('moderation.pages.content.list.title') }}</h2>
             <p class="surface-subtitle">{{ t('moderation.pages.content.list.subtitle') }}</p>
           </div>
-
           <div class="surface-header__meta">
-            <span class="meta-item">
-              {{ filteredContent.length }} {{ t('moderation.pages.common.results') }}
-            </span>
-            <span class="meta-item meta-item--subtle">
-              {{ t('moderation.pages.content.list.filtered', { count: activeFilterCount }) }}
-            </span>
+            <span class="meta-item"
+              >{{ filteredContent.length }} {{ t('moderation.pages.common.results') }}</span
+            >
+            <span class="meta-item meta-item--subtle">{{
+              t('moderation.pages.content.list.filtered', { count: activeFilterCount })
+            }}</span>
           </div>
         </div>
 
@@ -102,128 +98,98 @@
             class="field"
             :placeholder="t('moderation.pages.content.filters.search')"
           />
-
           <select v-model="selectedStatus" class="select">
-            <option v-for="item in statusOptions" :key="item.value" :value="item.value">
-              {{ item.label }}
+            <option v-for="o in statusOptions" :key="o.value" :value="o.value">
+              {{ o.label }}
             </option>
           </select>
-
           <select v-model="selectedType" class="select">
-            <option v-for="item in typeOptions" :key="item.value" :value="item.value">
-              {{ item.label }}
-            </option>
+            <option v-for="o in typeOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
-
           <select v-model="selectedSeverity" class="select">
-            <option v-for="item in severityOptions" :key="item.value" :value="item.value">
-              {{ item.label }}
+            <option v-for="o in severityOptions" :key="o.value" :value="o.value">
+              {{ o.label }}
             </option>
           </select>
-
           <select v-model="selectedOrigin" class="select">
-            <option v-for="item in originOptions" :key="item.value" :value="item.value">
-              {{ item.label }}
+            <option v-for="o in originOptions" :key="o.value" :value="o.value">
+              {{ o.label }}
             </option>
           </select>
-
           <select v-model="sortBy" class="select">
-            <option v-for="item in sortOptions" :key="item.value" :value="item.value">
-              {{ item.label }}
-            </option>
+            <option v-for="o in sortOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
         </div>
 
-        <div v-if="filteredContent.length" class="list-grid">
-          <article
+        <!-- ─── Summary cards ─────────────────────────────────────────── -->
+        <div v-if="filteredContent.length" class="summary-list">
+          <button
             v-for="item in filteredContent"
             :key="item.id"
-            class="moderation-card moderation-card--content"
+            type="button"
+            class="summary-card"
+            :class="[
+              `summary-card--${item.severity}`,
+              item.status === 'hidden' ? 'summary-card--dimmed' : '',
+            ]"
+            @click="openModal(item)"
           >
-            <div class="card-top">
-              <div>
-                <h3 class="card-title">{{ item.title }}</h3>
-                <div class="card-subtitle">
-                  {{ t('moderation.pages.content.card.author') }} {{ item.authorName }}
-                </div>
+            <!-- Left: type icon + id -->
+            <div class="summary-card__icon" :class="`summary-card__icon--${item.type}`">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path :d="getTypeIcon(item.type)" />
+              </svg>
+            </div>
+
+            <!-- Center: main info -->
+            <div class="summary-card__body">
+              <div class="summary-card__head">
+                <span class="summary-card__id">#{{ item.id }}</span>
+                <strong class="summary-card__title">{{ item.title }}</strong>
               </div>
 
-              <div class="card-top__aside">
-                <span :class="['pill', `pill--${item.severity}`]">
-                  {{ getSeverityLabel(item.severity) }}
-                </span>
-                <span class="meta-item">{{ formatDate(item.updatedAt) }}</span>
+              <div class="summary-card__meta">
+                <span class="summary-card__author">{{ item.authorName }}</span>
+                <span class="summary-card__dot">·</span>
+                <span class="summary-card__date">{{ formatDate(item.updatedAt) }}</span>
+              </div>
+
+              <div class="summary-card__pills">
+                <span :class="['pill', `pill--${item.severity}`]">{{
+                  getSeverityLabel(item.severity)
+                }}</span>
+                <span :class="['pill', `pill--${item.status}`]">{{
+                  getContentStatusLabel(item.status)
+                }}</span>
+                <span class="meta-item">{{ getContentTypeLabel(item.type) }}</span>
+                <template v-if="item.tags.length">
+                  <span v-for="tag in item.tags.slice(0, 2)" :key="tag" class="tag-item"
+                    >#{{ tag }}</span
+                  >
+                  <span v-if="item.tags.length > 2" class="tag-more"
+                    >+{{ item.tags.length - 2 }}</span
+                  >
+                </template>
               </div>
             </div>
 
-            <div class="card-pills">
-              <span :class="['pill', `pill--${item.status}`]">
-                {{ getContentStatusLabel(item.status) }}
-              </span>
-
-              <span class="meta-item">{{ getContentTypeLabel(item.type) }}</span>
-              <span class="meta-item">{{ getContentOriginLabel(item.origin) }}</span>
-            </div>
-
-            <p class="card-text">{{ item.preview }}</p>
-
-            <div class="card-meta">
-              <span class="meta-item">
-                {{ t('moderation.pages.content.card.category') }} {{ item.category }}
-              </span>
-
-              <span class="meta-item">
-                {{ t('moderation.pages.content.card.flags') }} {{ item.flagCount }}
-              </span>
-
-              <span class="meta-item">
-                {{ t('moderation.pages.content.card.reports') }} {{ item.reportsCount }}
-              </span>
-            </div>
-
-            <div v-if="item.tags.length" class="card-tags">
-              <span v-for="tag in item.tags" :key="tag" class="tag-item">#{{ tag }}</span>
-            </div>
-
-            <div v-if="item.moderationNote" class="moderation-note">
-              <span class="moderation-note__label">
-                {{ t('moderation.pages.content.card.note') }}
-              </span>
-              <p class="moderation-note__text">{{ item.moderationNote }}</p>
-            </div>
-
-            <div class="card-footer">
-              <div class="card-footer__meta">
-                <span class="meta-item meta-item--subtle">
-                  {{ t('moderation.pages.content.card.lastAction') }}
-                  {{ formatLastAction(item) }}
-                </span>
+            <!-- Right: signals + chevron -->
+            <div class="summary-card__signals">
+              <div class="signal-badge signal-badge--flags">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiFlagOutline" /></svg>
+                <span>{{ item.flagCount }}</span>
               </div>
-
-              <div class="card-actions">
-                <button
-                  type="button"
-                  class="btn-inline btn-inline--secondary"
-                  :disabled="item.status === 'review'"
-                  @click="moderationStore.markContentForReview(item.id, 'POC Admin')"
-                >
-                  {{
-                    item.status === 'review'
-                      ? t('moderation.pages.content.actions.inReview')
-                      : t('moderation.pages.content.actions.review')
-                  }}
-                </button>
-
-                <button
-                  type="button"
-                  class="btn-inline btn-inline--primary"
-                  @click="handleVisibilityAction(item)"
-                >
-                  {{ getVisibilityActionLabel(item.status) }}
-                </button>
+              <div class="signal-badge signal-badge--reports">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path :d="mdiAlertCircleOutline" />
+                </svg>
+                <span>{{ item.reportsCount }}</span>
               </div>
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+                <path :d="mdiChevronRight" />
+              </svg>
             </div>
-          </article>
+          </button>
         </div>
 
         <div v-else class="empty-state">
@@ -232,12 +198,226 @@
         </div>
       </section>
     </div>
+
+    <!-- ─── Detail modal ─────────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="selected" class="modal-backdrop" @click.self="closeModal">
+          <div class="modal" role="dialog" aria-modal="true" :aria-label="selected.title">
+            <!-- Modal header -->
+            <div class="modal__header" :class="`modal__header--${selected.severity}`">
+              <div class="modal__header-left">
+                <div class="modal__type-icon" :class="`modal__type-icon--${selected.type}`">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path :d="getTypeIcon(selected.type)" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="modal__id">
+                    #{{ selected.id }} · {{ getContentTypeLabel(selected.type) }}
+                  </div>
+                  <h2 class="modal__title">{{ selected.title }}</h2>
+                  <div class="modal__author">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path :d="mdiAccountOutline" />
+                    </svg>
+                    {{ selected.authorName }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal__header-right">
+                <span :class="['pill', `pill--${selected.severity}`]">{{
+                  getSeverityLabel(selected.severity)
+                }}</span>
+                <span :class="['pill', `pill--${selected.status}`]">{{
+                  getContentStatusLabel(selected.status)
+                }}</span>
+                <button type="button" class="modal__close" @click="closeModal" aria-label="Fermer">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiClose" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal__body">
+              <!-- Map link — toujours visible, label adapté selon le type -->
+              <div class="map-link-block">
+                <div class="map-link-block__icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path :d="mdiMapMarkerOutline" />
+                  </svg>
+                </div>
+                <div class="map-link-block__content">
+                  <span class="map-link-block__label">
+                    {{
+                      selected.type === 'map'
+                        ? t('moderation.pages.content.modal.mapLabel')
+                        : t('moderation.pages.content.modal.mapLabelParent')
+                    }}
+                  </span>
+                  <strong class="map-link-block__name">{{ getMapName(selected) }}</strong>
+                </div>
+                <a
+                  :href="getMapUrl(selected)"
+                  class="map-link-block__cta"
+                  target="_blank"
+                  rel="noopener"
+                  @click.stop
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiOpenInNew" /></svg>
+                  {{ t('moderation.pages.content.modal.viewMap') }}
+                </a>
+              </div>
+
+              <!-- Preview -->
+              <div class="modal__section">
+                <div class="modal__section-label">
+                  {{ t('moderation.pages.content.modal.preview') }}
+                </div>
+                <p class="modal__preview">{{ selected.preview }}</p>
+              </div>
+
+              <!-- Meta grid -->
+              <div class="modal__meta-grid">
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.card.category')
+                  }}</span>
+                  <strong class="modal__meta-value">{{ selected.category }}</strong>
+                </div>
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.modal.origin')
+                  }}</span>
+                  <strong class="modal__meta-value">{{
+                    getContentOriginLabel(selected.origin)
+                  }}</strong>
+                </div>
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.card.flags')
+                  }}</span>
+                  <strong class="modal__meta-value modal__meta-value--alert">{{
+                    selected.flagCount
+                  }}</strong>
+                </div>
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.card.reports')
+                  }}</span>
+                  <strong class="modal__meta-value modal__meta-value--alert">{{
+                    selected.reportsCount
+                  }}</strong>
+                </div>
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.modal.created')
+                  }}</span>
+                  <strong class="modal__meta-value">{{ formatDate(selected.createdAt) }}</strong>
+                </div>
+                <div class="modal__meta-item">
+                  <span class="modal__meta-label">{{
+                    t('moderation.pages.content.modal.updated')
+                  }}</span>
+                  <strong class="modal__meta-value">{{ formatDate(selected.updatedAt) }}</strong>
+                </div>
+              </div>
+
+              <!-- Tags -->
+              <div v-if="selected.tags.length" class="modal__section">
+                <div class="modal__section-label">
+                  {{ t('moderation.pages.content.modal.tags') }}
+                </div>
+                <div class="modal__tags">
+                  <span v-for="tag in selected.tags" :key="tag" class="tag-item">#{{ tag }}</span>
+                </div>
+              </div>
+
+              <!-- Moderation note -->
+              <div v-if="selected.moderationNote" class="modal__section">
+                <div class="modal__section-label">
+                  {{ t('moderation.pages.content.card.note') }}
+                </div>
+                <div class="modal__note">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiNoteTextOutline" /></svg>
+                  <p>{{ selected.moderationNote }}</p>
+                </div>
+              </div>
+
+              <!-- Last action -->
+              <div class="modal__last-action">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiClockOutline" /></svg>
+                <span
+                  >{{ t('moderation.pages.content.card.lastAction') }}
+                  {{ formatLastAction(selected) }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Modal footer / actions -->
+            <div class="modal__footer">
+              <div class="modal__footer-hint">
+                {{ t('moderation.pages.content.modal.actionsHint') }}
+              </div>
+
+              <div class="modal__actions">
+                <button
+                  type="button"
+                  class="modal-btn modal-btn--secondary"
+                  :disabled="selected.status === 'review'"
+                  @click="doReview"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiEyeOutline" /></svg>
+                  {{
+                    selected.status === 'review'
+                      ? t('moderation.pages.content.actions.inReview')
+                      : t('moderation.pages.content.actions.review')
+                  }}
+                </button>
+
+                <button
+                  type="button"
+                  :class="[
+                    'modal-btn',
+                    isHiddenOrRestricted(selected) ? 'modal-btn--restore' : 'modal-btn--danger',
+                  ]"
+                  @click="doVisibility"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path :d="isHiddenOrRestricted(selected) ? mdiEyeOutline : mdiEyeOffOutline" />
+                  </svg>
+                  {{ getVisibilityActionLabel(selected.status) }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </section>
 </template>
 
 <script setup lang="ts">
+import {
+  mdiAccountOutline,
+  mdiAlertCircleOutline,
+  mdiChevronRight,
+  mdiClockOutline,
+  mdiClose,
+  mdiCommentOutline,
+  mdiEyeOffOutline,
+  mdiEyeOutline,
+  mdiFlagOutline,
+  mdiImageOutline,
+  mdiMapMarkerOutline,
+  mdiNoteTextOutline,
+  mdiOpenInNew,
+  mdiPuzzleOutline,
+  mdiShieldSearch,
+} from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -260,6 +440,57 @@ const moderationStore = useModerationContentStore()
 const { contentItems, contentSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
+// ─── Modal state ────────────────────────────────────────────────────────────
+const selected = ref<ModerationContentItem | null>(null)
+
+function openModal(item: ModerationContentItem) {
+  selected.value = item
+  document.body.style.overflow = 'hidden'
+}
+
+function closeModal() {
+  selected.value = null
+  document.body.style.overflow = ''
+}
+
+function syncSelectedFromStore() {
+  if (selected.value) {
+    const fresh = contentItems.value.find((i) => i.id === selected.value!.id)
+    if (fresh) selected.value = fresh
+  }
+}
+
+function doReview() {
+  if (!selected.value) return
+  moderationStore.markContentForReview(selected.value.id, 'POC Admin')
+  syncSelectedFromStore()
+}
+
+function doVisibility() {
+  if (!selected.value) return
+  if (isHiddenOrRestricted(selected.value)) {
+    moderationStore.restoreContent(selected.value.id, 'POC Admin')
+  } else {
+    moderationStore.hideContent(selected.value.id, 'POC Admin')
+  }
+  syncSelectedFromStore()
+}
+
+function isHiddenOrRestricted(item: ModerationContentItem) {
+  return item.status === 'hidden' || item.status === 'restricted'
+}
+
+// Close on Escape
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && selected.value) closeModal()
+}
+window.addEventListener('keydown', onKeydown)
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+})
+
+// ─── Filters ────────────────────────────────────────────────────────────────
 const search = ref('')
 const selectedStatus = ref<'all' | ModerationContentStatus>('all')
 const selectedType = ref<'all' | ModerationContentType>('all')
@@ -312,64 +543,59 @@ const sortOptions = computed(() => [
   { value: 'severityDesc', label: t('moderation.pages.content.filters.sortSeverityDesc') },
 ])
 
-const activeFilterCount = computed(() => {
-  return [
-    search.value.trim() !== '',
-    selectedStatus.value !== 'all',
-    selectedType.value !== 'all',
-    selectedSeverity.value !== 'all',
-    selectedOrigin.value !== 'all',
-    sortBy.value !== 'updatedDesc',
-  ].filter(Boolean).length
-})
+const activeFilterCount = computed(
+  () =>
+    [
+      search.value.trim() !== '',
+      selectedStatus.value !== 'all',
+      selectedType.value !== 'all',
+      selectedSeverity.value !== 'all',
+      selectedOrigin.value !== 'all',
+      sortBy.value !== 'updatedDesc',
+    ].filter(Boolean).length,
+)
 
-const filteredContent = computed(() => {
-  const query = search.value.trim().toLowerCase()
-
-  return contentItems.value
+const filteredContent = computed(() =>
+  contentItems.value
     .filter((item) => {
+      const q = search.value.trim().toLowerCase()
       const matchesQuery =
-        query === '' ||
-        item.title.toLowerCase().includes(query) ||
-        item.authorName.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query) ||
-        item.preview.toLowerCase().includes(query) ||
-        item.moderationNote.toLowerCase().includes(query) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(query))
+        q === '' ||
+        item.title.toLowerCase().includes(q) ||
+        item.authorName.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q) ||
+        item.preview.toLowerCase().includes(q) ||
+        item.moderationNote.toLowerCase().includes(q) ||
+        item.tags.some((tag) => tag.toLowerCase().includes(q))
 
-      const matchesStatus = selectedStatus.value === 'all' || item.status === selectedStatus.value
-      const matchesType = selectedType.value === 'all' || item.type === selectedType.value
-      const matchesSeverity =
-        selectedSeverity.value === 'all' || item.severity === selectedSeverity.value
-      const matchesOrigin = selectedOrigin.value === 'all' || item.origin === selectedOrigin.value
-
-      return matchesQuery && matchesStatus && matchesType && matchesSeverity && matchesOrigin
+      return (
+        matchesQuery &&
+        (selectedStatus.value === 'all' || item.status === selectedStatus.value) &&
+        (selectedType.value === 'all' || item.type === selectedType.value) &&
+        (selectedSeverity.value === 'all' || item.severity === selectedSeverity.value) &&
+        (selectedOrigin.value === 'all' || item.origin === selectedOrigin.value)
+      )
     })
     .slice()
     .sort((a, b) => {
       switch (sortBy.value) {
         case 'createdDesc':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-
         case 'flagsDesc':
-          if (b.flagCount !== a.flagCount) {
-            return b.flagCount - a.flagCount
-          }
-          return b.reportsCount - a.reportsCount
-
+          return b.flagCount !== a.flagCount
+            ? b.flagCount - a.flagCount
+            : b.reportsCount - a.reportsCount
         case 'severityDesc':
-          if (severityOrder[b.severity] !== severityOrder[a.severity]) {
-            return severityOrder[b.severity] - severityOrder[a.severity]
-          }
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-
-        case 'updatedDesc':
+          return severityOrder[b.severity] !== severityOrder[a.severity]
+            ? severityOrder[b.severity] - severityOrder[a.severity]
+            : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         default:
           return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       }
-    })
-})
+    }),
+)
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
 function resetFilters() {
   search.value = ''
   selectedStatus.value = 'all'
@@ -380,7 +606,53 @@ function resetFilters() {
 }
 
 function goBackToModeration() {
-  void router.push('/moderation')
+  router.push('/moderation')
+}
+
+function getMapUrl(item: ModerationContentItem) {
+  // type === 'map' : le contenu EST la map → lien direct
+  if (item.type === 'map') return `/maps/${item.id}`
+
+  // Autres types (comment, asset, hunt) : le contenu appartient à une map parente.
+  // On essaie d'abord le champ mapId si le store l'expose, puis on extrait du titre.
+  const asAny = item as Record<string, unknown>
+  if (typeof asAny['mapId'] === 'number' || typeof asAny['mapId'] === 'string') {
+    return `/maps/${asAny['mapId']}`
+  }
+
+  // Fallback : parse "#N" dans le titre (ex. "Commentaire sous une carte #15" → /maps/map-15)
+  const match = item.title.match(/#(\d+)/)
+  if (match) return `/maps/map-${match[1]}`
+
+  // Dernier recours
+  return `/maps?ref=${item.id}`
+}
+
+function getMapName(item: ModerationContentItem) {
+  if (item.type === 'map') return item.title
+
+  const asAny = item as Record<string, unknown>
+  if (typeof asAny['mapTitle'] === 'string') return asAny['mapTitle'] as string
+
+  const match = item.title.match(/#(\d+)/)
+  if (match) return `Map #${match[1]}`
+
+  return `Map liée au contenu #${item.id}`
+}
+
+function getTypeIcon(type: ModerationContentType) {
+  switch (type) {
+    case 'map':
+      return mdiMapMarkerOutline
+    case 'comment':
+      return mdiCommentOutline
+    case 'asset':
+      return mdiImageOutline
+    case 'hunt':
+      return mdiPuzzleOutline
+    default:
+      return mdiShieldSearch
+  }
 }
 
 function getContentStatusLabel(status: ModerationContentStatus) {
@@ -400,18 +672,9 @@ function getSeverityLabel(severity: ModerationSeverity) {
 }
 
 function getVisibilityActionLabel(status: ModerationContentStatus) {
-  return status === 'hidden' || status === 'restricted'
+  return isHiddenOrRestricted({ status } as ModerationContentItem)
     ? t('moderation.pages.content.actions.restore')
     : t('moderation.pages.content.actions.hide')
-}
-
-function handleVisibilityAction(item: ModerationContentItem) {
-  if (item.status === 'hidden' || item.status === 'restricted') {
-    moderationStore.restoreContent(item.id, 'POC Admin')
-    return
-  }
-
-  moderationStore.hideContent(item.id, 'POC Admin')
 }
 
 function formatDate(value: string) {
@@ -422,13 +685,693 @@ function formatDate(value: string) {
 }
 
 function formatLastAction(item: ModerationContentItem) {
-  if (!item.lastActionAt) {
-    return t('moderation.pages.content.card.lastActionFallback')
-  }
-
+  if (!item.lastActionAt) return t('moderation.pages.content.card.lastActionFallback')
   return t('moderation.pages.content.card.lastActionValue', {
     actor: item.lastActionBy ?? 'Administration',
     date: formatDate(item.lastActionAt),
   })
 }
 </script>
+
+<style scoped>
+/* ─── Summary list ─────────────────────────────────────────────────────────── */
+
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summary-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(81, 96, 121, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22)),
+    rgba(252, 239, 225, 0.7);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.14s ease;
+}
+
+.summary-card:hover {
+  transform: translateX(3px);
+  border-color: rgba(242, 139, 91, 0.35);
+  box-shadow: 0 6px 20px -10px rgba(242, 139, 91, 0.4);
+}
+
+.summary-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Severity accents */
+.summary-card--high {
+  border-left: 3px solid #d97706;
+}
+.summary-card--critical {
+  border-left: 3px solid #dc2626;
+}
+.summary-card--medium {
+  border-left: 3px solid #2563eb;
+}
+.summary-card--low {
+  border-left: 3px solid #6b7280;
+}
+.summary-card--dimmed {
+  opacity: 0.65;
+}
+
+/* Type icon */
+.summary-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-ink);
+}
+
+.summary-card__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.summary-card__icon--map {
+  background: rgba(242, 139, 91, 0.16);
+  color: #8a5c1d;
+}
+.summary-card__icon--comment {
+  background: rgba(49, 89, 140, 0.13);
+  color: #31598c;
+}
+.summary-card__icon--asset {
+  background: rgba(93, 44, 168, 0.12);
+  color: #5d2ca8;
+}
+.summary-card__icon--hunt {
+  background: rgba(22, 163, 74, 0.13);
+  color: #15803d;
+}
+
+/* Body */
+.summary-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.summary-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.summary-card__id {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-family: 'Space Grotesk', monospace;
+}
+
+.summary-card__title {
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summary-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.summary-card__dot {
+  opacity: 0.4;
+}
+
+.summary-card__pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(81, 96, 121, 0.1);
+  color: var(--color-ink);
+}
+
+.tag-more {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* Right: signals */
+.summary-card__signals {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.signal-badge svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.signal-badge--flags {
+  background: rgba(217, 119, 6, 0.12);
+  color: #92400e;
+}
+.signal-badge--reports {
+  background: rgba(220, 38, 38, 0.1);
+  color: #991b1b;
+}
+
+.chevron {
+  width: 20px;
+  height: 20px;
+  fill: var(--color-text-muted);
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.summary-card:hover .chevron {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* ─── Pill overrides (reuse existing from global) ─────────────────────────── */
+/* These mirror what the existing moderation global CSS provides.             */
+/* Remove if they're already in your global stylesheet.                       */
+
+/* ─── Modal ────────────────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(28, 32, 48, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  width: 100%;
+  max-width: 680px;
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  background: rgba(252, 239, 225, 0.99);
+  box-shadow:
+    0 32px 64px -20px rgba(28, 32, 48, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+
+/* Header */
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(81, 96, 121, 0.1);
+}
+
+.modal__header--critical {
+  background: rgba(220, 38, 38, 0.06);
+}
+.modal__header--high {
+  background: rgba(217, 119, 6, 0.06);
+}
+.modal__header--medium {
+  background: rgba(37, 99, 235, 0.05);
+}
+.modal__header--low {
+  background: rgba(107, 114, 128, 0.04);
+}
+
+.modal__header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.modal__type-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal__type-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+}
+
+.modal__type-icon--map {
+  background: rgba(242, 139, 91, 0.18);
+  color: #8a5c1d;
+}
+.modal__type-icon--comment {
+  background: rgba(49, 89, 140, 0.14);
+  color: #31598c;
+}
+.modal__type-icon--asset {
+  background: rgba(93, 44, 168, 0.13);
+  color: #5d2ca8;
+}
+.modal__type-icon--hunt {
+  background: rgba(22, 163, 74, 0.14);
+  color: #15803d;
+}
+
+.modal__id {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-family: 'Space Grotesk', monospace;
+}
+
+.modal__title {
+  margin: 0.25rem 0 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  color: var(--color-ink);
+  line-height: 1.25;
+}
+
+.modal__author {
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.84rem;
+  color: var(--color-text-muted);
+}
+
+.modal__author svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+.modal__header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.modal__close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(81, 96, 121, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.modal__close:hover {
+  background: rgba(81, 96, 121, 0.18);
+}
+
+.modal__close svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Body */
+.modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* Map link block */
+.map-link-block {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: rgba(242, 139, 91, 0.1);
+  border: 1px solid rgba(242, 139, 91, 0.28);
+}
+
+.map-link-block__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(242, 139, 91, 0.22);
+  color: #8a5c1d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.map-link-block__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.map-link-block__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.map-link-block__label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8a5c1d;
+}
+
+.map-link-block__name {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.92rem;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-link-block__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
+  color: var(--color-cream);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.map-link-block__cta:hover {
+  transform: translateY(-1px);
+}
+
+.map-link-block__cta svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+
+/* Sections */
+.modal__section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.55rem;
+}
+
+.modal__preview {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--color-ink);
+  line-height: 1.6;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(81, 96, 121, 0.05);
+  border-left: 3px solid rgba(81, 96, 121, 0.15);
+}
+
+/* Meta grid */
+.modal__meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.modal__meta-item {
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: rgba(81, 96, 121, 0.05);
+  border: 1px solid rgba(81, 96, 121, 0.08);
+}
+
+.modal__meta-label {
+  display: block;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal__meta-value {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.modal__meta-value--alert {
+  color: #991b1b;
+}
+
+/* Tags */
+.modal__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Note */
+.modal__note {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.modal__note svg {
+  width: 18px;
+  height: 18px;
+  fill: #2563eb;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.modal__note p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+
+/* Last action */
+.modal__last-action {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  padding-top: 0.25rem;
+  border-top: 1px dashed rgba(81, 96, 121, 0.12);
+}
+
+.modal__last-action svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+/* Footer */
+.modal__footer {
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 1px solid rgba(81, 96, 121, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.modal__footer-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  flex: 1;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  border-radius: 14px;
+  padding: 0.75rem 1.1rem;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.modal-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modal-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.modal-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.modal-btn--secondary {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+.modal-btn--danger {
+  background: rgba(220, 38, 38, 0.1);
+  color: #991b1b;
+}
+
+.modal-btn--restore {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+/* ─── Transition ────────────────────────────────────────────────────────────── */
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.modal-enter-active .modal,
+.modal-leave-active .modal {
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal,
+.modal-leave-to .modal {
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    max-height: 92vh;
+    border-radius: 28px 28px 0 0;
+    max-width: 100%;
+  }
+
+  .modal__meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-enter-from .modal,
+  .modal-leave-to .modal {
+    transform: translateY(40px);
+  }
+
+  .summary-card {
+    flex-wrap: wrap;
+  }
+
+  .summary-card__signals {
+    margin-left: auto;
+  }
+}
+</style>

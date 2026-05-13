@@ -40,7 +40,15 @@
 </template>
 
 <script setup lang="ts">
-import { mdiClipboardText, mdiHome, mdiLogout, mdiMap, mdiShieldAccount, mdiStore } from '@mdi/js'
+import {
+  mdiClipboardText,
+  mdiGavel,
+  mdiHome,
+  mdiLogout,
+  mdiMap,
+  mdiShieldAccount,
+  mdiStore,
+} from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -66,6 +74,7 @@ const items = computed<NavItem[]>(() => [
   { label: t('nav.maps'), to: '/maps', icon: mdiMap },
   { label: t('nav.shop'), to: '/shop', icon: mdiStore },
   { label: t('nav.backoffice'), to: '/backoffice', icon: mdiShieldAccount },
+  { label: t('nav.moderation'), to: '/moderation', icon: mdiGavel },
 ])
 
 const langOptions = computed<LangOption<SupportedLocale>[]>(() => [

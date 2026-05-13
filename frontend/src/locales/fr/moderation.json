@@ -333,60 +333,70 @@
         "notFoundText": "Le dossier demandé n’existe pas ou n’est plus disponible."
       },
       "content": {
-        "badge": "Contenus",
-        "title": "Modération de contenu",
-        "subtitle": "Contrôlez rapidement les cartes, chasses, commentaires et assets avec des actions simples, des filtres puissants et une vue pensée pour la décision.",
+        "badge": "Contenu",
+        "title": "Modération du contenu",
+        "subtitle": "Supervise les maps, commentaires et assets signalés. Clique sur une carte pour voir le détail complet et agir.",
         "side": {
-          "label": "Visibilité",
-          "title": "Décisions de modération",
-          "text": "Consultez les contenus signalés, priorisez les cas sensibles, ajustez leur visibilité et facilitez leur revue depuis une seule interface.",
+          "label": "Modération",
+          "title": "Contenu sous surveillance",
+          "text": "Chaque élément est consultable en détail avec accès direct aux actions de modération depuis la fiche.",
           "chips": {
             "visibility": "Visibilité",
-            "review": "Revue",
+            "review": "Mise en revue",
             "quickActions": "Actions rapides"
           }
         },
         "stats": {
           "total": "Total",
-          "totalCaption": "Éléments surveillés",
-          "actionable": "À traiter",
-          "actionableCaption": "Demandent une action ou une revue",
-          "review": "À revoir",
-          "reviewCaption": "Nécessitent une décision",
+          "totalCaption": "Éléments chargés dans la file",
+          "actionable": "Actionnables",
+          "actionableCaption": "Nécessitent une décision",
+          "review": "En revue",
+          "reviewCaption": "En cours d'examen",
           "hidden": "Masqués",
-          "hiddenCaption": "Temporairement retirés",
-          "highPriority": "Priorité haute",
-          "highPriorityCaption": "Cas sensibles ou urgents"
+          "hiddenCaption": "Retirés de la vue publique",
+          "highPriority": "Haute priorité",
+          "highPriorityCaption": "Sévérité élevée ou critique"
         },
         "list": {
-          "title": "Bibliothèque sous revue",
-          "subtitle": "Une vue claire pour filtrer, prioriser et prendre des décisions rapidement.",
+          "title": "File de modération",
+          "subtitle": "Clique sur une carte pour ouvrir le détail complet et accéder aux actions.",
           "filtered": "{count} filtre(s) actif(s)"
         },
         "filters": {
-          "search": "Rechercher un titre, un auteur, une catégorie, un tag ou une note",
+          "search": "Rechercher (titre, auteur, tags…)",
           "allSeverities": "Toutes les sévérités",
           "allOrigins": "Toutes les origines",
-          "sortUpdatedDesc": "Tri : activité récente",
-          "sortCreatedDesc": "Tri : création récente",
-          "sortFlagsDesc": "Tri : le plus signalé",
-          "sortSeverityDesc": "Tri : sévérité"
+          "sortUpdatedDesc": "Trier : modifié récemment",
+          "sortCreatedDesc": "Trier : créé récemment",
+          "sortFlagsDesc": "Trier : plus signalé",
+          "sortSeverityDesc": "Trier : sévérité décroissante"
         },
         "card": {
-          "author": "Auteur :",
           "category": "Catégorie :",
           "flags": "Signalements :",
           "reports": "Rapports :",
+          "note": "Note de modération",
           "lastAction": "Dernière action :",
-          "lastActionFallback": "Aucune action récente",
-          "lastActionValue": "{actor} · {date}",
-          "note": "Note de modération"
+          "lastActionFallback": "Aucune action enregistrée",
+          "lastActionValue": "{actor} · {date}"
+        },
+        "modal": {
+          "mapLabel": "Map associée",
+          "viewMap": "Voir la map",
+          "preview": "Aperçu du contenu",
+          "origin": "Origine",
+          "created": "Créé le",
+          "updated": "Modifié le",
+          "tags": "Tags",
+          "actionsHint": "Les actions sont tracées dans l'audit log.",
+          "mapLabelParent": "Map parente"
         },
         "actions": {
           "backToModeration": "Retour à la modération",
           "resetFilters": "Réinitialiser les filtres",
           "review": "Mettre en revue",
-          "inReview": "Déjà en revue",
+          "inReview": "En cours de revue",
           "hide": "Masquer",
           "restore": "Restaurer"
         },
