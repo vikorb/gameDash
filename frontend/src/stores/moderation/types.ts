@@ -66,7 +66,7 @@ export type ModerationReportAttachment = {
   url: string
   mimeType: string
   description: string
-  source: 'mock'
+  source: 'mock' | 'upload'
   addedBy: string
   addedAt: string
 }

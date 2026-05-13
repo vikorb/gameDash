@@ -153,16 +153,7 @@ const router = createRouter({
     {
       path: '/moderation/reports',
       name: 'moderation-reports',
-      component: () => import('@/views/moderation/report/ModerationReportsView.vue'),
-      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
-    },
-    {
-      path: '/moderation/reports/:id',
-      name: 'moderation-report-detail',
-      component: () => import('@/views/moderation/report/ModerationReportDetailView.vue'),
-      props: (route) => ({
-        id: String(route.params.id),
-      }),
+      component: () => import('@/views/moderation/ModerationReportsView.vue'),
       meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
     },
     {
@@ -174,13 +165,8 @@ const router = createRouter({
     {
       path: '/moderation/sanctions',
       name: 'moderation-sanctions',
-      component: () => import('@/views/moderation/sanction/ModerationSanctionsView.vue'),
+      component: () => import('@/views/moderation/ModerationSanctionsView.vue'),
       meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
-    },
-    {
-      path: '/moderation/sanctions/:id',
-      name: 'moderationSanctionDetail',
-      component: () => import('@/views/moderation/sanction/ModerationSanctionDetailView.vue'),
     },
     {
       path: '/moderation/appeals',

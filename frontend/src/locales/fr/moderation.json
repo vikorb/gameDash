@@ -84,6 +84,7 @@
         "badge": "Audit",
         "title": "Journal d’activité",
         "subtitle": "Suivez les actions sensibles, les décisions de modération et les événements récents depuis une vue claire et centralisée.",
+        "description": "Historique complet des actions de modération : sanctions, signalements, modifications de contenu.",
         "side": {
           "label": "Traçabilité",
           "title": "Historique des actions",
@@ -112,6 +113,11 @@
         "card": {
           "resource": "Ressource :"
         },
+        "items": {
+          "traceability": "Traçabilité complète",
+          "history": "Historique des actions",
+          "security": "Sécurité & conformité"
+        },
         "emptyText": "Aucune entrée ne correspond aux filtres sélectionnés."
       }
     },
@@ -123,7 +129,6 @@
     },
     "severities": {
       "low": "Faible",
-      "medium": "Moyenne",
       "medium": "Moyenne",
       "high": "Élevée",
       "critical": "Critique"
@@ -231,7 +236,9 @@
           "pending": "Nouveaux",
           "pendingCaption": "À traiter rapidement",
           "inProgress": "En cours",
-          "inProgressCaption": "Déjà pris par la modération"
+          "inProgressCaption": "Déjà pris par la modération",
+          "resolved": "Résolus",
+          "resolvedCaption": "Signalements traités et fermés"
         },
         "list": {
           "title": "Liste des signalements",
@@ -250,7 +257,42 @@
           "assign": "M’assigner",
           "resolve": "Marquer comme résolu",
           "open": "Ouvrir",
-          "startReview": "Commencer l'évaluation"
+          "startReview": "Commencer l'évaluation",
+          "assignPlaceholder": "Nom du modérateur…",
+          "dismiss": "Rejeter",
+          "reopen": "Réouvrir"
+        },
+        "modal": {
+          "actionsHint": "Les actions sont tracées dans l'audit log.",
+          "sections": {
+            "info": "Informations"
+          },
+          "assign": {
+            "title": "Assignation",
+            "me": "M'assigner"
+          },
+          "notes": {
+            "title": "Notes internes",
+            "placeholder": "Ajouter une note interne…",
+            "add": "Ajouter",
+            "empty": "Aucune note interne pour ce signalement."
+          },
+          "replies": {
+            "title": "Réponses au signalant",
+            "placeholder": "Répondre au signalant…",
+            "send": "Envoyer",
+            "empty": "Aucune réponse envoyée pour l'instant."
+          },
+          "upload": {
+            "zone": "Glisser-déposer un fichier ou cliquer pour sélectionner",
+            "hint": "Images, PDF, DOC, TXT, ZIP — 10 Mo max",
+            "button": "Choisir un fichier",
+            "descPlaceholder": "Description (optionnelle)…",
+            "confirm": "Joindre",
+            "cancel": "Annuler",
+            "remove": "Supprimer la pièce jointe",
+            "success": "Pièce jointe ajoutée avec succès."
+          }
         },
         "emptyText": "Aucun signalement ne correspond aux filtres sélectionnés."
       },
@@ -277,6 +319,7 @@
 
         "fields": {
           "target": "Cible",
+          "assignedTo": "Assigné à",
           "targetType": "Type de cible",
           "reporter": "Auteur du signalement",
           "reason": "Motif",
@@ -454,6 +497,7 @@
         },
         "detail": {
           "badge": "Dossier sanction",
+          "note": "Note interne",
           "side": {
             "label": "Décision",
             "title": "Vue détaillée",
@@ -497,11 +541,36 @@
           },
           "emptyTitle": "Sanction introuvable",
           "emptyText": "Le dossier demandé n’existe pas ou n’est plus disponible."
+        },
+        "modal": {
+          "appealsCount": "appel(s) déposé(s) sur cette sanction",
+          "actionsHint": "Les actions sont tracées dans l'audit log.",
+          "sections": {
+            "info": "Informations",
+            "summary": "Résumé",
+            "evidence": "Preuves",
+            "appeals": "Appels",
+            "relatedReports": "Signalements liés",
+            "activity": "Activité"
+          },
+          "note": {
+            "title": "Note interne",
+            "edit": "Modifier",
+            "placeholder": "Ajouter ou modifier la note interne…",
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "empty": "Aucune note interne sur cette sanction.",
+            "saved": "Note enregistrée."
+          },
+          "activity": {
+            "empty": "Aucune activité enregistrée pour cette sanction."
+          }
         }
       },
       "appeals": {
         "badge": "Appels",
         "title": "Gestion des appels",
+        "actionRequired": "Action requise",
         "subtitle": "Un espace clair pour traiter les contestations, demander des compléments et notifier une décision.",
         "side": {
           "label": "Réexamen",
@@ -539,7 +608,8 @@
           "sanction": "Sanction :",
           "note": "Note :",
           "submittedAt": "Soumis le :",
-          "decisionLabel": "Décision :"
+          "decisionLabel": "Décision :",
+          "appealedAction": "Action contestée"
         },
         "actions": {
           "requestInfo": "Demander plus d’infos",
@@ -547,6 +617,96 @@
           "accept": "Accepter",
           "backToModeration": "Retour à la modération",
           "resetFilters": "Réinitialiser les filtres"
+        },
+        "modal": {
+          "sanctionContext": "Sanction concernée",
+          "message": "Message du joueur",
+          "decisionNote": "Note de décision",
+          "addNote": "Ajouter une note interne",
+          "notePlaceholder": "Note de décision (optionnelle)…",
+          "actionableHint": "Choisissez une action — elle sera immédiatement appliquée.",
+          "decidedHint": "Décision : {status}",
+          "sections": {
+            "info": "Informations",
+            "decision": "Prendre une décision",
+            "outcome": "Décision rendue"
+          },
+          "meta": {
+            "id": "Identifiant",
+            "sanctionType": "Type de sanction",
+            "submitted": "Soumis le"
+          },
+          "awaitingInfo": "En attente d'infos",
+          "noteHint": "Cette note sera associée à votre décision dans l'audit log.",
+          "close": "Fermer",
+          "actions": {
+            "requestInfoDesc": "Demander des précisions au joueur",
+            "rejectDesc": "Refuser et maintenir la sanction",
+            "acceptDesc": "Accepter et lever la sanction"
+          },
+          "sanctionDescs": {
+            "warning": "Avertissement officiel émis sur le compte",
+            "temporaryBan": "Suspension temporaire du compte ou d'une fonctionnalité",
+            "permanentBan": "Bannissement définitif du compte",
+            "mute": "Restriction de communication"
+          },
+          "outcomes": {
+            "accepted": "L'appel a été accepté. La sanction a été levée.",
+            "rejected": "L'appel a été rejeté. La sanction est maintenue."
+          },
+          "appealedAction": {
+            "title": "Action contestée",
+            "summaryLabel": "Résumé de l’action",
+            "detailsTitle": "Éléments ayant motivé la sanction",
+            "unknownDate": "Date de l’action non renseignée",
+            "resourceFallback": "Compte joueur / contenu modéré",
+            "originFallback": "Contexte généré depuis la sanction",
+            "facts": {
+              "player": "Joueur",
+              "sanction": "Sanction",
+              "resource": "Ressource",
+              "origin": "Origine"
+            },
+            "timeline": {
+              "action": "Action initiale",
+              "sanction": "Sanction appliquée",
+              "appeal": "Appel reçu"
+            },
+            "titles": {
+              "warning": "Comportement signalé ayant déclenché un avertissement",
+              "temporaryBan": "Action ayant entraîné un bannissement temporaire",
+              "permanentBan": "Action grave ayant entraîné un bannissement définitif",
+              "mute": "Message ou comportement ayant entraîné une restriction de parole"
+            },
+            "descriptions": {
+              "warning": "Le joueur conteste un avertissement émis après une action jugée limite ou contraire aux règles de la communauté.",
+              "temporaryBan": "Le joueur conteste une suspension temporaire appliquée après un comportement problématique ou répété.",
+              "permanentBan": "Le joueur conteste une exclusion définitive appliquée après une action considérée comme grave par la modération.",
+              "mute": "Le joueur conteste une restriction de communication appliquée après un message, commentaire ou comportement vocal/textuel problématique."
+            },
+            "details": {
+              "warning": {
+                "one": "Une action du joueur a été signalée ou détectée comme potentiellement contraire aux règles.",
+                "two": "La modération a estimé que le comportement nécessitait un rappel formel.",
+                "three": "L’appel permet de vérifier si l’avertissement était proportionné au contexte."
+              },
+              "temporaryBan": {
+                "one": "Une action ou une répétition d’actions a été considérée comme suffisamment problématique pour bloquer temporairement le compte.",
+                "two": "La sanction vise à protéger l’expérience des autres joueurs pendant l’analyse du dossier.",
+                "three": "L’appel permet de réévaluer la durée, la justification et le contexte de la suspension."
+              },
+              "permanentBan": {
+                "one": "Une action grave ou une accumulation d’incidents a été associée au compte du joueur.",
+                "two": "La modération a considéré que le maintien du compte présentait un risque pour la communauté.",
+                "three": "L’appel permet de revoir les éléments du dossier avant de confirmer ou d’annuler l’exclusion."
+              },
+              "mute": {
+                "one": "Un message, commentaire ou comportement de communication a été jugé inadapté.",
+                "two": "La restriction vise à limiter les interactions problématiques sans bloquer totalement le compte.",
+                "three": "L’appel permet de vérifier si la restriction de parole est justifiée et proportionnée."
+              }
+            }
+          }
         },
         "emptyText": "Aucun appel ne correspond aux filtres sélectionnés."
       },
