@@ -3,6 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { authService } from '@/services/pocketbase'
 import { type UserRole, useUserStore } from '@/stores/userStore'
 import AuthView from '@/views/AuthView.vue'
+import BackofficeDashboardView from '@/views/backoffice/BackofficeDashboardView.vue'
+import BackofficeEconomyView from '@/views/backoffice/BackofficeEconomyView.vue'
+import BackofficeMatchmakingView from '@/views/backoffice/BackofficeMatchmakingView.vue'
+import BackOfficeView from '@/views/BackOfficeView.vue'
 import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
@@ -97,6 +101,30 @@ const router = createRouter({
       name: 'maps-activity',
       component: MapsActivityView,
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/backoffice',
+      name: 'backoffice',
+      component: BackOfficeView,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/backoffice/dashboard',
+      name: 'backoffice-dashboard',
+      component: BackofficeDashboardView,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/backoffice/matchmaking',
+      name: 'backoffice-matchmaking',
+      component: BackofficeMatchmakingView,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/backoffice/economy',
+      name: 'backoffice-economy',
+      component: BackofficeEconomyView,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
     },
     {
       path: '/moderation',

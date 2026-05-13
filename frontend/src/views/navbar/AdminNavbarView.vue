@@ -65,7 +65,7 @@ const items = computed<NavItem[]>(() => [
   { label: t('nav.activities'), to: '/activities', icon: mdiClipboardText },
   { label: t('nav.maps'), to: '/maps', icon: mdiMap },
   { label: t('nav.shop'), to: '/shop', icon: mdiStore },
-  { label: t('nav.moderation'), to: '/moderation', icon: mdiShieldAccount },
+  { label: t('nav.backoffice'), to: '/backoffice', icon: mdiShieldAccount },
 ])
 
 const langOptions = computed<LangOption<SupportedLocale>[]>(() => [
