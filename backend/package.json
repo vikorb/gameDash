@@ -8,6 +8,7 @@
     "migrate": "knex migrate:latest --knexfile src/knexfile.ts",
     "build": "tsc && tsc-paths -p tsconfig.json -s src -o dist",
     "seed": "knex seed:run --knexfile src/knexfile.ts",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
@@ -25,7 +26,9 @@
     "jiti": "^2.6.1",
     "knex": "^3.1.0",
     "pg": "^8.18.0",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "node-cron": "^3.0.0",
+    "axios": "^1.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
