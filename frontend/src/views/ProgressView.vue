@@ -50,6 +50,7 @@
         :selectedModeId="selectedModeId ?? 0"
       />
       <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" :selectedModeId="selectedModeId ?? 0" :modes="modes" />
+      <ProgressStatsGrid :matches="insightsMatches" />
     </div>
     <div v-else>
       <p>Veuillez vous connecter pour voir votre progression.</p>
@@ -75,6 +76,7 @@ import type { DateRange } from '@/views/progress/DateFilter.vue'
 import DateFilter from '@/views/progress/DateFilter.vue'
 import DateRangePicker from '@/views/progress/DateRangePicker.vue'
 import InsightsPieCharts from '@/views/progress/InsightsPieCharts.vue'
+import ProgressStatsGrid from '@/views/progress/ProgressStatsGrid.vue'
 import RateCard from '@/views/progress/RateCard.vue'
 
 const user = ref<AuthUser | null>(null)
@@ -290,7 +292,6 @@ watch(
   background-position: right 10px center;
 }
 
-/* Réinitialise les styles du ModeSelector dans ce contexte uniquement */
 .progress-filters-bar :deep(.mode-selector) {
   margin-bottom: 0;
 }
