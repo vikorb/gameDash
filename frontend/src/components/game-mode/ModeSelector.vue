@@ -1,11 +1,18 @@
 <template>
   <div class="mode-selector">
-    <label for="mode-select">Mode :</label>
-    <select id="mode-select" :value="modelValue" @change="onChange">
-      <option v-for="mode in modes" :key="mode.id" :value="mode.id">
+    <div class="mode-buttons" role="group" aria-label="Selection du mode de jeu">
+      <button
+        v-for="mode in modes"
+        :key="mode.id"
+        type="button"
+        class="mode-button"
+        :class="{ 'is-selected': mode.id === modelValue }"
+        :aria-pressed="mode.id === modelValue"
+        @click="selectMode(mode.id)"
+      >
         {{ mode.name }}
-      </option>
-    </select>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -22,9 +29,8 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['update:modelValue'])
 
-function onChange(event: Event) {
-  const value = (event.target as HTMLSelectElement).value
-  emit('update:modelValue', typeof props.modelValue === 'number' ? Number(value) : value)
+function selectMode(modeId: number | string) {
+  emit('update:modelValue', typeof props.modelValue === 'number' ? Number(modeId) : modeId)
 }
 </script>
 
@@ -32,14 +38,35 @@ function onChange(event: Event) {
 .mode-selector {
   margin-bottom: 16px;
 }
-label {
+.mode-label {
+  display: inline-block;
   margin-right: 8px;
+  margin-bottom: 8px;
 }
-select {
-  padding: 4px 8px;
+
+.mode-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mode-button {
+  padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #232c3a;
   color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mode-button:hover {
+  border-color: #ff9f40;
+}
+
+.mode-button.is-selected {
+  background: #ff8c1a;
+  border-color: #ff8c1a;
+  color: #1f1f1f;
 }
 </style>

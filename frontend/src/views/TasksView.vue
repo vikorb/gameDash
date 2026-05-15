@@ -5,12 +5,9 @@
     </div>
 
     <div class="tasks-filters">
-      <div class="filter-group">
+      <div class="filter-group filter-group--mode">
         <label class="filter-label">Mode de jeu</label>
-        <select v-model="selectedModeId" class="filter-select">
-          <option :value="undefined">Tous les modes</option>
-          <option v-for="mode in modes" :key="mode.id" :value="mode.id">{{ mode.name }}</option>
-        </select>
+        <ModeSelector :modes="modes" :model-value="modeSelectorValue" @update:model-value="onModeSelectorUpdate" />
       </div>
 
       <div class="filter-group">
@@ -52,6 +49,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
+import ModeSelector from '@/components/game-mode/ModeSelector.vue'
 import { fetchGameModes } from '@/services/gameMode'
 import { useMatchHistoricStore } from '@/stores/matchHistoricStore'
 import { useUserStore } from '@/stores/userStore'
@@ -68,6 +66,13 @@ const selectedModeId = computed({
   get: () => store.selectedModeId,
   set: (val) => { if (postgresUserId.value) store.setMode(postgresUserId.value, val) },
 })
+
+const modeSelectorValue = computed<number | string>(() => selectedModeId.value ?? 0)
+
+function onModeSelectorUpdate(val: number | string) {
+  const nextModeId = Number(val) as GameMode['id']
+  selectedModeId.value = selectedModeId.value === nextModeId ? undefined : nextModeId
+}
 
 const selectedResult = computed({
   get: () => store.selectedResult,
@@ -138,6 +143,27 @@ watch(() => postgresUserId.value, async (id) => {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+.filter-group--mode :deep(.mode-selector) {
+  margin-bottom: 0;
+}
+
+.mode-clear {
+  margin-top: 0.2rem;
+  align-self: flex-start;
+  background: transparent;
+  color: var(--color-cream);
+  border: 1px solid #3a4a5e;
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.mode-clear:hover {
+  opacity: 1;
 }
 
 .filter-label {
