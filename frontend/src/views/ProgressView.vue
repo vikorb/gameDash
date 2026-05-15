@@ -38,6 +38,8 @@
       :date-to="rateDateTo"
     />
 
+    <InsightsPieCharts :matches="insightsMatches" />
+
     <div v-if="user">
       <CardMMR
         v-if="mmrStore.mmrData"
@@ -60,6 +62,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 
 import ModeSelector from '@/components/game-mode/ModeSelector.vue'
 import { fetchGameModes } from '@/services/gameMode'
+import { fetchMatchHistory, type MatchEntry } from '@/services/matches'
 import type { AuthUser } from '@/services/pocketbase'
 import { authService } from '@/services/pocketbase'
 import { useMMRStore } from '@/stores/mmrStore'
@@ -71,6 +74,7 @@ import CardRank from '@/views/progress/CardRank.vue'
 import type { DateRange } from '@/views/progress/DateFilter.vue'
 import DateFilter from '@/views/progress/DateFilter.vue'
 import DateRangePicker from '@/views/progress/DateRangePicker.vue'
+import InsightsPieCharts from '@/views/progress/InsightsPieCharts.vue'
 import RateCard from '@/views/progress/RateCard.vue'
 
 const user = ref<AuthUser | null>(null)
@@ -78,6 +82,7 @@ const selectedModeId = ref<number | string>(1)
 const selectedDateRange = ref<DateRange>('all')
 const customFrom = ref<string>('')
 const customTo = ref<string>('')
+const insightsMatches = ref<MatchEntry[]>([])
 
 function onPresetChange() {
   customFrom.value = ''
@@ -154,6 +159,37 @@ async function loadModes() {
   }
 }
 
+async function loadInsights() {
+  if (!postgresUserId.value) {
+    insightsMatches.value = []
+    return
+  }
+
+  const modeId = selectedModeId.value ? Number(selectedModeId.value) : undefined
+  const limit = 100
+  let offset = 0
+  let total = 0
+  const allMatches: MatchEntry[] = []
+
+  do {
+    const res = await fetchMatchHistory(
+      postgresUserId.value,
+      modeId,
+      undefined,
+      rateDateFrom.value,
+      rateDateTo.value,
+      limit,
+      offset,
+    )
+    total = res.total
+    allMatches.push(...res.matches)
+    offset += res.matches.length
+    if (res.matches.length === 0) break
+  } while (allMatches.length < total && allMatches.length < 1000)
+
+  insightsMatches.value = allMatches
+}
+
 watch(selectedModeId, async (newModeId) => {
   if (user.value && newModeId) {
     await mmrStore.fetchMMR(user.value.id, Number(newModeId))
@@ -167,6 +203,7 @@ onMounted(async () => {
   await userStore.hydrateFromSession(pbUser.id)
   await loadModes()
   await mmrStore.fetchMMR(pbUser.id, Number(selectedModeId.value))
+  await loadInsights()
 })
 
 watch(() => user.value?.id, async (newId: string | undefined) => {
@@ -174,6 +211,13 @@ watch(() => user.value?.id, async (newId: string | undefined) => {
     await userStore.hydrateFromSession(newId)
   }
 })
+
+watch(
+  () => [postgresUserId.value, selectedModeId.value, rateDateFrom.value, rateDateTo.value],
+  async () => {
+    await loadInsights()
+  },
+)
 </script>
 
 <style scoped>
