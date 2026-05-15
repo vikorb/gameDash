@@ -1,28 +1,30 @@
 <template>
   <section class="insights-section" aria-label="Statistiques des matchs">
-    <article class="insight-card">
+    <article class="insight-card insight-card--featured">
       <h3 class="insight-title">Résultats</h3>
-      <div v-if="hasMatches" class="chart-wrap">
+      <div v-if="hasMatches" class="chart-wrap chart-wrap--large">
         <Pie :data="resultsData" :options="chartOptions" />
       </div>
       <p v-else class="empty-text">Aucune donnée sur la période.</p>
     </article>
 
-    <article class="insight-card">
-      <h3 class="insight-title">Delta MMR</h3>
-      <div v-if="hasMatches" class="chart-wrap">
-        <Pie :data="mmrDeltaData" :options="chartOptions" />
-      </div>
-      <p v-else class="empty-text">Aucune donnée sur la période.</p>
-    </article>
+    <div class="insights-stack">
+      <article class="insight-card insight-card--small">
+        <h3 class="insight-title">Delta MMR</h3>
+        <div v-if="hasMatches" class="chart-wrap chart-wrap--small">
+          <Pie :data="mmrDeltaData" :options="chartOptions" />
+        </div>
+        <p v-else class="empty-text">Aucune donnée sur la période.</p>
+      </article>
 
-    <article class="insight-card">
-      <h3 class="insight-title">Répartition des kills</h3>
-      <div v-if="hasMatches" class="chart-wrap">
-        <Pie :data="killsData" :options="chartOptions" />
-      </div>
-      <p v-else class="empty-text">Aucune donnée sur la période.</p>
-    </article>
+      <article class="insight-card insight-card--small">
+        <h3 class="insight-title">Répartition des kills</h3>
+        <div v-if="hasMatches" class="chart-wrap chart-wrap--small">
+          <Pie :data="killsData" :options="chartOptions" />
+        </div>
+        <p v-else class="empty-text">Aucune donnée sur la période.</p>
+      </article>
+    </div>
   </section>
 </template>
 
@@ -128,9 +130,16 @@ const killsData = computed(() => {
 <style scoped>
 .insights-section {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
   gap: 1rem;
   margin: 1.2rem 0 1.8rem;
+  align-items: stretch;
+}
+
+.insights-stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
 }
 
 .insight-card {
@@ -147,9 +156,24 @@ const killsData = computed(() => {
   font-weight: 700;
 }
 
+.insight-card--featured {
+  min-height: 100%;
+}
+
+.insight-card--small {
+  padding-top: 0.8rem;
+}
+
 .chart-wrap {
   position: relative;
-  height: 240px;
+}
+
+.chart-wrap--large {
+  height: 420px;
+}
+
+.chart-wrap--small {
+  height: 180px;
 }
 
 .empty-text {
@@ -163,8 +187,16 @@ const killsData = computed(() => {
     grid-template-columns: 1fr;
   }
 
-  .chart-wrap {
-    height: 220px;
+  .insights-stack {
+    grid-template-rows: auto;
+  }
+
+  .chart-wrap--large {
+    height: 260px;
+  }
+
+  .chart-wrap--small {
+    height: 200px;
   }
 }
 </style>
