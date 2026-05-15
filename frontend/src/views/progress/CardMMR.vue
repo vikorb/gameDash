@@ -77,13 +77,30 @@ const chartData = computed(() => ({
 
 const chartOptions = {
   responsive: true,
+  maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    title: { display: true, text: 'Progression MMR' },
+    title: { display: false },
   },
   scales: {
-    x: { title: { display: true, text: 'Date' } },
-    y: { title: { display: true, text: 'MMR' } },
+    x: {
+      title: {
+        display: true,
+        text: 'Date',
+        color: 'rgba(252, 239, 225, 0.85)',
+      },
+      ticks: { color: 'rgba(252, 239, 225, 0.8)' },
+      grid: { color: 'rgba(255, 255, 255, 0.08)' },
+    },
+    y: {
+      title: {
+        display: true,
+        text: 'MMR',
+        color: 'rgba(252, 239, 225, 0.85)',
+      },
+      ticks: { color: 'rgba(252, 239, 225, 0.8)' },
+      grid: { color: 'rgba(255, 255, 255, 0.08)' },
+    },
   },
 }
 
@@ -92,22 +109,24 @@ const LineChart = Line
 
 <style scoped>
 .mmr-card {
-  background: #232c3a;
-  border-radius: 18px;
-  padding: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(160deg, rgba(18, 29, 43, 0.88), rgba(16, 23, 35, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 16px;
+  padding: 1rem 1.05rem 1.1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .mmr-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
   justify-content: space-between;
 }
 
 .mmr-header h2 {
   color: var(--color-cream);
+  margin: 0;
+  font-size: 1.18rem;
 }
 .mmr-mode-selector {
   margin-left: auto;
@@ -116,6 +135,13 @@ const LineChart = Line
   font-size: 2rem;
 }
 .mmr-graph {
-  margin-bottom: 18px;
+  margin-bottom: 0;
+  height: 270px;
+}
+
+@media (max-width: 1024px) {
+  .mmr-graph {
+    height: 240px;
+  }
 }
 </style>

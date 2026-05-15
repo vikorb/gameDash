@@ -1,5 +1,5 @@
 <template>
-  <article class="stat-card" :class="toneClass">
+  <article class="stat-card" :class="[toneClass, { 'stat-card--featured': featured }]">
     <p class="stat-label">{{ label }}</p>
     <p class="stat-value">{{ value }}</p>
     <p v-if="hint" class="stat-hint">{{ hint }}</p>
@@ -14,9 +14,11 @@ const props = withDefaults(defineProps<{
   value: string
   hint?: string
   tone?: 'default' | 'positive' | 'negative' | 'accent'
+  featured?: boolean
 }>(), {
   hint: '',
   tone: 'default',
+  featured: false,
 })
 
 const toneClass = computed(() => `stat-card--${props.tone}`)
@@ -24,10 +26,22 @@ const toneClass = computed(() => `stat-card--${props.tone}`)
 
 <style scoped>
 .stat-card {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 0.9rem 1rem;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  padding: 0.92rem 1rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 28px -24px rgba(0, 0, 0, 0.6);
+}
+
+.stat-card--featured {
+  background: linear-gradient(165deg, color-mix(in srgb, var(--color-apricot) 18%, transparent), rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--color-apricot) 62%, rgba(255, 255, 255, 0.08));
 }
 
 .stat-card--accent {
@@ -55,6 +69,10 @@ const toneClass = computed(() => `stat-card--${props.tone}`)
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
+}
+
+.stat-card--featured .stat-value {
+  font-size: 1.42rem;
 }
 
 .stat-hint {

@@ -131,8 +131,8 @@ const killsData = computed(() => {
 .insights-section {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
-  gap: 1rem;
-  margin: 1.2rem 0 1.8rem;
+  gap: 0.95rem;
+  margin: 0;
   align-items: stretch;
 }
 
@@ -143,16 +143,23 @@ const killsData = computed(() => {
 }
 
 .insight-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.9rem 1rem 1rem;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem 0.95rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.insight-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .insight-title {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.7rem;
   color: var(--color-cream);
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 700;
 }
 
@@ -169,11 +176,11 @@ const killsData = computed(() => {
 }
 
 .chart-wrap--large {
-  height: 420px;
+  height: 390px;
 }
 
 .chart-wrap--small {
-  height: 180px;
+  height: 170px;
 }
 
 .empty-text {

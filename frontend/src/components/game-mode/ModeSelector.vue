@@ -52,21 +52,22 @@ function selectMode(modeId: number | string) {
 
 .mode-button {
   padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #232c3a;
-  color: #fff;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: #1e2736;
+  color: var(--color-cream);
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .mode-button:hover {
-  border-color: #ff9f40;
+  border-color: color-mix(in srgb, var(--color-apricot) 72%, #ffffff);
+  transform: translateY(-1px);
 }
 
 .mode-button.is-selected {
-  background: #ff8c1a;
-  border-color: #ff8c1a;
-  color: #1f1f1f;
+  background: var(--color-apricot);
+  border-color: var(--color-apricot);
+  color: var(--color-ink);
 }
 </style>

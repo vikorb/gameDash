@@ -1,46 +1,60 @@
 <template>
   <div class="progress-view" v-if="user">
-    <div class="progress-filters-bar">
-      <span class="filters-label">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      </span>
-      <div class="filters-group">
-        <div class="filter-item">
-          <span class="filter-item-label">Mode de jeu</span>
-          <ModeSelector
-            v-if="modes && modes.length"
-            :modes="modes"
-            v-model="selectedModeId"
-          />
-        </div>
-        <div class="filter-separator"></div>
-        <div class="filter-item">
-          <span class="filter-item-label">Période</span>
-          <DateFilter v-model="selectedDateRange" @update:modelValue="onPresetChange" />
-        </div>
-        <div class="filter-separator"></div>
-        <div class="filter-item">
-          <span class="filter-item-label">Plage personnalisée</span>
-          <DateRangePicker v-model:from="customFrom" v-model:to="customTo" />
+    <header class="progress-hero">
+      <div>
+        <h1 class="progress-title">Progression de {{ user.username }}</h1>
+        <p class="progress-subtitle">Visualise ta dynamique de jeu, ton niveau et tes statistiques de performance.</p>
+      </div>
+      <div class="hero-badges">
+        <span class="hero-badge">{{ currentModeLabel }}</span>
+        <span class="hero-badge hero-badge--soft">{{ insightsMatches.length }} matchs analysés</span>
+      </div>
+    </header>
+
+    <section class="progress-panel progress-panel--filters">
+      <div class="progress-filters-bar">
+        <span class="filters-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filtres
+        </span>
+        <div class="filters-group">
+          <div class="filter-item">
+            <span class="filter-item-label">Mode de jeu</span>
+            <ModeSelector
+              v-if="modes && modes.length"
+              :modes="modes"
+              v-model="selectedModeId"
+            />
+          </div>
+          <div class="filter-separator"></div>
+          <div class="filter-item">
+            <span class="filter-item-label">Période</span>
+            <DateFilter v-model="selectedDateRange" @update:modelValue="onPresetChange" />
+          </div>
+          <div class="filter-separator"></div>
+          <div class="filter-item">
+            <span class="filter-item-label">Plage personnalisée</span>
+            <DateRangePicker v-model:from="customFrom" v-model:to="customTo" />
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="progress-header">
-      <h1 class="progress-title">Progression de {{ user.username }}</h1>
-    </div>
+    <section class="progress-panel">
+      <RateCard
+        v-if="postgresUserId"
+        :user-id="Number(postgresUserId)"
+        :mode-id="Number(selectedModeId)"
+        :date-from="rateDateFrom"
+        :date-to="rateDateTo"
+      />
+    </section>
 
-    <RateCard
-      v-if="postgresUserId"
-      :user-id="Number(postgresUserId)"
-      :mode-id="Number(selectedModeId)"
-      :date-from="rateDateFrom"
-      :date-to="rateDateTo"
-    />
+    <section class="progress-panel">
+      <InsightsPieCharts :matches="insightsMatches" />
+    </section>
 
-    <InsightsPieCharts :matches="insightsMatches" />
-
-    <div v-if="user">
+    <section class="progress-split" v-if="user">
       <CardMMR
         v-if="mmrStore.mmrData"
         :mmr="mmrStore.mmrData.mmr"
@@ -50,8 +64,12 @@
         :selectedModeId="selectedModeId ?? 0"
       />
       <CardRank v-if="postgresUserId" :userId="Number(postgresUserId)" :selectedModeId="selectedModeId ?? 0" :modes="modes" />
+    </section>
+
+    <section class="progress-panel progress-panel--end" v-if="user">
       <ProgressStatsGrid :matches="insightsMatches" />
-    </div>
+    </section>
+
     <div v-else>
       <p>Veuillez vous connecter pour voir votre progression.</p>
     </div>
@@ -95,6 +113,10 @@ const mmrStore = useMMRStore()
 const userStore = useUserStore()
 
 const postgresUserId = computed(() => userStore.profile?.id)
+const currentModeLabel = computed(() => {
+  const mode = modes.value.find((item) => String(item.id) === String(selectedModeId.value))
+  return mode ? `Mode: ${mode.name}` : 'Mode: Tous'
+})
 
 function getDateThreshold(range: DateRange): Date | null {
   const now = new Date()
@@ -224,18 +246,81 @@ watch(
 
 <style scoped>
 .progress-view {
-  padding: 20px;
+  padding: 1.5rem;
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.progress-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.25rem;
+}
+
+.progress-title {
+  color: var(--color-cream);
+  margin: 0;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.15;
+}
+
+.progress-subtitle {
+  margin: 0.5rem 0 0;
+  color: color-mix(in srgb, var(--color-cream) 78%, var(--color-background-secondary));
+  max-width: 58ch;
+  font-size: 0.95rem;
+}
+
+.hero-badges {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-apricot) 55%, transparent);
+  background: color-mix(in srgb, var(--color-apricot) 18%, transparent);
+  color: var(--color-cream);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.hero-badge--soft {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.progress-panel {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  box-shadow: 0 12px 24px -20px rgba(0, 0, 0, 0.45);
+  padding: 0.95rem;
+}
+
+.progress-panel--filters {
+  padding: 0.7rem 0.95rem;
+}
+
+.progress-panel--end {
+  margin-top: 0.2rem;
 }
 
 .progress-filters-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 12px 20px;
-  margin-bottom: 1.5rem;
+  margin: 0;
 }
 
 .filters-label {
@@ -248,7 +333,7 @@ watch(
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
-  padding-right: 16px;
+  padding: 0.35rem 0.95rem 0.35rem 0;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -261,7 +346,7 @@ watch(
 
 .filter-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
 }
 
@@ -273,7 +358,8 @@ watch(
 
 .filter-separator {
   width: 1px;
-  height: 24px;
+  height: 30px;
+  margin-top: 0.2rem;
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -294,6 +380,26 @@ watch(
 
 .progress-filters-bar :deep(.mode-selector) {
   margin-bottom: 0;
+}
+
+.progress-filters-bar :deep(.mode-buttons) {
+  gap: 0.45rem;
+}
+
+.progress-filters-bar :deep(.mode-button) {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: #1e2736;
+  color: var(--color-cream);
+  padding: 0.36rem 0.72rem;
+  border-radius: 9px;
+  font-size: 0.95rem;
+  line-height: 1.1;
+}
+
+.progress-filters-bar :deep(.mode-button.is-selected) {
+  background: var(--color-apricot);
+  border-color: var(--color-apricot);
+  color: var(--color-ink);
 }
 
 .progress-filters-bar :deep(label) {
@@ -325,16 +431,58 @@ watch(
   color: #e2e8f0;
 }
 
-.progress-header {
-  margin-bottom: 1.5rem;
+.progress-split {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 1rem;
 }
 
-.progress-title {
-  color: var(--color-cream);
-  margin: 0;
+.progress-split :deep(.mmr-card),
+.progress-split :deep(.card-rank) {
+  margin-bottom: 0;
 }
 
-.progress-section {
-  margin-top: 32px;
+@media (max-width: 1024px) {
+  .progress-view {
+    padding: 1rem;
+    gap: 0.8rem;
+  }
+
+  .progress-hero {
+    flex-direction: column;
+  }
+
+  .hero-badges {
+    justify-content: flex-start;
+  }
+
+  .progress-filters-bar {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .filters-label {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 0 0.45rem;
+    width: 100%;
+  }
+
+  .filter-separator {
+    display: none;
+  }
+
+  .filters-group {
+    width: 100%;
+    gap: 0.7rem;
+  }
+
+  .filter-item {
+    flex-wrap: wrap;
+  }
+
+  .progress-split {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -4,12 +4,13 @@
 
     <div v-if="stats.length" class="stats-grid">
       <ProgressStatCard
-        v-for="stat in stats"
+        v-for="(stat, index) in stats"
         :key="stat.label"
         :label="stat.label"
         :value="stat.value"
         :hint="stat.hint"
         :tone="stat.tone"
+        :featured="index < 3"
       />
     </div>
 
@@ -212,20 +213,28 @@ const stats = computed<StatItem[]>(() => {
 
 <style scoped>
 .stats-grid-section {
-  margin-top: 1.5rem;
-  margin-bottom: 1rem;
+  margin: 0;
 }
 
 .stats-grid-title {
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.7rem;
   color: var(--color-cream);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.stats-grid :deep(.stat-card:nth-child(-n + 3)) {
+  grid-column: span 4;
+}
+
+.stats-grid :deep(.stat-card:nth-child(n + 4)) {
+  grid-column: span 3;
 }
 
 .stats-empty {
@@ -240,6 +249,13 @@ const stats = computed<StatItem[]>(() => {
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .stats-grid :deep(.stat-card),
+  .stats-grid :deep(.stat-card:nth-child(-n + 3)),
+  .stats-grid :deep(.stat-card:nth-child(n + 4)) {
+    grid-column: auto;
   }
 }
 
