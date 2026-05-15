@@ -1,0 +1,112 @@
+{
+  "moderationUsers": {
+    "badge": "Admin users",
+    "title": "Modération des utilisateurs",
+    "subtitle": "Consultez les comptes, filtrez les profils et testez des actions de modération dans une interface admin moderne.",
+    "loading": "Chargement en cours...",
+    "actions": {
+      "reset": "Recharger",
+      "search": "Rechercher",
+      "clearFilters": "Réinitialiser les filtres",
+      "applyFilters": "Appliquer",
+      "clearSearch": "Effacer la recherche"
+    },
+    "filters": {
+      "search": "Recherche",
+      "searchPlaceholder": "Nom, email, région...",
+      "role": "Rôle",
+      "status": "Statut",
+      "deleted": "Suppression",
+      "sortBy": "Trier par",
+      "sortOrder": "Ordre",
+      "limit": "Résultats",
+      "results": "{count} résultats",
+      "activeFilters": "{count} filtres actifs"
+    },
+    "roles": {
+      "all": "Tous les rôles",
+      "player": "Joueur",
+      "moderator": "Modérateur",
+      "admin": "Admin"
+    },
+    "statuses": {
+      "all": "Tous les statuts",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "banned": "Banni",
+      "deleted": "Supprimé"
+    },
+    "deleted": {
+      "all": "Tous",
+      "active": "Actifs",
+      "deleted": "Supprimés"
+    },
+    "sort": {
+      "updatedAt": "Dernière mise à jour",
+      "createdAt": "Date de création",
+      "username": "Nom d'utilisateur",
+      "email": "Email",
+      "role": "Rôle",
+      "status": "Statut",
+      "desc": "Décroissant",
+      "asc": "Croissant"
+    },
+    "stats": {
+      "visibleUsers": "Utilisateurs visibles",
+      "adminsModerators": "Admins + modérateurs",
+      "banned": "Bannis",
+      "deleted": "Supprimés"
+    },
+    "table": {
+      "title": "Liste des utilisateurs",
+      "subtitle": "{total} utilisateurs trouvés • page {page}/{totalPages}"
+    },
+    "columns": {
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "status": "Statut",
+      "region": "Région",
+      "updatedAt": "Mis à jour",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "makePlayer": "Passer joueur",
+      "makeModerator": "Passer modérateur",
+      "makeAdmin": "Passer admin",
+      "ban": "Bannir",
+      "unban": "Débannir",
+      "softDelete": "Supprimer",
+      "restore": "Restaurer",
+      "view": "Voir",
+      "role": "Rôle"
+    },
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "page": "Page {page} / {totalPages}"
+    },
+    "empty": {
+      "title": "Aucun utilisateur trouvé",
+      "description": "Essaie de modifier les filtres ou la recherche."
+    },
+    "badges": {
+      "deleted": "Supprimé"
+    },
+    "values": {
+      "unknownUser": "Utilisateur inconnu",
+      "noEmail": "Aucun email",
+      "notSet": "Non renseigné"
+    },
+    "messages": {
+      "unknownError": "Une erreur inconnue est survenue.",
+      "roleUpdated": "{user} a maintenant le rôle {role}.",
+      "roleSimulated": "Mise à jour simulée : {user} a maintenant le rôle {role}.",
+      "userBanned": "{user} a été banni.",
+      "userBannedSimulated": "Bannissement simulé pour {user}.",
+      "userUnbanned": "{user} a été débanni.",
+      "userUnbannedSimulated": "Débannissement simulé pour {user}.",
+      "deleteSimulated": "Suppression simulée pour {user}.",
+      "restoreSimulated": "Restauration simulée pour {user}."
+    }
+  }
+}

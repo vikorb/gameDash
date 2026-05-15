@@ -6,6 +6,8 @@
     "activities": "Activities",
     "shop": "Shop",
     "maps": "Maps",
+    "backoffice": "Back Office",
+    "moderation": "Moderation",
     "logout": "Sign out",
     "lang": {
       "fr": "FR",
