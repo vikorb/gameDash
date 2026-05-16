@@ -1,0 +1,124 @@
+{
+  "profile": {
+    "hero": {
+      "kicker": "My profile",
+      "title": "Hello {username}",
+      "subtitle": "Manage your information, avatar and password from this space.",
+      "avatarAlt": "Profile avatar"
+    },
+    "sections": {
+      "profile": {
+        "title": "Profile information",
+        "subtitle": "Update the main information of your account."
+      },
+      "avatar": {
+        "title": "Avatar",
+        "subtitle": "Choose an image to personalize your profile."
+      },
+      "security": {
+        "title": "Security",
+        "subtitle": "Update your password to keep your account secure."
+      },
+      "delete": {
+        "title": "Delete profile",
+        "subtitle": "This action disables your account and marks the profile as deleted."
+      }
+    },
+    "delete": {
+      "description": "To delete your profile, enter your current password and confirm the action.",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Enter your password to confirm",
+      "submit": "Delete my profile",
+      "confirmPopup": "Are you sure you want to delete your profile? This action will disable your account."
+    },
+    "form": {
+      "username": "Username",
+      "email": "Email",
+      "region": "Region",
+      "regionPlaceholder": "E.g. Île-de-France",
+      "language": "Language",
+      "languagePlaceholder": "E.g. en",
+      "status": "Status",
+      "role": "Role",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us a little about yourself...",
+      "matchmaking": "Matchmaking (JSON)",
+      "matchmakingPlaceholder": "E.g. mode=ranked, platform=pc",
+      "submit": "Save profile"
+    },
+    "password": {
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Your current password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Minimum 8 characters",
+      "confirmPassword": "Confirmation",
+      "confirmPasswordPlaceholder": "Retype the password",
+      "submit": "Change password"
+    },
+    "avatar": {
+      "previewAlt": "Avatar preview",
+      "noFile": "No new image selected",
+      "choose": "Choose an image",
+      "save": "Save avatar"
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "banned": "Banned",
+      "deleted": "Deleted"
+    },
+    "states": {
+      "loading": "Loading profile..."
+    },
+    "common": {
+      "saving": "Saving...",
+      "updating": "Updating...",
+      "cancel": "Cancel",
+      "deleting": "Deleting..."
+    },
+    "notices": {
+      "profileUpdated": "Profile updated successfully.",
+      "avatarUpdated": "Avatar updated successfully.",
+      "avatarUpdatedDemo": "Avatar updated.",
+      "passwordUpdated": "Password updated successfully.",
+      "passwordUpdatedDemo": "Password updated.",
+      "profileDeleted": "Profile deleted successfully."
+    },
+    "errors": {
+      "load": "Unable to load profile.",
+      "profileUpdate": "Unable to update profile.",
+      "avatarUpdate": "Unable to update avatar.",
+      "passwordUpdate": "Unable to update password.",
+      "sessionNotFound": "Unable to find the connected user.",
+      "invalidMatchmakingJson": "The matchmaking field must contain valid JSON.",
+      "fileRead": "Unable to read the file.",
+      "usernameRequired": "Username is required.",
+      "emailRequired": "Email is required.",
+      "passwordCurrentRequired": "Current password is required.",
+      "passwordTooShort": "The new password must contain at least 8 characters.",
+      "passwordConfirmMismatch": "The password confirmation does not match.",
+      "profileDelete": "Unable to delete profile.",
+      "deletePasswordRequired": "Current password is required to delete the profile."
+    },
+    "admin": {
+      "sections": {
+        "moderation": {
+          "title": "User moderation",
+          "subtitle": "Quick administrative actions for this account."
+        }
+      },
+      "actions": {
+        "makePlayer": "Set as player",
+        "makeModerator": "Set as moderator",
+        "makeAdmin": "Set as admin",
+        "ban": "Ban",
+        "unban": "Unban"
+      },
+      "notices": {
+        "roleUpdated": "The role has been updated successfully.",
+        "userBanned": "The user has been banned successfully.",
+        "userUnbanned": "The user has been unbanned successfully."
+      }
+    }
+  }
+}
