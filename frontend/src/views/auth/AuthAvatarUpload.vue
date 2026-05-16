@@ -94,11 +94,13 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   text-align: left;
 }
+
 .label {
-  font-weight: 600;
-  color: var(--color-cream);
-  font-size: 0.95rem;
+  color: rgba(252, 239, 225, 0.72);
+  font-size: 0.86rem;
+  font-weight: 900;
 }
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -106,61 +108,93 @@ onBeforeUnmount(() => {
   opacity: 0;
   pointer-events: none;
 }
+
 .dropzone {
   position: relative;
-  min-height: 140px;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  min-height: 150px;
+  border: 1px dashed rgba(252, 239, 225, 0.18);
+  border-radius: 18px;
+  background: rgba(18, 24, 38, 0.3);
   display: grid;
   place-items: center;
-  padding: 0.75rem;
+  padding: 0.85rem;
   cursor: pointer;
+  overflow: hidden;
   transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
+
+.dropzone:hover {
+  border-color: rgba(242, 139, 91, 0.44);
+  background: rgba(242, 139, 91, 0.08);
+  transform: translateY(-1px);
+}
+
 .dropzone.dragging {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  border-color: rgba(242, 139, 91, 0.68);
+  background: rgba(242, 139, 91, 0.12);
+  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.12);
 }
+
 .dropzone.filled {
   border-style: solid;
+  border-color: rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.42);
 }
+
 .placeholder {
   text-align: center;
-  color: var(--color-text);
-  font-weight: 500;
+  color: rgba(252, 239, 225, 0.76);
+  font-weight: 800;
 }
+
+.placeholder p {
+  margin: 0;
+}
+
 .preview {
+  width: 100%;
   max-width: 100%;
-  max-height: 220px;
-  border-radius: calc(var(--radius) - 4px);
+  max-height: 230px;
+  border-radius: 14px;
   object-fit: cover;
+  display: block;
+  border: 1px solid rgba(252, 239, 225, 0.1);
 }
+
 .remove-btn {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 1.8rem;
-  height: 1.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: 9999px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 1.2rem;
+  top: 0.55rem;
+  right: 0.55rem;
+  z-index: 2;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid rgba(225, 91, 91, 0.38);
+  border-radius: 999px;
+  background: rgba(225, 91, 91, 0.92);
+  color: #fff;
+  font-size: 1.15rem;
   line-height: 1;
   display: grid;
   place-items: center;
   cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    background-color 0.14s ease;
 }
+
 .remove-btn:hover {
-  border-color: var(--color-primary);
+  background: #e15b5b;
+  transform: scale(1.08);
 }
+
 .hint {
   margin: 0;
-  font-size: 0.8rem;
-  color: var(--color-cream);
-  opacity: 0.9;
+  font-size: 0.78rem;
+  color: rgba(252, 239, 225, 0.54);
+  line-height: 1.4;
 }
 </style>

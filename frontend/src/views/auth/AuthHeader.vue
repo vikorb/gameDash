@@ -23,14 +23,20 @@ const { t } = useI18n({ useScope: 'global' })
 }
 
 .auth-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
+  margin: 0;
   color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.55rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
 }
 
 .auth-subtitle {
-  color: rgba(252, 239, 225, 0.75);
+  max-width: 340px;
+  margin: 0.75rem auto 0;
+  color: rgba(252, 239, 225, 0.68);
   font-size: 0.95rem;
+  line-height: 1.6;
 }
 </style>

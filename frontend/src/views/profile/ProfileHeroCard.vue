@@ -30,10 +30,28 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase() 
 <style scoped>
 .hero-card {
   padding: 1.5rem;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid var(--color-border);
-  border-radius: 24px;
-  box-shadow: var(--shadow-md);
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
+  pointer-events: none;
+}
+
+.hero-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-left {
@@ -51,11 +69,12 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase() 
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-navy);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 900;
   flex-shrink: 0;
-  box-shadow: 0 10px 30px rgba(242, 139, 91, 0.35);
+  box-shadow: 0 16px 34px -18px rgba(242, 139, 91, 0.95);
+  border: 1px solid rgba(252, 239, 225, 0.16);
 }
 
 .hero-avatar img {
@@ -69,32 +88,45 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase() 
 }
 
 .hero-kicker {
-  margin: 0 0 0.25rem;
-  color: var(--color-apricot-dark);
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  margin: 0 0 0.35rem;
+  color: var(--color-primary-strong);
+  font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .hero-title {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--color-cream);
   font-family: 'Space Grotesk', 'DM Sans', sans-serif;
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  line-height: 1.1;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
 .hero-subtitle {
-  margin: 0.5rem 0 0;
-  color: var(--color-text-muted);
+  margin: 0.6rem 0 0;
+  color: rgba(252, 239, 225, 0.68);
   max-width: 640px;
+  line-height: 1.6;
 }
 
 @media (max-width: 720px) {
+  .hero-card {
+    border-radius: 22px;
+    padding: 1.15rem;
+  }
+
   .hero-left {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .hero-avatar {
+    width: 82px;
+    height: 82px;
   }
 }
 </style>

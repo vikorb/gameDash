@@ -82,10 +82,14 @@
       "title": "Dashboard KPI",
       "subtitle": "Suivi en temps réel de l'activité GameDash : joueurs, matchs, économie et contenu communautaire.",
       "side": {
-        "label": "POC mode",
-        "title": "Données simulées",
-        "text": "Les chiffres affichés sont issus de seeds POC. La vue se branchera plus tard sur les endpoints /admin/kpi.",
-        "chips": { "live": "Live", "poc": "POC", "rbac": "Staff/Admin" }
+        "label": "Pilotage opérationnel",
+        "title": "Indicateurs de performance",
+        "text": "Suivez l’activité de la plateforme, l’engagement des utilisateurs et les indicateurs clés depuis le tableau de bord d’administration.",
+        "chips": {
+          "live": "Live",
+          "status": "Opérationnel",
+          "rbac": "Staff/Admin"
+        }
       },
       "period": {
         "title": "Filtre période",
@@ -153,9 +157,13 @@
       "subtitle": "Ajuste durée max, écart MMR et taille d'équipe pour chaque mode. Les changements sont pris en compte immédiatement.",
       "side": {
         "label": "Audit",
-        "title": "Toutes les modifs sont tracées",
-        "text": "Chaque sauvegarde génère une entrée SETTINGS_UPDATE dans les audit logs.",
-        "chips": { "live": "Live ops", "audit": "Audit logs", "poc": "POC" }
+        "title": "Toutes les modifications sont tracées",
+        "text": "Chaque sauvegarde est enregistrée dans les journaux d’audit afin de conserver un historique clair des changements de configuration.",
+        "chips": {
+          "live": "Live ops",
+          "audit": "Audit logs",
+          "status": "Traçabilité"
+        }
       },
       "actions": {
         "save": "Enregistrer",
@@ -207,7 +215,7 @@
         "unsavedChanges": "Modifications non enregistrées"
       },
       "feedback": {
-        "saved": "Paramètres du mode « {mode} » enregistrés (simulation POC)."
+        "saved": "Paramètres du mode « {mode} » enregistrés."
       },
       "history": {
         "title": "Historique des modifications",
@@ -223,10 +231,14 @@
       "title": "Économie virtuelle",
       "subtitle": "Paramètre les prix de la boutique et les récompenses XP/monnaie. Toutes les modifications sont auditées.",
       "side": {
-        "label": "POC mode",
+        "label": "Gestion économique",
         "title": "Boutique & récompenses",
-        "text": "Modifications simulées : pas d'impact sur les transactions réelles. L'audit log enregistre chaque action.",
-        "chips": { "prices": "Prix", "rewards": "Récompenses", "audit": "Audit logs" }
+        "text": "Gérez les prix de la boutique, la disponibilité des objets et les récompenses des joueurs, avec un suivi complet dans les journaux d’audit.",
+        "chips": {
+          "prices": "Prix",
+          "rewards": "Récompenses",
+          "audit": "Audit logs"
+        }
       },
       "actions": {
         "save": "Enregistrer",
@@ -238,8 +250,8 @@
       "unsavedChanges": "Modifications non enregistrées",
       "lastUpdated": "Modifié par {actor} le {date}",
       "feedback": {
-        "itemSaved": "Objet « {name} » mis à jour (simulation POC).",
-        "rewardsSaved": "Récompenses mises à jour (simulation POC)."
+        "itemSaved": "Objet « {name} » mis à jour.",
+        "rewardsSaved": "Récompenses mises à jour."
       },
       "currencies": {
         "soft": "Soft currency ⬣",

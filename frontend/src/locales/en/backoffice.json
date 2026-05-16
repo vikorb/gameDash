@@ -82,10 +82,14 @@
       "title": "KPI Dashboard",
       "subtitle": "Real-time tracking of GameDash activity: players, matches, economy and community content.",
       "side": {
-        "label": "POC mode",
-        "title": "Simulated data",
-        "text": "Numbers come from POC seeds. The view will plug into /admin/kpi endpoints later.",
-        "chips": { "live": "Live", "poc": "POC", "rbac": "Staff/Admin" }
+        "label": "Live operations",
+        "title": "Operational metrics",
+        "text": "Track platform activity, user engagement and key performance indicators from the administration dashboard.",
+        "chips": {
+          "live": "Live",
+          "status": "Operational",
+          "rbac": "Staff/Admin"
+        }
       },
       "period": {
         "title": "Period filter",
@@ -154,8 +158,12 @@
       "side": {
         "label": "Audit",
         "title": "All changes are tracked",
-        "text": "Each save creates a SETTINGS_UPDATE entry in the audit logs.",
-        "chips": { "live": "Live ops", "audit": "Audit logs", "poc": "POC" }
+        "text": "Each save is recorded in the audit logs to keep a clear history of configuration updates.",
+        "chips": {
+          "live": "Live ops",
+          "audit": "Audit logs",
+          "status": "Tracked"
+        }
       },
       "actions": {
         "save": "Save",
@@ -207,7 +215,7 @@
         "unsavedChanges": "Unsaved changes"
       },
       "feedback": {
-        "saved": "Settings for \"{mode}\" saved (POC simulation)."
+        "saved": "Settings for \"{mode}\" saved."
       },
       "history": {
         "title": "Change history",
@@ -223,10 +231,14 @@
       "title": "Virtual economy",
       "subtitle": "Configure shop prices and XP/currency rewards. Every change is audited.",
       "side": {
-        "label": "POC mode",
+        "label": "Economy management",
         "title": "Shop & rewards",
-        "text": "Simulated changes: no impact on real transactions. Audit log records every action.",
-        "chips": { "prices": "Prices", "rewards": "Rewards", "audit": "Audit logs" }
+        "text": "Manage shop prices, item availability and player rewards while keeping every change recorded in the audit logs.",
+        "chips": {
+          "prices": "Prices",
+          "rewards": "Rewards",
+          "audit": "Audit logs"
+        }
       },
       "actions": {
         "save": "Save",
@@ -238,8 +250,8 @@
       "unsavedChanges": "Unsaved changes",
       "lastUpdated": "Updated by {actor} on {date}",
       "feedback": {
-        "itemSaved": "Item \"{name}\" updated (POC simulation).",
-        "rewardsSaved": "Rewards updated (POC simulation)."
+        "itemSaved": "Item \"{name}\" updated.",
+        "rewardsSaved": "Rewards updated."
       },
       "currencies": {
         "soft": "Soft currency ⬣",

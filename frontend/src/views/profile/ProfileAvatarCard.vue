@@ -68,9 +68,9 @@ function handleChange(event: Event) {
   gap: 1rem;
   align-items: center;
   padding: 1rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(46, 50, 68, 0.08);
+  border-radius: 22px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.28);
 }
 
 .avatar-preview {
@@ -82,10 +82,12 @@ function handleChange(event: Event) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--color-navy);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 900;
   flex-shrink: 0;
+  box-shadow: 0 16px 34px -18px rgba(242, 139, 91, 0.95);
+  border: 1px solid rgba(252, 239, 225, 0.14);
 }
 
 .avatar-preview img {
@@ -103,8 +105,8 @@ function handleChange(event: Event) {
 
 .avatar-name {
   margin: 0;
-  color: var(--color-ink);
-  font-weight: 600;
+  color: var(--color-cream);
+  font-weight: 900;
   word-break: break-word;
 }
 
@@ -116,8 +118,9 @@ function handleChange(event: Event) {
 
 .avatar-hint {
   margin: 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .upload-button,
@@ -125,40 +128,48 @@ function handleChange(event: Event) {
 .cancel-button {
   display: inline-flex;
   width: fit-content;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
-  padding: 0.8rem 1rem;
+  padding: 0.72rem 0.95rem;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
   transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
-    opacity 0.2s ease;
-  border: none;
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    opacity 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
 }
 
 .save-button {
-  background: var(--color-primary);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
+  border: 1px solid rgba(242, 139, 91, 0.42);
+  box-shadow: 0 14px 28px -20px rgba(242, 139, 91, 0.95);
 }
 
 .save-button:hover:not(:disabled) {
-  background: var(--color-primary-hover);
   transform: translateY(-1px);
+  filter: brightness(1.04);
 }
 
 .upload-button,
 .cancel-button {
-  background: rgba(81, 96, 121, 0.12);
-  color: var(--color-ink);
-  border: 1px solid rgba(46, 50, 68, 0.14);
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.84);
+  border: 1px solid rgba(252, 239, 225, 0.12);
 }
 
 .upload-button:hover,
 .cancel-button:hover:not(:disabled) {
-  background: rgba(81, 96, 121, 0.18);
   transform: translateY(-1px);
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
 }
 
 .save-button:disabled,
@@ -175,6 +186,17 @@ function handleChange(event: Event) {
   .avatar-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .avatar-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .upload-button,
+  .save-button,
+  .cancel-button {
+    width: 100%;
   }
 }
 </style>

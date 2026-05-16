@@ -183,46 +183,59 @@ function onFavorite() {
 
 <style scoped>
 .map-card {
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.92), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  border: 1px solid rgba(252, 239, 225, 0.12);
   border-radius: 24px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 18px 42px -26px rgba(0, 0, 0, 0.75);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   cursor: pointer;
+  color: var(--color-cream);
   transition:
     transform 0.22s ease,
     box-shadow 0.22s ease,
-    border-color 0.22s ease;
+    border-color 0.22s ease,
+    background 0.22s ease;
 }
 
 .map-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 38px -22px rgba(46, 50, 68, 0.6);
-  border-color: rgba(242, 139, 91, 0.32);
+  box-shadow: 0 24px 48px -24px rgba(0, 0, 0, 0.85);
+  border-color: rgba(242, 139, 91, 0.45);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.98), rgba(46, 50, 68, 1)), var(--color-navy);
 }
 
 .map-card__media {
   position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
+  background:
+    radial-gradient(circle at top left, rgba(242, 139, 91, 0.24), transparent 38%),
+    linear-gradient(135deg, #202637, var(--color-navy) 45%, var(--color-slate));
 }
 
 .map-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition:
+    transform 0.4s ease,
+    opacity 0.22s ease,
+    filter 0.22s ease;
 }
 
 .map-card:hover .map-card__image {
   transform: scale(1.04);
+  filter: saturate(1.08) contrast(1.04);
 }
 
 .map-card__image--placeholder {
-  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
+  background:
+    radial-gradient(circle at 25% 20%, rgba(242, 139, 91, 0.28), transparent 34%),
+    linear-gradient(135deg, #202637, var(--color-navy), var(--color-slate));
 }
 
 .map-card__overlay {
@@ -237,19 +250,54 @@ function onFavorite() {
   pointer-events: none;
 }
 
-.map-card__featured {
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.32rem 0.6rem;
+  justify-content: center;
+  padding: 0.34rem 0.68rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  background: rgba(18, 24, 38, 0.72);
+  backdrop-filter: blur(8px);
   color: var(--color-cream);
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  box-shadow: 0 6px 18px -8px rgba(242, 139, 91, 0.8);
+  box-shadow: 0 10px 26px -18px rgba(0, 0, 0, 0.8);
+}
+
+.pill--visible {
+  background: rgba(242, 139, 91, 0.22);
+  color: var(--color-cream);
+  border-color: rgba(242, 139, 91, 0.45);
+}
+
+.pill--review {
+  background: rgba(247, 167, 132, 0.18);
+  color: var(--color-cream);
+  border-color: rgba(247, 167, 132, 0.4);
+}
+
+.pill--draft {
+  background: rgba(81, 96, 121, 0.72);
+  color: rgba(252, 239, 225, 0.82);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.map-card__featured {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.34rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 12px 28px -14px rgba(242, 139, 91, 0.85);
 }
 
 .map-card__featured svg {
@@ -262,29 +310,31 @@ function onFavorite() {
   position: absolute;
   right: 0.85rem;
   bottom: 0.85rem;
-  background: rgba(46, 50, 68, 0.85);
-  backdrop-filter: blur(6px);
+  background: rgba(18, 24, 38, 0.82);
+  backdrop-filter: blur(8px);
   color: var(--color-cream);
-  padding: 0.45rem 0.65rem;
+  padding: 0.48rem 0.68rem;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   line-height: 1;
-  border: 1px solid rgba(252, 239, 225, 0.12);
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  box-shadow: 0 14px 28px -20px rgba(0, 0, 0, 0.8);
 }
 
 .map-card__score-value {
   font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.05rem;
+  color: var(--color-primary-strong);
 }
 
 .map-card__score-label {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  opacity: 0.7;
+  color: rgba(252, 239, 225, 0.68);
   margin-top: 0.18rem;
 }
 
@@ -307,18 +357,19 @@ function onFavorite() {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.08rem;
-  font-weight: 700;
-  color: var(--color-ink);
+  font-weight: 800;
+  color: var(--color-cream);
   line-height: 1.2;
 }
 
 .map-card__version {
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
-  background: rgba(46, 50, 68, 0.07);
-  color: var(--color-text-muted);
+  background: rgba(18, 24, 38, 0.38);
+  color: rgba(252, 239, 225, 0.78);
+  border: 1px solid rgba(252, 239, 225, 0.1);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -327,7 +378,7 @@ function onFavorite() {
   align-items: center;
   gap: 0.45rem;
   font-size: 0.84rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.7);
   min-width: 0;
 }
 
@@ -335,14 +386,15 @@ function onFavorite() {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
-  color: var(--color-cream);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.78rem;
   flex-shrink: 0;
+  box-shadow: 0 8px 18px -12px rgba(242, 139, 91, 0.95);
 }
 
 .map-card__creator-name {
@@ -352,12 +404,12 @@ function onFavorite() {
 }
 
 .map-card__creator-name strong {
-  color: var(--color-ink);
+  color: var(--color-cream);
 }
 
 .map-card__region {
   font-size: 0.74rem;
-  opacity: 0.7;
+  color: rgba(252, 239, 225, 0.56);
 }
 
 .map-card__tags {
@@ -367,29 +419,30 @@ function onFavorite() {
 }
 
 .map-card__tag {
-  padding: 0.24rem 0.52rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 999px;
-  background: rgba(81, 96, 121, 0.1);
-  color: var(--color-ink);
+  background: rgba(18, 24, 38, 0.32);
+  color: rgba(252, 239, 225, 0.84);
+  border: 1px solid rgba(252, 239, 225, 0.08);
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .map-card__tag--muted {
   background: transparent;
-  color: var(--color-text-muted);
-  border: 1px dashed rgba(81, 96, 121, 0.3);
+  color: rgba(252, 239, 225, 0.58);
+  border: 1px dashed rgba(252, 239, 225, 0.22);
 }
 
 .map-card__stats {
   display: flex;
   align-items: center;
   gap: 0.9rem;
-  padding-top: 0.5rem;
-  border-top: 1px dashed rgba(81, 96, 121, 0.18);
-  color: var(--color-text-muted);
+  padding-top: 0.55rem;
+  border-top: 1px dashed rgba(252, 239, 225, 0.14);
+  color: rgba(252, 239, 225, 0.72);
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .map-card__stat {
@@ -402,7 +455,8 @@ function onFavorite() {
   width: 16px;
   height: 16px;
   fill: currentColor;
-  opacity: 0.75;
+  color: var(--color-primary-strong);
+  opacity: 0.9;
 }
 
 .map-card__actions {
@@ -416,9 +470,9 @@ function onFavorite() {
   width: 36px;
   height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(81, 96, 121, 0.18);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--color-ink);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.76);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -427,7 +481,8 @@ function onFavorite() {
     background-color 0.16s ease,
     color 0.16s ease,
     transform 0.16s ease,
-    border-color 0.16s ease;
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .map-card__icon-btn svg {
@@ -438,45 +493,69 @@ function onFavorite() {
 
 .map-card__icon-btn:hover {
   transform: translateY(-1px);
-  border-color: rgba(242, 139, 91, 0.4);
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.16);
+  border-color: rgba(242, 139, 91, 0.38);
+  box-shadow: 0 10px 22px -18px rgba(242, 139, 91, 0.8);
 }
 
 .map-card__icon-btn.is-active {
-  background: rgba(61, 191, 125, 0.18);
-  color: #146c43;
-  border-color: rgba(61, 191, 125, 0.35);
+  background: rgba(242, 139, 91, 0.22);
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.45);
 }
 
 .map-card__icon-btn--dislike.is-active {
-  background: rgba(214, 69, 69, 0.16);
-  color: #8a4040;
-  border-color: rgba(214, 69, 69, 0.32);
+  background: rgba(225, 91, 91, 0.18);
+  color: #ff9a9a;
+  border-color: rgba(225, 91, 91, 0.38);
 }
 
 .map-card__icon-btn--fav.is-active {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: var(--color-cream);
+  color: var(--color-navy);
   border-color: transparent;
+  box-shadow: 0 12px 24px -18px rgba(242, 139, 91, 0.9);
 }
 
 .map-card__cta {
   margin-left: auto;
-  padding: 0.55rem 0.9rem;
+  padding: 0.58rem 0.95rem;
   border-radius: 12px;
-  border: none;
-  background: var(--color-navy);
-  color: var(--color-cream);
-  font-weight: 700;
+  border: 1px solid rgba(242, 139, 91, 0.38);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
+  font-weight: 900;
   font-size: 0.85rem;
   cursor: pointer;
+  box-shadow: 0 12px 26px -18px rgba(242, 139, 91, 0.9);
   transition:
     transform 0.16s ease,
-    background-color 0.16s ease,
-    background-image 0.16s ease;
+    filter 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .map-card__cta:hover {
   transform: translateY(-1px);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  filter: brightness(1.04);
+  box-shadow: 0 16px 30px -18px rgba(242, 139, 91, 1);
+}
+
+@media (max-width: 520px) {
+  .map-card__body {
+    padding: 0.9rem 0.9rem 0.55rem;
+  }
+
+  .map-card__actions {
+    padding: 0.65rem 0.9rem 0.9rem;
+  }
+
+  .map-card__stats {
+    gap: 0.65rem;
+  }
+
+  .map-card__cta {
+    padding-inline: 0.78rem;
+  }
 }
 </style>
