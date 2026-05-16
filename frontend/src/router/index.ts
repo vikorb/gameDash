@@ -57,13 +57,8 @@ const router = createRouter({
       props: { sectionKey: 'activities' },
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
-    {
-      path: '/shop',
-      name: 'shop-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'shop' },
-      meta: { requiresAuth: true, roles: ['player', 'admin'] as UserRole[] },
-    },
+    { path: '/shop', component: () => import('@/views/shop/ShopView.vue') },
+    { path: '/inventory', component: () => import('@/views/shop/InventoryView.vue') },
     {
       path: '/maps',
       name: 'maps-browse',

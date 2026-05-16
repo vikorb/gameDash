@@ -1,0 +1,127 @@
+{
+  "shop": {
+    "badge": "Shop",
+    "title": "Shop",
+    "subtitle": "Purchase cosmetics, packs and boosts with your currencies.",
+    "featured": "Featured",
+    "goToInventory": "My Inventory",
+    "wallet": {
+      "label": "Your wallet",
+      "title": "Available currencies",
+      "text": "Earn coins by playing, top up gems for premium items.",
+      "soft": "Coins",
+      "hard": "Gems",
+      "topup": "Top Up ⬢"
+    },
+    "browse": {
+      "title": "Catalogue",
+      "subtitle": "All items available for purchase.",
+      "count": "items shown",
+      "owned": "owned"
+    },
+    "categories": {
+      "all": "All",
+      "cosmetic": "Cosmetics",
+      "pack": "Packs",
+      "pass": "Pass",
+      "boost": "Boosters"
+    },
+    "currencies": {
+      "all": "All currencies",
+      "soft": "Coins ⬣",
+      "hard": "Gems ⬢"
+    },
+    "rarity": {
+      "common": "Common",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    },
+    "slots": {
+      "avatar": "Avatar",
+      "banner": "Banner",
+      "frame": "Frame",
+      "emote": "Emote",
+      "trail": "Trail",
+      "spray": "Spray"
+    },
+    "item": {
+      "buy": "Buy",
+      "owned": "Owned",
+      "insufficient": "Not enough funds"
+    },
+    "purchase": {
+      "confirm": "Confirm Purchase",
+      "cancel": "Cancel",
+      "success": "Purchase successful! Item added to your inventory.",
+      "insufficientFunds": "Insufficient balance. Top up your gems or earn more coins.",
+      "error": "An error occurred."
+    },
+    "topup": {
+      "badge": "Simulated Payment",
+      "title": "Top Up Gems",
+      "subtitle": "Select a pack and simulate your payment.",
+      "simulate": "Simulate Payment",
+      "processing": "Processing…",
+      "bestValue": "Popular",
+      "bonus": "bonus",
+      "success": "{amount} ⬢ added to your account!",
+      "fail": "Payment declined. Simulated failure (10% chance).",
+      "disclaimer": "Simulation only — no real payment is made."
+    },
+    "search": {
+      "placeholder": "Search items…"
+    },
+    "empty": {
+      "title": "No items found",
+      "text": "Try adjusting your filters."
+    }
+  },
+  "inventory": {
+    "badge": "Inventory",
+    "title": "My Inventory",
+    "subtitle": "Manage your items and customize your player profile.",
+    "itemsCount": "items",
+    "equippedCount": "equipped",
+    "equipped": "equipped",
+    "equippedLabel": "Equipped",
+    "equip": "Equip",
+    "unequip": "Remove",
+    "slotEmpty": "Empty",
+    "noSlot": "Consumable",
+    "goToShop": "Go to Shop",
+    "search": "Search…",
+    "side": {
+      "label": "Customization",
+      "title": "Active equipment",
+      "text": "Choose which items to display on your profile and in matches."
+    },
+    "slots": {
+      "title": "Active Equipment",
+      "subtitle": "Manage equipped items on your profile.",
+      "filled": "slots filled",
+      "avatar": "Avatar",
+      "banner": "Banner",
+      "frame": "Frame",
+      "emote": "Emote",
+      "trail": "Trail",
+      "spray": "Spray"
+    },
+    "items": {
+      "title": "Owned Items",
+      "subtitle": "All items acquired from the shop."
+    },
+    "filters": {
+      "all": "All",
+      "equipped": "Equipped"
+    },
+    "empty": {
+      "title": "Empty Inventory",
+      "text": "Buy items from the shop to find them here."
+    },
+    "errors": {
+      "notOwned": "You don't own this item.",
+      "generic": "Cannot equip this item."
+    }
+  }
+}

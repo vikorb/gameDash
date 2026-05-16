@@ -1,0 +1,127 @@
+{
+  "shop": {
+    "badge": "Boutique",
+    "title": "Boutique",
+    "subtitle": "Achetez des cosmétiques, packs et boosts avec vos monnaies.",
+    "featured": "En vedette",
+    "goToInventory": "Mon inventaire",
+    "wallet": {
+      "label": "Votre portefeuille",
+      "title": "Monnaies disponibles",
+      "text": "Gagnez des pièces en jouant, recharge des gemmes pour les items premium.",
+      "soft": "Pièces",
+      "hard": "Gemmes",
+      "topup": "Recharger ⬢"
+    },
+    "browse": {
+      "title": "Catalogue",
+      "subtitle": "Tous les items disponibles à l'achat.",
+      "count": "items affichés",
+      "owned": "possédés"
+    },
+    "categories": {
+      "all": "Tout",
+      "cosmetic": "Cosmétiques",
+      "pack": "Packs",
+      "pass": "Pass",
+      "boost": "Boosters"
+    },
+    "currencies": {
+      "all": "Toutes devises",
+      "soft": "Pièces ⬣",
+      "hard": "Gemmes ⬢"
+    },
+    "rarity": {
+      "common": "Commun",
+      "rare": "Rare",
+      "epic": "Épique",
+      "legendary": "Légendaire"
+    },
+    "slots": {
+      "avatar": "Avatar",
+      "banner": "Bannière",
+      "frame": "Cadre",
+      "emote": "Émote",
+      "trail": "Traînée",
+      "spray": "Spray"
+    },
+    "item": {
+      "buy": "Acheter",
+      "owned": "Possédé",
+      "insufficient": "Solde insuffisant"
+    },
+    "purchase": {
+      "confirm": "Confirmer l'achat",
+      "cancel": "Annuler",
+      "success": "Achat réussi ! L'item a été ajouté à votre inventaire.",
+      "insufficientFunds": "Solde insuffisant. Rechargez vos gemmes ou gagnez plus de pièces.",
+      "error": "Une erreur est survenue."
+    },
+    "topup": {
+      "badge": "Paiement simulé",
+      "title": "Recharger en Gemmes",
+      "subtitle": "Sélectionnez un pack et simulez votre paiement.",
+      "simulate": "Simuler le paiement",
+      "processing": "Traitement en cours…",
+      "bestValue": "Populaire",
+      "bonus": "bonus",
+      "success": "{amount} ⬢ ajoutées à votre compte !",
+      "fail": "Paiement refusé. Simulation d'échec (10 % de chance).",
+      "disclaimer": "Simulation uniquement — aucun paiement réel n'est effectué."
+    },
+    "search": {
+      "placeholder": "Rechercher un item…"
+    },
+    "empty": {
+      "title": "Aucun item trouvé",
+      "text": "Essayez d'ajuster vos filtres."
+    }
+  },
+  "inventory": {
+    "badge": "Inventaire",
+    "title": "Mon Inventaire",
+    "subtitle": "Gérez vos items et personnalisez votre profil joueur.",
+    "itemsCount": "items",
+    "equippedCount": "équipés",
+    "equipped": "équipé",
+    "equippedLabel": "Équipé",
+    "equip": "Équiper",
+    "unequip": "Retirer",
+    "slotEmpty": "Vide",
+    "noSlot": "Consommable",
+    "goToShop": "Aller à la boutique",
+    "search": "Rechercher…",
+    "side": {
+      "label": "Personnalisation",
+      "title": "Équipement actif",
+      "text": "Choisissez quels items afficher sur votre profil et dans les parties."
+    },
+    "slots": {
+      "title": "Équipement actif",
+      "subtitle": "Gérez les items équipés sur votre profil.",
+      "filled": "slots remplis",
+      "avatar": "Avatar",
+      "banner": "Bannière",
+      "frame": "Cadre",
+      "emote": "Émote",
+      "trail": "Traînée",
+      "spray": "Spray"
+    },
+    "items": {
+      "title": "Items possédés",
+      "subtitle": "Tous les items acquis dans la boutique."
+    },
+    "filters": {
+      "all": "Tous",
+      "equipped": "Équipés"
+    },
+    "empty": {
+      "title": "Inventaire vide",
+      "text": "Achetez des items dans la boutique pour les retrouver ici."
+    },
+    "errors": {
+      "notOwned": "Vous ne possédez pas cet item.",
+      "generic": "Impossible d'équiper cet item."
+    }
+  }
+}
