@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 // ---------------------------------------------------------------------------
-// Seeded PRNG (mulberry32) — stable across reloads for video recording
+// Seeded PRNG — stable across reloads for video recording
 // ---------------------------------------------------------------------------
 function mulberry32(seed: number) {
   return function () {
@@ -22,8 +22,19 @@ const randBool = (prob = 0.5) => rand() < prob
 function hoursAgo(h: number) {
   return new Date(Date.now() - h * 3_600_000).toISOString()
 }
+function daysFromNow(d: number) {
+  return new Date(Date.now() + d * 86_400_000).toISOString()
+}
 export function wait(ms: number) {
   return new Promise((r) => window.setTimeout(r, ms))
+}
+
+/** Stable picsum image URL from a string seed */
+export function picsumUrl(seed: string, w: number, h: number): string {
+  // Convert string to a numeric seed deterministically
+  let n = 0
+  for (let i = 0; i < seed.length; i++) n = (n * 31 + seed.charCodeAt(i)) >>> 0
+  return `https://picsum.photos/seed/${n % 1000}/${w}/${h}`
 }
 
 // ---------------------------------------------------------------------------
@@ -37,7 +48,7 @@ export type Rarity = 'common' | 'rare' | 'epic' | 'legendary'
 export interface ShopItem {
   id: number
   name: string
-  icon: string
+  imageSeed: string
   category: ItemCategory
   slot: ItemSlot
   currency: CurrencyType
@@ -49,6 +60,21 @@ export interface ShopItem {
   isFeatured: boolean
 }
 
+export interface Bundle {
+  id: number
+  name: string
+  description: string
+  imageSeed: string
+  itemIds: number[]
+  originalPrice: number
+  bundlePrice: number
+  currency: CurrencyType
+  expiresAt: string | null
+  badge: string | null
+  gradient: string
+  available: boolean
+}
+
 export interface InventoryItem {
   itemId: number
   ownedAt: string
@@ -58,6 +84,7 @@ export interface InventoryItem {
 export interface Transaction {
   id: number
   type: 'purchase' | 'payment_sim' | 'reward'
+  playerName: string
   itemId?: number
   itemName?: string
   currency: CurrencyType | 'eur'
@@ -76,46 +103,48 @@ export interface TopUpPack {
 }
 
 // ---------------------------------------------------------------------------
-// Static templates
+// Templates
 // ---------------------------------------------------------------------------
 type SlotType = Exclude<ItemSlot, null>
-const COSMETIC_TEMPLATES: Array<{ name: string; icon: string; slot: SlotType; rarity: Rarity }> = [
-  { name: 'Neon Visor', icon: '🕶️', slot: 'avatar', rarity: 'rare' },
-  { name: 'Aurora Skin', icon: '✨', slot: 'avatar', rarity: 'epic' },
-  { name: 'Battle Cry', icon: '🗯️', slot: 'emote', rarity: 'common' },
-  { name: 'Legacy Frame', icon: '🖼️', slot: 'frame', rarity: 'legendary' },
-  { name: 'Emote Pack', icon: '😄', slot: 'emote', rarity: 'common' },
-  { name: 'Shadow Trail', icon: '💨', slot: 'trail', rarity: 'rare' },
-  { name: 'Galaxy Banner', icon: '🌌', slot: 'banner', rarity: 'epic' },
-  { name: 'Flame Spray', icon: '🔥', slot: 'spray', rarity: 'rare' },
-  { name: 'Ice Crown', icon: '👑', slot: 'avatar', rarity: 'legendary' },
-  { name: 'Pixel Frame', icon: '🎮', slot: 'frame', rarity: 'common' },
-  { name: 'Victory Dance', icon: '🕺', slot: 'emote', rarity: 'rare' },
-  { name: 'Thunder Trail', icon: '⚡', slot: 'trail', rarity: 'epic' },
-  { name: 'Ocean Banner', icon: '🌊', slot: 'banner', rarity: 'common' },
-  { name: 'Graffiti Spray', icon: '🎨', slot: 'spray', rarity: 'rare' },
-  { name: 'Cyber Mask', icon: '🤖', slot: 'avatar', rarity: 'epic' },
-  { name: 'Dark Matter Skin', icon: '🌑', slot: 'avatar', rarity: 'legendary' },
-  { name: 'Rainbow Trail', icon: '🌈', slot: 'trail', rarity: 'rare' },
-  { name: 'Champion Frame', icon: '🏆', slot: 'frame', rarity: 'epic' },
-  { name: 'Ninja Badge', icon: '🥷', slot: 'avatar', rarity: 'common' },
-  { name: 'Confetti Spray', icon: '🎉', slot: 'spray', rarity: 'common' },
-  { name: 'Dragon Emote', icon: '🐉', slot: 'emote', rarity: 'legendary' },
-  { name: 'Cosmic Banner', icon: '🚀', slot: 'banner', rarity: 'epic' },
-  { name: 'Ghost Trail', icon: '👻', slot: 'trail', rarity: 'rare' },
-  { name: 'Diamond Frame', icon: '💎', slot: 'frame', rarity: 'legendary' },
-  { name: 'Glitch Skin', icon: '⚙️', slot: 'avatar', rarity: 'epic' },
-  { name: 'Star Spray', icon: '⭐', slot: 'spray', rarity: 'common' },
-  { name: 'Phoenix Emote', icon: '🦅', slot: 'emote', rarity: 'epic' },
-  { name: 'Nebula Banner', icon: '🌠', slot: 'banner', rarity: 'legendary' },
-  { name: 'Lava Trail', icon: '🌋', slot: 'trail', rarity: 'rare' },
-  { name: 'Pixel Frame v2', icon: '🖼️', slot: 'frame', rarity: 'common' },
+const COSMETIC_TEMPLATES: { name: string; slot: SlotType; rarity: Rarity }[] = [
+  { name: 'Neon Visor', slot: 'avatar', rarity: 'rare' },
+  { name: 'Aurora Skin', slot: 'avatar', rarity: 'epic' },
+  { name: 'Battle Cry', slot: 'emote', rarity: 'common' },
+  { name: 'Legacy Frame', slot: 'frame', rarity: 'legendary' },
+  { name: 'Shadow Emote', slot: 'emote', rarity: 'common' },
+  { name: 'Shadow Trail', slot: 'trail', rarity: 'rare' },
+  { name: 'Galaxy Banner', slot: 'banner', rarity: 'epic' },
+  { name: 'Flame Spray', slot: 'spray', rarity: 'rare' },
+  { name: 'Ice Crown', slot: 'avatar', rarity: 'legendary' },
+  { name: 'Pixel Frame', slot: 'frame', rarity: 'common' },
+  { name: 'Victory Dance', slot: 'emote', rarity: 'rare' },
+  { name: 'Thunder Trail', slot: 'trail', rarity: 'epic' },
+  { name: 'Ocean Banner', slot: 'banner', rarity: 'common' },
+  { name: 'Graffiti Spray', slot: 'spray', rarity: 'rare' },
+  { name: 'Cyber Mask', slot: 'avatar', rarity: 'epic' },
+  { name: 'Dark Matter Skin', slot: 'avatar', rarity: 'legendary' },
+  { name: 'Rainbow Trail', slot: 'trail', rarity: 'rare' },
+  { name: 'Champion Frame', slot: 'frame', rarity: 'epic' },
+  { name: 'Ninja Badge', slot: 'avatar', rarity: 'common' },
+  { name: 'Confetti Spray', slot: 'spray', rarity: 'common' },
+  { name: 'Dragon Emote', slot: 'emote', rarity: 'legendary' },
+  { name: 'Cosmic Banner', slot: 'banner', rarity: 'epic' },
+  { name: 'Ghost Trail', slot: 'trail', rarity: 'rare' },
+  { name: 'Diamond Frame', slot: 'frame', rarity: 'legendary' },
+  { name: 'Glitch Skin', slot: 'avatar', rarity: 'epic' },
+  { name: 'Star Spray', slot: 'spray', rarity: 'common' },
+  { name: 'Phoenix Emote', slot: 'emote', rarity: 'epic' },
+  { name: 'Nebula Banner', slot: 'banner', rarity: 'legendary' },
+  { name: 'Lava Trail', slot: 'trail', rarity: 'rare' },
+  { name: 'Pixel Frame v2', slot: 'frame', rarity: 'common' },
 ]
 
-const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 'isFeatured'>[] = [
+const PACK_TEMPLATES: Omit<
+  ShopItem,
+  'id' | 'sales7d' | 'available' | 'isNew' | 'isFeatured' | 'imageSeed'
+>[] = [
   {
     name: 'Starter Pack',
-    icon: '📦',
     category: 'pack',
     slot: null,
     currency: 'hard',
@@ -124,25 +153,15 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
   },
   {
     name: 'Premium Pack',
-    icon: '🎁',
     category: 'pack',
     slot: null,
     currency: 'hard',
     price: 200,
     rarity: 'rare',
   },
+  { name: 'Mega Pack', category: 'pack', slot: null, currency: 'hard', price: 400, rarity: 'epic' },
   {
-    name: 'Mega Pack',
-    icon: '🎯',
-    category: 'pack',
-    slot: null,
-    currency: 'hard',
-    price: 400,
-    rarity: 'epic',
-  },
-  {
-    name: 'Soft Pack 1 000',
-    icon: '💰',
+    name: 'Soft Pack 1k',
     category: 'pack',
     slot: null,
     currency: 'hard',
@@ -150,8 +169,7 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
     rarity: 'common',
   },
   {
-    name: 'Soft Pack 5 000',
-    icon: '💸',
+    name: 'Soft Pack 5k',
     category: 'pack',
     slot: null,
     currency: 'hard',
@@ -159,8 +177,7 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
     rarity: 'rare',
   },
   {
-    name: 'Soft Pack 15 000',
-    icon: '🏦',
+    name: 'Soft Pack 15k',
     category: 'pack',
     slot: null,
     currency: 'hard',
@@ -169,7 +186,6 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
   },
   {
     name: 'Season 4 Pass',
-    icon: '🎫',
     category: 'pass',
     slot: null,
     currency: 'hard',
@@ -178,7 +194,6 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
   },
   {
     name: 'XP Booster 1h',
-    icon: '⚡',
     category: 'boost',
     slot: null,
     currency: 'soft',
@@ -187,7 +202,6 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
   },
   {
     name: 'XP Booster 24h',
-    icon: '🔋',
     category: 'boost',
     slot: null,
     currency: 'hard',
@@ -196,7 +210,6 @@ const PACK_TEMPLATES: Omit<ShopItem, 'id' | 'sales7d' | 'available' | 'isNew' | 
   },
   {
     name: 'Double Soft 7j',
-    icon: '✖️',
     category: 'boost',
     slot: null,
     currency: 'hard',
@@ -220,6 +233,17 @@ export const TOPUP_PACKS: TopUpPack[] = [
   { id: 5, hard: 6500, bonus: 1500, price: 49.99, label: 'Élite' },
 ]
 
+export const GRADIENT_PRESETS: { label: string; value: string }[] = [
+  { label: 'Bleu Nuit', value: 'linear-gradient(135deg, #0d1b2a 0%, #1a2f50 50%, #0f3460 100%)' },
+  { label: 'Solaire', value: 'linear-gradient(135deg, #1a0a00 0%, #3d2200 50%, #5c3300 100%)' },
+  { label: 'Inferno', value: 'linear-gradient(135deg, #2d0000 0%, #5c1000 50%, #2d0000 100%)' },
+  { label: 'Cosmos', value: 'linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #0d1a40 100%)' },
+  { label: 'Forêt', value: 'linear-gradient(135deg, #001a0a 0%, #0a3d20 50%, #001208 100%)' },
+  { label: 'Titane', value: 'linear-gradient(135deg, #0a0a0a 0%, #282828 50%, #101010 100%)' },
+]
+
+export const BUNDLE_BADGES = ['Limité', 'Nouveau', 'Populaire', 'Exclusif'] as const
+
 // ---------------------------------------------------------------------------
 // Data generation
 // ---------------------------------------------------------------------------
@@ -232,11 +256,10 @@ function generateItems(): ShopItem[] {
     const range = PRICE_TABLE[tpl.rarity][isHard ? 'hard' : 'soft']
     const raw = randInt(range[0], range[1])
     const price = Math.round(raw / (isHard ? 5 : 50)) * (isHard ? 5 : 50)
-
     items.push({
       id: i + 1,
       name: tpl.name,
-      icon: tpl.icon,
+      imageSeed: `item-${i + 1}-${tpl.slot}`,
       category: 'cosmetic',
       slot: tpl.slot,
       currency: isHard ? 'hard' : 'soft',
@@ -245,13 +268,14 @@ function generateItems(): ShopItem[] {
       available: randBool(0.92),
       rarity: tpl.rarity,
       isNew: randBool(0.12),
-      isFeatured: tpl.rarity === 'legendary' && randBool(0.5),
+      isFeatured: tpl.rarity === 'legendary' && randBool(0.6),
     })
   })
 
   PACK_TEMPLATES.forEach((tpl, i) => {
     items.push({
       id: 31 + i,
+      imageSeed: `pack-${31 + i}`,
       ...tpl,
       sales7d: randInt(100, 900),
       available: true,
@@ -261,6 +285,91 @@ function generateItems(): ShopItem[] {
   })
 
   return items
+}
+
+const BUNDLE_DEFS: {
+  name: string
+  description: string
+  itemIds: number[]
+  discountPct: number
+  expiresAt: string | null
+  badge: string | null
+  imageSeed: string
+  gradient: string
+}[] = [
+  {
+    name: 'Cyber Elite',
+    description: "Équipement high-tech pour les guerriers de l'arène.",
+    itemIds: [2, 12, 15, 22],
+    discountPct: 0.32,
+    expiresAt: daysFromNow(3),
+    badge: 'Limité',
+    imageSeed: 'bundle-cyber',
+    gradient: 'linear-gradient(135deg, #0d1b2a 0%, #1a2f50 50%, #0f3460 100%)',
+  },
+  {
+    name: 'Pack Légendaire',
+    description: "Les cosmétiques les plus rares pour les joueurs d'élite.",
+    itemIds: [4, 9, 21, 24],
+    discountPct: 0.28,
+    expiresAt: daysFromNow(5),
+    badge: 'Populaire',
+    imageSeed: 'bundle-legend',
+    gradient: 'linear-gradient(135deg, #1a0a00 0%, #3d2200 50%, #5c3300 100%)',
+  },
+  {
+    name: 'Inferno',
+    description: 'Brûlez vos adversaires avec ce pack enflammé.',
+    itemIds: [8, 16, 29],
+    discountPct: 0.25,
+    expiresAt: null,
+    badge: 'Nouveau',
+    imageSeed: 'bundle-inferno',
+    gradient: 'linear-gradient(135deg, #2d0000 0%, #5c1000 50%, #2d0000 100%)',
+  },
+  {
+    name: 'Starter Kit',
+    description: 'Démarrez votre aventure avec style dès le premier match.',
+    itemIds: [1, 5, 10, 14],
+    discountPct: 0.2,
+    expiresAt: null,
+    badge: null,
+    imageSeed: 'bundle-starter',
+    gradient: 'linear-gradient(135deg, #0a1628 0%, #1c3050 50%, #0d2040 100%)',
+  },
+  {
+    name: 'Pack Cosmique',
+    description: "Un voyage interstellaire à travers les étoiles de l'arène.",
+    itemIds: [7, 17, 27],
+    discountPct: 0.3,
+    expiresAt: daysFromNow(7),
+    badge: null,
+    imageSeed: 'bundle-cosmic',
+    gradient: 'linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #0d1a40 100%)',
+  },
+]
+
+function generateBundles(items: ShopItem[]): Bundle[] {
+  const getItem = (id: number) => items.find((i) => i.id === id)
+  return BUNDLE_DEFS.map((def, i) => {
+    const bundleItems = def.itemIds.map(getItem).filter(Boolean) as ShopItem[]
+    const originalPrice = bundleItems.reduce((s, it) => s + it.price, 0)
+    const bundlePrice = Math.max(10, Math.round((originalPrice * (1 - def.discountPct)) / 5) * 5)
+    return {
+      id: i + 1,
+      name: def.name,
+      description: def.description,
+      imageSeed: def.imageSeed,
+      itemIds: def.itemIds,
+      originalPrice,
+      bundlePrice,
+      currency: 'hard' as const,
+      expiresAt: def.expiresAt,
+      badge: def.badge,
+      gradient: def.gradient,
+      available: true,
+    }
+  })
 }
 
 function generateInventory(): InventoryItem[] {
@@ -275,42 +384,60 @@ function generateInventory(): InventoryItem[] {
 function generateTransactions(): Transaction[] {
   const rng3 = mulberry32(77)
   const txs: Transaction[] = []
-
   const TX_TYPES = ['purchase', 'payment_sim', 'reward'] as const
   const SIM_HARD = [100, 500, 1200] as const
   const SIM_EUR = [0.99, 4.99, 9.99] as const
+  const PLAYERS = [
+    'ShadowX',
+    'NebulaStar',
+    'Viper99',
+    'CryptoKing',
+    'ArcLight',
+    'ZeroGhost',
+    'NeonBlade',
+    'IceQueen',
+    'PhoenixRise',
+    'DarkWolf',
+    'StarDust',
+    'TurboAce',
+    'GlitchHunter',
+    'SilverFox',
+    'BlazeMaster',
+  ] as const
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 40; i++) {
     const type: Transaction['type'] = TX_TYPES[Math.floor(rng3() * TX_TYPES.length)]!
     const isHard = rng3() > 0.5
     const status: 'success' | 'fail' = rng3() > 0.1 ? 'success' : 'fail'
     const itemIdx = Math.floor(rng3() * COSMETIC_TEMPLATES.length)
     const simIdx = Math.floor(rng3() * 3)
+    const playerIdx = Math.floor(rng3() * PLAYERS.length)
     txs.push({
       id: 1000 + i,
       type,
+      playerName: PLAYERS[playerIdx]!,
       itemName:
         type === 'purchase'
           ? COSMETIC_TEMPLATES[itemIdx]!.name
           : type === 'payment_sim'
-            ? `${SIM_HARD[simIdx]!} ⬢`
+            ? `${SIM_HARD[simIdx]!} gemmes`
             : 'Récompense niveau',
       currency: type === 'payment_sim' ? 'eur' : isHard ? 'hard' : 'soft',
       amount: type === 'payment_sim' ? SIM_EUR[simIdx]! : randInt(50, 500),
       status,
-      createdAt: hoursAgo(Math.floor(rng3() * 240 + 1)),
+      createdAt: hoursAgo(Math.floor(rng3() * 480 + 1)),
     })
   }
-
   return txs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 // ---------------------------------------------------------------------------
-// Store definition
+// Store
 // ---------------------------------------------------------------------------
 export const useShopStore = defineStore('shop', () => {
-  const wallet = ref({ soft: 3_200, hard: 185 })
   const shopItems = ref<ShopItem[]>(generateItems())
+  const bundles = ref<Bundle[]>(generateBundles(shopItems.value))
+  const wallet = ref({ soft: 3_200, hard: 185 })
   const inventory = ref<InventoryItem[]>(generateInventory())
   const equipped = ref<Record<string, number | null>>({
     avatar: 1,
@@ -322,40 +449,36 @@ export const useShopStore = defineStore('shop', () => {
   })
   const transactions = ref<Transaction[]>(generateTransactions())
 
-  // --- Computed ------------------------------------------------------------
   const ownedIds = computed(() => new Set(inventory.value.map((i) => i.itemId)))
-  const featuredItems = computed(() =>
-    shopItems.value.filter((i) => i.isFeatured && i.available).slice(0, 3),
-  )
   const availableItems = computed(() => shopItems.value.filter((i) => i.available))
+  const availableBundles = computed(() => bundles.value.filter((b) => b.available))
+  const featuredBundle = computed(
+    () => bundles.value.find((b) => b.available && b.expiresAt) ?? bundles.value[0] ?? null,
+  )
 
-  // --- Helpers -------------------------------------------------------------
-  function isOwned(itemId: number) {
-    return ownedIds.value.has(itemId)
+  function isOwned(id: number) {
+    return ownedIds.value.has(id)
   }
-  function isEquipped(itemId: number) {
-    return Object.values(equipped.value).includes(itemId)
+  function isEquipped(id: number) {
+    return Object.values(equipped.value).includes(id)
   }
   function getItemById(id: number) {
     return shopItems.value.find((i) => i.id === id) ?? null
   }
 
-  // --- Actions -------------------------------------------------------------
   function purchase(itemId: number): { success: boolean; reason?: string } {
     const item = getItemById(itemId)
     if (!item) return { success: false, reason: 'not_found' }
     if (isOwned(itemId)) return { success: false, reason: 'already_owned' }
-
-    const balance = item.currency === 'soft' ? wallet.value.soft : wallet.value.hard
-    if (balance < item.price) return { success: false, reason: 'insufficient_funds' }
-
+    const bal = item.currency === 'soft' ? wallet.value.soft : wallet.value.hard
+    if (bal < item.price) return { success: false, reason: 'insufficient_funds' }
     if (item.currency === 'soft') wallet.value.soft -= item.price
     else wallet.value.hard -= item.price
-
     inventory.value.push({ itemId, ownedAt: new Date().toISOString(), quantity: 1 })
     transactions.value.unshift({
       id: Date.now(),
       type: 'purchase',
+      playerName: 'Moi',
       itemId,
       itemName: item.name,
       currency: item.currency,
@@ -363,7 +486,31 @@ export const useShopStore = defineStore('shop', () => {
       status: 'success',
       createdAt: new Date().toISOString(),
     })
+    return { success: true }
+  }
 
+  function purchaseBundle(bundleId: number): { success: boolean; reason?: string } {
+    const bundle = bundles.value.find((b) => b.id === bundleId)
+    if (!bundle || !bundle.available) return { success: false, reason: 'not_found' }
+    const bal = bundle.currency === 'soft' ? wallet.value.soft : wallet.value.hard
+    if (bal < bundle.bundlePrice) return { success: false, reason: 'insufficient_funds' }
+    if (bundle.currency === 'soft') wallet.value.soft -= bundle.bundlePrice
+    else wallet.value.hard -= bundle.bundlePrice
+    bundle.itemIds
+      .filter((id) => !isOwned(id))
+      .forEach((itemId) => {
+        inventory.value.push({ itemId, ownedAt: new Date().toISOString(), quantity: 1 })
+      })
+    transactions.value.unshift({
+      id: Date.now(),
+      type: 'purchase',
+      playerName: 'Moi',
+      itemName: bundle.name,
+      currency: bundle.currency,
+      amount: bundle.bundlePrice,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    })
     return { success: true }
   }
 
@@ -382,52 +529,98 @@ export const useShopStore = defineStore('shop', () => {
   async function simulatePayment(packId: number): Promise<{ success: boolean }> {
     const pack = TOPUP_PACKS.find((p) => p.id === packId)
     if (!pack) return { success: false }
-
     await wait(1_400)
-    // deterministic-ish: 90% success
     const success = (packId * 137 + Date.now()) % 10 !== 0
-
-    if (success) {
-      wallet.value.hard += pack.hard + pack.bonus
-      transactions.value.unshift({
-        id: Date.now(),
-        type: 'payment_sim',
-        itemName: `${pack.hard + pack.bonus} ⬢ (${pack.label})`,
-        currency: 'eur',
-        amount: pack.price,
-        status: 'success',
-        createdAt: new Date().toISOString(),
-      })
-    } else {
-      transactions.value.unshift({
-        id: Date.now(),
-        type: 'payment_sim',
-        itemName: `${pack.hard + pack.bonus} ⬢ (${pack.label})`,
-        currency: 'eur',
-        amount: pack.price,
-        status: 'fail',
-        createdAt: new Date().toISOString(),
-      })
-    }
-
+    if (success) wallet.value.hard += pack.hard + pack.bonus
+    transactions.value.unshift({
+      id: Date.now(),
+      type: 'payment_sim',
+      playerName: 'Moi',
+      itemName: `${pack.hard + pack.bonus} gemmes (${pack.label})`,
+      currency: 'eur',
+      amount: pack.price,
+      status: success ? 'success' : 'fail',
+      createdAt: new Date().toISOString(),
+    })
     return { success }
   }
 
+  // --- Backoffice bundle CRUD ---
+  function _recalcOriginalPrice(bundle: Bundle): void {
+    const items = bundle.itemIds.map(getItemById).filter(Boolean) as ShopItem[]
+    bundle.originalPrice = items.reduce((s, i) => s + i.price, 0)
+  }
+
+  function addBundle(data: Omit<Bundle, 'id' | 'originalPrice'>): void {
+    const id = Math.max(0, ...bundles.value.map((b) => b.id)) + 1
+    const newBundle: Bundle = { id, ...data, originalPrice: 0 }
+    _recalcOriginalPrice(newBundle)
+    bundles.value.unshift(newBundle)
+  }
+
+  function updateBundle(id: number, data: Partial<Omit<Bundle, 'id'>>): void {
+    const idx = bundles.value.findIndex((b) => b.id === id)
+    if (idx === -1) return
+    const updated = { ...bundles.value[idx]!, ...data }
+    _recalcOriginalPrice(updated)
+    bundles.value[idx] = updated
+  }
+
+  function deleteBundle(id: number): void {
+    bundles.value = bundles.value.filter((b) => b.id !== id)
+  }
+
+  // --- Backoffice item CRUD ---
+  function addShopItem(data: Omit<ShopItem, 'id' | 'sales7d'>): void {
+    const id = Math.max(0, ...shopItems.value.map((i) => i.id)) + 1
+    shopItems.value.unshift({ id, sales7d: 0, ...data })
+  }
+
+  function updateShopItem(id: number, data: Partial<Omit<ShopItem, 'id'>>): void {
+    const idx = shopItems.value.findIndex((i) => i.id === id)
+    if (idx === -1) return
+    shopItems.value[idx] = { ...shopItems.value[idx]!, ...data }
+  }
+
+  function deleteShopItem(id: number): void {
+    shopItems.value = shopItems.value.filter((i) => i.id !== id)
+    // Also clean up inventory and bundles that reference this item
+    inventory.value = inventory.value.filter((inv) => inv.itemId !== id)
+    bundles.value = bundles.value.map((b) => ({
+      ...b,
+      itemIds: b.itemIds.filter((iid) => iid !== id),
+    }))
+    // Remove from equipped slots
+    Object.keys(equipped.value).forEach((slot) => {
+      if (equipped.value[slot] === id) equipped.value[slot] = null
+    })
+  }
+
   return {
-    wallet,
     shopItems,
-    availableItems,
-    featuredItems,
+    bundles,
+    wallet,
     inventory,
     equipped,
     transactions,
     ownedIds,
+    availableItems,
+    availableBundles,
+    featuredBundle,
     isOwned,
     isEquipped,
     getItemById,
+    picsumUrl,
     purchase,
+    purchaseBundle,
     equip,
     unequip,
     simulatePayment,
+    addBundle,
+    updateBundle,
+    deleteBundle,
+    addShopItem,
+    updateShopItem,
+    deleteShopItem,
   }
 })
