@@ -9,6 +9,7 @@
         <thead>
           <tr>
             <th>Date</th>
+            <th>Map</th>
             <th>Mode</th>
             <th>Résultat</th>
             <th>XP gagné</th>
@@ -22,6 +23,24 @@
         <tbody>
           <tr v-for="match in matches" :key="match.match_id" :class="['match-row', match.result]">
             <td>{{ formatDateTime(match.played_at) }}</td>
+            <td>
+              <div class="map-cell">
+                <img
+                  v-if="getMapThumb(match)"
+                  :src="getMapThumb(match)"
+                  :alt="match.map?.name ?? 'Map'"
+                  class="map-thumb"
+                />
+                <RouterLink
+                  v-if="getMapDetailId(match)"
+                  :to="{ name: 'maps-detail', params: { id: getMapDetailId(match) } }"
+                  class="map-link"
+                >
+                  {{ match.map?.name ?? 'N/A' }}
+                </RouterLink>
+                <span v-else>{{ match.map?.name ?? 'N/A' }}</span>
+              </div>
+            </td>
             <td>{{ match.game_mode.name }}</td>
             <td>
               <span class="result-badge" :class="match.result">
@@ -56,8 +75,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import type { MatchEntry } from '@/services/matches'
+import { useMapsStore } from '@/stores/mapsStore'
 import { formatDateTime } from '@/utils/date'
 
 const props = defineProps<{
@@ -76,10 +97,29 @@ const emit = defineEmits<{
 
 const currentPage = computed(() => Math.floor(props.offset / props.limit) + 1)
 const totalPages = computed(() => Math.ceil(props.total / props.limit))
+const mapsStore = useMapsStore()
 
 function resultLabel(result: string) {
   const labels: Record<string, string> = { win: 'Victoire', loss: 'Défaite', draw: 'Nul', pending: '–' }
   return labels[result] ?? result
+}
+
+function getMapDetailId(match: MatchEntry): string | null {
+  if (!match.map) return null
+
+  if (typeof match.map.id === 'string' && match.map.id.length > 0) {
+    return match.map.id
+  }
+
+  const found = mapsStore.maps.find((map) => map.title === match.map?.name)
+  return found?.id ?? null
+}
+
+function getMapThumb(match: MatchEntry): string {
+  const mapId = getMapDetailId(match)
+  if (!mapId) return ''
+
+  return mapsStore.getMap(mapId)?.screenshots[0]?.url ?? ''
 }
 </script>
 
@@ -195,5 +235,28 @@ function resultLabel(result: string) {
 .pagination button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.map-link {
+  color: #f2c875;
+  text-decoration: underline;
+}
+
+.map-link:hover {
+  color: #ffd98f;
+}
+
+.map-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.map-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 </style>
