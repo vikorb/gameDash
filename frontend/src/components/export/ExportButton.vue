@@ -10,10 +10,9 @@
 import { computed, ref } from 'vue'
 
 import api from '@/api'
+import { type CsvRow,toCsv } from '@/services/export'
 
 type ExportType = 'users' | 'matches' | 'maps' | 'transactions'
-
-type CsvRow = Record<string, unknown>
 
 const props = withDefaults(
   defineProps<{
@@ -29,21 +28,6 @@ const props = withDefaults(
 
 const isLoading = ref(false)
 const buttonLabel = computed(() => props.label)
-
-function toCsvValue(value: unknown): string {
-  if (value === null || value === undefined) return '""'
-  const raw = typeof value === 'string' ? value : JSON.stringify(value)
-  const escaped = raw.replace(/"/g, '""')
-  return `"${escaped}"`
-}
-
-function toCsv(rows: CsvRow[]): string {
-  if (!rows.length) return ''
-  const headers = Object.keys(rows[0] ?? {})
-  const csvHeaders = headers.map((header) => toCsvValue(header)).join(',')
-  const csvRows = rows.map((row) => headers.map((header) => toCsvValue(row[header])).join(','))
-  return [csvHeaders, ...csvRows].join('\n')
-}
 
 async function exportData() {
   isLoading.value = true

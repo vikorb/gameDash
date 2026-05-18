@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:22-alpine
+FROM public.ecr.aws/docker/library/node:22-alpine3.21
 
 RUN apk add --no-cache postgresql-client
 

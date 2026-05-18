@@ -187,6 +187,7 @@ import { RouterLink, useRouter } from 'vue-router'
 
 import ExportButton from '@/components/export/ExportButton.vue'
 import MapCard from '@/components/MapCard.vue'
+import { buildMapsExportRows } from '@/services/export'
 import { useMapsStore } from '@/stores/mapsStore'
 import { useUserStore } from '@/stores/userStore'
 import type { MapTag } from '@/types/maps'
@@ -198,29 +199,7 @@ const { t, locale } = useI18n({ useScope: 'global' })
 
 const filtered = computed(() => store.filteredMaps)
 const featured = computed(() => store.featuredMap)
-const mapsExportRows = computed(() =>
-  store.filteredMaps.map((map) => ({
-    id: map.id,
-    title: map.title,
-    description: map.description,
-    creator_id: map.creator.id,
-    creator_username: map.creator.username,
-    status: map.status,
-    visibility: map.visibility,
-    featured: map.featured,
-    current_version_number: map.current_version_number,
-    versions_count: map.versions_count,
-    tags: map.tags.map((tag) => tag.slug).join('|'),
-    tests_count: map.stats.tests_count,
-    likes_count: map.stats.likes_count,
-    dislikes_count: map.stats.dislikes_count,
-    favorites_count: map.stats.favorites_count,
-    score: map.stats.score,
-    retention: map.stats.retention,
-    created_at: map.created_at,
-    updated_at: map.updated_at,
-  })),
-)
+const mapsExportRows = computed(() => buildMapsExportRows(store.filteredMaps))
 
 function tagLabel(tag: MapTag) {
   return locale.value === 'fr' ? tag.label_fr : tag.label_en
