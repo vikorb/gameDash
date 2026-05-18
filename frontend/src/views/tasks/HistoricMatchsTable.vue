@@ -80,24 +80,28 @@
         </tbody>
       </table>
 
-      <div class="pagination" v-if="total > limit">
-        <button :disabled="offset === 0" @click="emit('prev-page')">← Précédent</button>
-        <span>Page {{ currentPage }} / {{ totalPages }}</span>
-        <button :disabled="offset + limit >= total" @click="emit('next-page')">Suivant →</button>
-      </div>
+      <MatchHistoryPagination
+        :total="total"
+        :limit="limit"
+        :offset="offset"
+        :current-items-count="matches.length"
+        @prev-page="emit('prev-page')"
+        @next-page="emit('next-page')"
+        @update:limit="(value) => emit('update:limit', value)"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import type { MatchEntry } from '@/services/matches'
 import { useMapsStore } from '@/stores/mapsStore'
 import { formatDateTime } from '@/utils/date'
+import MatchHistoryPagination from '@/views/tasks/MatchHistoryPagination.vue'
 
-const props = defineProps<{
+defineProps<{
   matches: MatchEntry[]
   total: number
   limit: number
@@ -109,10 +113,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'prev-page': []
   'next-page': []
+  'update:limit': [value: number]
 }>()
-
-const currentPage = computed(() => Math.floor(props.offset / props.limit) + 1)
-const totalPages = computed(() => Math.ceil(props.total / props.limit))
 const mapsStore = useMapsStore()
 
 function resultLabel(result: string) {
@@ -291,28 +293,6 @@ function getMapThumb(match: MatchEntry): string {
   color: #d8deea;
   background: rgba(26, 34, 48, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1.5rem 0;
-}
-
-.pagination button {
-  background: #1a2230;
-  color: var(--color-cream);
-  border: 1px solid #3a4a5e;
-  border-radius: 6px;
-  padding: 0.4rem 1rem;
-  cursor: pointer;
-}
-
-.pagination button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .map-link {

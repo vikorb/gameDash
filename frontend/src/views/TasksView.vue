@@ -42,6 +42,7 @@
       :error="store.error?.message ?? null"
       @prev-page="store.prevPage(postgresUserId!)"
       @next-page="store.nextPage(postgresUserId!)"
+      @update:limit="onPageSizeChange"
     />
   </div>
 </template>
@@ -97,6 +98,11 @@ function resetFilters() {
   if (!postgresUserId.value) return
   store.reset()
   store.fetch(postgresUserId.value)
+}
+
+function onPageSizeChange(value: number) {
+  if (!postgresUserId.value) return
+  store.setLimit(postgresUserId.value, value)
 }
 
 onMounted(async () => {
