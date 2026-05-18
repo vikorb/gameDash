@@ -54,10 +54,26 @@
             <td :class="(match.mmr_gained ?? 0) >= 0 ? 'mmr-up' : 'mmr-down'">
               {{ (match.mmr_gained ?? 0) >= 0 ? '+' : '' }}{{ match.mmr_gained ?? '–' }}
             </td>
-            <td>
-              <div v-for="team in match.teams" :key="team.id" class="team-inline">
-                <strong>{{ team.name }}</strong> :
-                {{ team.players.map(p => p.username).join(', ') }}
+            <td class="teams-col">
+              <div class="teams-stack">
+                <div
+                  v-for="team in match.teams"
+                  :key="team.id"
+                  :class="['team-card', { 'my-team': team.id === match.my_team.id }]"
+                >
+                  <div class="team-head">
+                    <strong class="team-name">{{ team.name }}</strong>
+                    <div class="team-head-right">
+                      <span v-if="team.id === match.my_team.id" class="my-team-badge">Ton équipe</span>
+                    </div>
+                  </div>
+
+                  <div class="team-players">
+                    <span v-for="player in team.players" :key="player.id" class="player-chip">
+                      {{ player.username }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </td>
           </tr>
@@ -209,10 +225,72 @@ function getMapThumb(match: MatchEntry): string {
   font-weight: 600;
 }
 
-.team-inline {
-  font-size: 0.8rem;
-  opacity: 0.85;
-  margin-bottom: 0.2rem;
+.teams-col {
+  min-width: 300px;
+}
+
+.teams-stack {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.team-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left-width: 3px;
+  border-left-color: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.45rem 0.6rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.team-card.my-team {
+  border-left-color: #f28b5b;
+  background: rgba(242, 139, 91, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(242, 139, 91, 0.45);
+}
+
+.team-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.team-name {
+  font-size: 0.82rem;
+}
+
+.team-head-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.my-team-badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(242, 139, 91, 0.25);
+  color: #ffb08e;
+}
+
+.team-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  color: #d8deea;
+  background: rgba(26, 34, 48, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pagination {
