@@ -23,6 +23,7 @@
     "format:check": "prettier . --check"
   },
   "dependencies": {
+    "@mdi/js": "^7.4.47",
     "chart.js": "^4.5.1",
     "pinia": "^3.0.4",
     "pocketbase": "^0.26.8",

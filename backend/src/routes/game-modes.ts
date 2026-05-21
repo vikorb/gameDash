@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const modes = await db("game_mode").select("id", "name", "is_active", "description", "created_at", "updated_at");
+    const modes = await db("game_modes").select("id", "name", "is_active", "description", "created_at", "updated_at");
     res.json(modes);
   } catch {
     res.status(500).json({ error: "Internal server error" });

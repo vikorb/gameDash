@@ -7,7 +7,7 @@ export async function seed(knex: Knex): Promise<void> {
     await knex("player_mmr").del();
 
     const users: UserRow[] = await knex("users").select("id");
-    const modes: ModeRow[] = await knex("game_mode").where({ is_active: true }).select("id");
+    const modes: ModeRow[] = await knex("game_modes").where({ is_active: true }).select("id");
 
     const mmrEntries = [];
     for (const user of users) {

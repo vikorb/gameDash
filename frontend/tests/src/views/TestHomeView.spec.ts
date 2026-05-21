@@ -43,6 +43,11 @@ vi.mock('@/stores/userStore', () => ({
 }))
 
 vi.mock('@/services/pocketbase', () => ({
+  pb: {
+    authStore: {
+      token: '',
+    },
+  },
   authService: {
     isAuthenticated: () => authState.isAuthenticated,
     getUser: () => authState.user,

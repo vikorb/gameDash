@@ -4,7 +4,7 @@
 
     <PlayerPlayButton
       v-if="showPlayButton"
-      to="/matchmaking"
+      to="/progress"
       :label="playLabel"
       :title="playTitle"
       :aria-label="playAria"

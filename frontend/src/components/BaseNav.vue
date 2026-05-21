@@ -15,9 +15,10 @@
       >
         <span v-if="item.icon" class="base-nav__link-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" role="img" focusable="false">
-            <path :d="getIconPath(item.icon)" />
+            <path :d="item.icon" />
           </svg>
         </span>
+
         <span class="base-nav__link-label">{{ item.label }}</span>
       </RouterLink>
     </div>
@@ -33,13 +34,11 @@ import { RouterLink } from 'vue-router'
 
 import logo from '@/assets/img/logo_gameDash.svg'
 
-export type NavIcon = 'home' | 'progress' | 'tasks' | 'shop' | 'maps'
-
 export type NavItem = {
   label: string
   to: string
   exact?: boolean
-  icon?: NavIcon
+  icon?: string
 }
 
 withDefaults(
@@ -58,16 +57,6 @@ withDefaults(
     showBrand: true,
   },
 )
-
-const iconPaths: Record<NavIcon, string> = {
-  home: 'M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5.5v-6H10.5v6H5a1 1 0 0 1-1-1z',
-  progress: 'M12 4a8 8 0 1 1-8 8 8 8 0 0 1 8-8Zm0 3v5l4 2',
-  tasks: 'M6 7h12M6 12h12M6 17h8',
-  shop: 'M6 9h12l-1.2 9H7.2L6 9Zm2-3h8l1 3H7l1-3Z',
-  maps: 'M4 6l6-2 4 2 6-2v14l-6 2-4-2-6 2V6Z',
-}
-
-const getIconPath = (icon?: NavIcon) => (icon ? iconPaths[icon] : '')
 </script>
 
 <style scoped>
@@ -123,11 +112,7 @@ const getIconPath = (icon?: NavIcon) => (icon ? iconPaths[icon] : '')
 .base-nav__action svg {
   width: 100%;
   height: 100%;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: currentColor;
 }
 
 .base-nav__link.is-active {

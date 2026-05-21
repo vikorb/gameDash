@@ -1,0 +1,107 @@
+{
+  "moderationUsers": {
+    "badge": "Admin users",
+    "title": "User moderation",
+    "subtitle": "Browse accounts, filter profiles, and test moderation actions in a modern admin interface.",
+    "loading": "Loading...",
+    "actions": {
+      "reset": "Reload",
+      "search": "Search",
+      "clearFilters": "Reset filters",
+      "applyFilters": "Apply"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Username, email, region...",
+      "role": "Role",
+      "status": "Status",
+      "deleted": "Deletion",
+      "sortBy": "Sort by",
+      "sortOrder": "Order",
+      "limit": "Results"
+    },
+    "roles": {
+      "all": "All roles",
+      "player": "Player",
+      "moderator": "Moderator",
+      "admin": "Admin"
+    },
+    "statuses": {
+      "all": "All statuses",
+      "online": "Online",
+      "offline": "Offline",
+      "banned": "Banned",
+      "deleted": "Deleted"
+    },
+    "deleted": {
+      "all": "All",
+      "active": "Active",
+      "deleted": "Deleted"
+    },
+    "sort": {
+      "updatedAt": "Last update",
+      "createdAt": "Creation date",
+      "username": "Username",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "desc": "Descending",
+      "asc": "Ascending"
+    },
+    "stats": {
+      "visibleUsers": "Visible users",
+      "adminsModerators": "Admins + moderators",
+      "banned": "Banned",
+      "deleted": "Deleted"
+    },
+    "table": {
+      "title": "Users list",
+      "subtitle": "{total} users found • page {page}/{totalPages}"
+    },
+    "columns": {
+      "user": "User",
+      "role": "Role",
+      "status": "Status",
+      "region": "Region",
+      "updatedAt": "Updated",
+      "actions": "Actions"
+    },
+    "rowActions": {
+      "makePlayer": "Set player",
+      "makeModerator": "Set moderator",
+      "makeAdmin": "Set admin",
+      "ban": "Ban",
+      "unban": "Unban",
+      "softDelete": "Delete",
+      "restore": "Restore"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} / {totalPages}"
+    },
+    "empty": {
+      "title": "No users found",
+      "description": "Try changing your filters or search."
+    },
+    "badges": {
+      "deleted": "Deleted"
+    },
+    "values": {
+      "unknownUser": "Unknown user",
+      "noEmail": "No email",
+      "notSet": "Not set"
+    },
+    "messages": {
+      "unknownError": "An unknown error occurred.",
+      "roleUpdated": "{user} now has the role {role}.",
+      "roleSimulated": "Simulated update: {user} now has the role {role}.",
+      "userBanned": "{user} has been banned.",
+      "userBannedSimulated": "Simulated ban for {user}.",
+      "userUnbanned": "{user} has been unbanned.",
+      "userUnbannedSimulated": "Simulated unban for {user}.",
+      "deleteSimulated": "Simulated deletion for {user}.",
+      "restoreSimulated": "Simulated restore for {user}."
+    }
+  }
+}
