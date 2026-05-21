@@ -10,19 +10,19 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import { RouterLink } from 'vue-router'
 
 interface Props {
-  text?: string;
-  to?: string | object;
-  variant?: 'primary' | 'secondary' | 'danger';
-  type?: 'button' | 'submit' | 'reset';
+  text?: string
+  to?: string | object
+  variant?: 'primary' | 'secondary' | 'danger'
+  type?: 'button' | 'submit' | 'reset'
 }
 
 withDefaults(defineProps<Props>(), {
   variant: 'primary',
-  type: 'button'
-});
+  type: 'button',
+})
 </script>
 
 <style scoped>
@@ -43,7 +43,8 @@ withDefaults(defineProps<Props>(), {
 
 .primary {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-cream);
+  box-shadow: 0 12px 20px -16px rgba(242, 139, 91, 0.8);
 }
 
 .primary:hover {
@@ -52,18 +53,19 @@ withDefaults(defineProps<Props>(), {
 }
 
 .secondary {
-  background-color: white;
-  border-color: var(--color-border);
-  color: var(--color-text);
+  background-color: var(--color-cream);
+  border-color: rgba(46, 50, 68, 0.15);
+  color: var(--color-ink);
 }
 
 .secondary:hover {
-  background-color: var(--color-bg);
-  border-color: var(--color-text-muted);
+  background-color: #f6e7d6;
+  border-color: rgba(46, 50, 68, 0.25);
+  transform: translateY(-1px);
 }
 
 .danger {
   background-color: var(--color-danger);
-  color: white;
+  color: var(--color-cream);
 }
 </style>

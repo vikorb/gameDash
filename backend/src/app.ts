@@ -2,6 +2,11 @@ import express from 'express';
 import cors from 'cors';
 
 import mapsRoutes from '@/routes/maps';
+import usersRoutes from '@/routes/users';
+import mmrRoutes from '@/routes/mmr';
+import ranksRoutes from '@/routes/ranks';
+import gameModesRoutes from '@/routes/game-modes';
+import matchesRoutes from '@/routes/matches';
 import { asyncHandler } from '@/middlewares/asyncHandler';
 import { notFound } from '@/middlewares/notFound';
 import { errorHandler } from '@/middlewares/errorHandler';
@@ -13,6 +18,11 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/maps', mapsRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/mmr', mmrRoutes);
+app.use('/api/game-modes', gameModesRoutes);
+app.use('/api/ranks', ranksRoutes);
+app.use('/api/matches', matchesRoutes);
 
 app.get(
   '/api/health',

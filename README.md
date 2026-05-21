@@ -52,20 +52,56 @@ Le projet est réalisé en **équipe de 3**, avec un fort accent sur :
 ### Installation rapide
 
 1. Cloner le repo
+
 ```bash
 git clone <url-du-repo>
 cd gameDash
 ```
 
-2. Installer les dépendances (pour l'outillage local : husky, eslint)
+2. **Configuration des variables d'environnement**
+
+Les variables ont été **regroupées** dans un seul fichier de référence :
+
+```bash
+cp .env.example .env
+```
+
+**Utilisation selon votre mode de lancement :**
+
+- **Docker Compose** : les valeurs par défaut sont dans `docker-compose.yml`. Modifiez-les si besoin.
+- **Lancement local (sans Docker)** : répartissez les variables de `.env` dans :
+  - `backend/.env` (API)
+  - `frontend/.env.local` (variables `VITE_*`)
+
+**⚠️ Important :** Mettez à jour les valeurs PocketBase si vous ne les laissez pas par défaut :
+
+- `POCKETBASE_ADMIN_EMAIL` : Email admin
+- `POCKETBASE_ADMIN_PASSWORD` : Mot de passe admin (min 8 caractères)
+- `POCKETBASE_ENCRYPTION_KEY` : Clé secrète (min 32 caractères)
+
+3. Installer les dépendances (pour l'outillage local : husky, eslint)
+
 ```bash
 npm install
 ```
 
-3. Lancer toute la stack (DB + API + Front)
+4. Lancer toute la stack (DB + API + Front + PocketBase)
+
 ```bash
 docker compose up --build
 ```
+
+### 🔑 Accès aux services
+
+Une fois la stack lancée :
+
+- **Frontend** : http://localhost:5173
+- **API Backend** : http://localhost:3000/api
+- **PocketBase API** : http://localhost:8090/api
+- **PocketBase Admin** : http://localhost:8090/\_/
+- **Database PostgreSQL** : localhost:5432
+
+Pour vous connecter à PocketBase Admin, utilisez les credentials définis dans `docker-compose.yml` (ou votre `.env` si vous les surchargez).
 
 ---
 
@@ -75,7 +111,6 @@ docker compose up --build
 
 ````bash
 docker compose up --build
-### Lancer le projet en développement
 
 ```bash
 npm run dev
@@ -84,6 +119,7 @@ npm run dev
 Cela lance automatiquement :
 
 - PostgreSQL
+- PocketBase (authentification)
 - le backend API
 - le frontend Vue
 
@@ -91,6 +127,7 @@ Accès :
 
 - Frontend : http://localhost:5173
 - API : http://localhost:3000/api
+- PocketBase : http://localhost:8090
 - DB : localhost:5432
 
 #### Scripts disponibles (lancement manuel)
@@ -120,7 +157,7 @@ gameDash/
 ├── frontend/                # Application Vue.js 3
 │   ├── src/
 │   │   ├── assets/          # Styles globaux (main.css), images
-│   │   ├── components/      
+│   │   ├── components/
 │   │   │   └── ui/          # Composants agnostiques (BaseButton, BaseCard)
 │   │   ├── views/           # Pages de l'application (Home, MapsList, MapForm)
 │   │   ├── router/          # Configuration Vue Router
@@ -144,8 +181,10 @@ gameDash/
 │   ├── knexfile.ts          # Configuration Knex (CLI & App)
 │   └── package.json
 │
+├── pocketbase/              # Service PocketBase
+├── sonarqube/               # Stack SonarQube locale
 ├── docker-compose.yml       # Orchestration DB, Backend et Frontend
-├── .gitignore               # Exclusion des node_modules et .env
+├── .env.example             # Variables de référence
 └── README.md                # Documentation du projet
 ```
 
@@ -178,8 +217,8 @@ gameDash/
 - PostgreSQL exécuté via Docker
 - Schéma global défini sur dbdiagram.io
 - Versionnage du schéma via Knex migrations
-- **Persistance :** Attention, par choix de développement, les données ne sont **pas persistées** sur le disque hôte entre deux `docker compose down`. 
-- **Cycle de vie :** À chaque redémarrage (`up`), la base est réinitialisée : les migrations sont rejouées et les **seeds sont injectées automatiquement**. 
+- **Persistance :** Attention, par choix de développement, les données ne sont **pas persistées** sur le disque hôte entre deux `docker compose down`.
+- **Cycle de vie :** À chaque redémarrage (`up`), la base est réinitialisée : les migrations sont rejouées et les **seeds sont injectées automatiquement**.
 - **Pourquoi ce choix ?** Cela garantit que toute l'équipe travaille en permanence sur un schéma et un jeu de données identiques et "propres".
 
 ### 🐳 Docker & orchestration
@@ -284,7 +323,7 @@ Le projet suit une approche rigoureuse où chaque évolution est pilotée par un
 
 Chaque User Story correspond strictement à une branche unique. Aucune modification n'est effectuée directement sur la branche principale.
 
-- Nomenclature des branches : feat/us-[ID]-[TITRE_SIMPLIFIÉ] : *Exemple : feat/us-04-edition_map_form*
+- Nomenclature des branches : feat/us-[ID]-[TITRE_SIMPLIFIÉ] : _Exemple : feat/us-04-edition_map_form_
 
 - Cycle de vie :
   - Création de la branche à partir de main ou develop.
@@ -314,7 +353,7 @@ La base est définie dans le fichier suivant :
 - `docker-compose.yml`
 - Le port interne PostgreSQL est 5432 (fixe)
 - Le port 5432 est exposé sur la machine hôte pour éviter les conflits locaux
-- Les données sont persistées via un volume Docker
+- Les données ne sont pas persistées via un volume Docker (réinitialisation après `docker compose down -v`)
 
 ### ▶️ Commandes Docker
 
@@ -341,11 +380,9 @@ Les paramètres de connexion sont définis dans :
 - backend/.env
 
 ```env
-DB_HOST=localhost
-DB_PORT=5433
-DB_USER=gamedash
-DB_PASSWORD=gamedash
-DB_NAME=gamedash
+DATABASE_URL=postgres://user:root@localhost:5432/gameDash
+PORT=3000
+NODE_ENV=development
 ```
 
 ### 🧬 Création d’une migration
@@ -396,6 +433,7 @@ Les Seeds permettent de peupler la base de données avec des données de test co
 **Emplacement des fichiers**
 
 Les scripts de peuplement se trouvent dans :
+
 - backend/src/database/seeds/
 
 **Exécution automatique (Docker)**
@@ -405,7 +443,7 @@ Le conteneur Backend attend que la DB soit prête, puis exécute systématiqueme
 1. knex migrate:latest (Mise à jour du schéma)
 2. knex seed:run (Injection des données de test)
 
-**⚠️ Important** : Toute donnée ajoutée manuellement en base via un client SQL sera perdue au prochain ```docker compose down```. Si une donnée doit survivre, ajoutez-la dans un fichier de seed.
+**⚠️ Important** : Toute donnée ajoutée manuellement en base via un client SQL sera perdue au prochain `docker compose down`. Si une donnée doit survivre, ajoutez-la dans un fichier de seed.
 
 **Stratégie d'Idempotence**
 
@@ -497,6 +535,7 @@ Un commit non conforme est refusé automatiquement.
 7. Merge
 
 ### Avant de pousser votre PR, vérifiez :
+
 - [ ] Le fichier fait-il moins de 80 lignes ?
 - [ ] Les nouveaux composants sont-ils en PascalCase ?
 - [ ] Est-ce que `npm run lint` passe ?

@@ -1,50 +1,170 @@
-<script setup lang="ts">
-import { RouterLink } from 'vue-router';
-
-export type NavItem = {
-  label: string;
-  to: string;
-  exact?: boolean;
-};
-
-defineProps<{
-  items: NavItem[];
-}>();
-</script>
-
 <template>
   <nav class="base-nav">
-    <RouterLink
-      v-for="item in items"
-      :key="item.to"
-      :to="item.to"
-      class="base-nav__link"
-      :exact-active-class="item.exact ? 'is-active' : undefined"
-      active-class="is-active"
-    >
-      {{ item.label }}
+    <RouterLink v-if="showBrand" :to="brandTo" class="base-nav__brand">
+      <img :src="brandLogo" :alt="brandLabel" class="base-nav__logo" />
     </RouterLink>
+
+    <div class="base-nav__links">
+      <RouterLink
+        v-for="item in items"
+        :key="item.to"
+        :to="item.to"
+        class="base-nav__link"
+        :exact-active-class="item.exact ? 'is-active' : undefined"
+        active-class="is-active"
+      >
+        <span v-if="item.icon" class="base-nav__link-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img" focusable="false">
+            <path :d="item.icon" />
+          </svg>
+        </span>
+
+        <span class="base-nav__link-label">{{ item.label }}</span>
+      </RouterLink>
+    </div>
+
+    <div v-if="$slots.actions" class="base-nav__actions">
+      <slot name="actions" />
+    </div>
   </nav>
 </template>
 
+<script setup lang="ts">
+import { RouterLink } from 'vue-router'
+
+import logo from '@/assets/img/logo_gameDash.svg'
+
+export type NavItem = {
+  label: string
+  to: string
+  exact?: boolean
+  icon?: string
+}
+
+withDefaults(
+  defineProps<{
+    items?: NavItem[]
+    brandLabel?: string
+    brandLogo?: string
+    brandTo?: string
+    showBrand?: boolean
+  }>(),
+  {
+    items: () => [],
+    brandLabel: 'GAMEDASH',
+    brandLogo: logo,
+    brandTo: '/',
+    showBrand: true,
+  },
+)
+</script>
+
 <style scoped>
 .base-nav {
-  padding: 1rem;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  gap: 12px;
+  padding: 0.85rem 1.5rem;
+  background: transparent;
+  border-bottom: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.5rem;
   align-items: center;
+}
+
+.base-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 700;
+}
+
+.base-nav__logo {
+  width: 42px;
+  height: 42px;
+}
+
+.base-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .base-nav__link {
   text-decoration: none;
-  color: var(--color-primary);
-  font-weight: 700;
+  color: #516079;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  position: relative;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.base-nav__link-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.base-nav__link svg,
+.base-nav__action svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
 .base-nav__link.is-active {
-  color: var(--color-primary-strong);
-  text-decoration: underline;
+  color: #f28b5b;
+}
+
+.base-nav__link.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.7rem;
+  height: 2px;
+  border-radius: 999px;
+  background: #f28b5b;
+}
+
+.base-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.base-nav__action {
+  background: transparent;
+  border: none;
+  color: #516079;
+  padding: 0.25rem;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.base-nav__action:hover,
+.base-nav__link:hover {
+  color: rgba(252, 239, 225, 0.95);
+}
+
+@media (max-width: 900px) {
+  .base-nav {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .base-nav__links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 </style>

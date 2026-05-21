@@ -1,101 +1,149 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { defineComponent, reactive, nextTick } from 'vue'
-
-type GameMap = { id: number }
-type I18nParams = { count?: number }
-type UseI18nReturn = { t: (key: string, params?: I18nParams) => string }
-
+vi.mock('@/views/home/PlayerCompetitiveCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card-mock" />' })
+}))
+vi.mock('@/views/home/HomeTopRow.vue', () => ({
+  default: defineComponent({ name: 'HomeTopRow', template: '<div class="home-top-row" />' })
+}))
+vi.mock('@/views/home/PlayerPlayButton.vue', () => ({
+  default: defineComponent({ name: 'PlayerPlayButton', template: '<button class="player-play-button-mock" />' })
+}))
 vi.mock('vue-i18n', () => ({
-  useI18n: (): UseI18nReturn => ({
-    t: (key: string, params?: I18nParams): string => {
-      const dict: Record<string, string> = {
-        'home.hero.title': 'Home title',
-        'home.hero.subtitle': 'Home subtitle',
-        'home.stats.title': 'Stats',
-        'home.quick_actions.title': 'Quick actions',
-        'home.quick_actions.create_map': 'Create map',
-        'home.quick_actions.view_list': 'View list',
-        'home.quick_actions.create_map_hover': 'Create a map',
-        'home.quick_actions.create_map_aria': 'Create map',
-        'home.quick_actions.view_list_hover': 'View maps',
-        'home.quick_actions.view_list_aria': 'View list',
-      }
+  useI18n: () => ({ t: (key: string) => key })
+}))
 
-      if (key === 'home.stats.maps_created') {
-        return `${params?.count ?? 0} maps created`
-      }
+vi.mock('vue-router', () => ({
+  RouterLink: {
+    name: 'RouterLink',
+    props: ['to'],
+    template: '<a :href="to"><slot /></a>'
+  },
+  useRouter: () => ({ push: vi.fn(), resolve: vi.fn() }),
+  useRoute: () => ({ path: '/' })
+}))
+import { mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick, reactive } from 'vue'
 
-      return dict[key] ?? key
+type AuthUser = {
+  id: string
+  email: string
+  username?: string
+}
+
+const userStoreState = reactive<{ currentRole: 'player' | 'admin' | 'moderator' }>({
+  currentRole: 'player',
+})
+const authState = reactive<{ isAuthenticated: boolean; user: AuthUser | null }>({
+  isAuthenticated: false,
+  user: null,
+})
+
+vi.mock('@/stores/userStore', () => ({
+  useUserStore: () => userStoreState,
+}))
+
+vi.mock('@/services/pocketbase', () => ({
+  pb: {
+    authStore: {
+      token: '',
     },
-  }),
+  },
+  authService: {
+    isAuthenticated: () => authState.isAuthenticated,
+    getUser: () => authState.user,
+  },
 }))
 
-const fakeStore = reactive<{ maps: GameMap[] }>({ maps: [] })
-
-vi.mock('@/stores/mapStore', () => ({
-  useMapStore: (): { maps: GameMap[] } => fakeStore,
-}))
-
-vi.mock('@/components/ui/BaseButton.vue', () => ({
+vi.mock('@/views/home/HomeHeaderSection.vue', () => ({
   default: defineComponent({
-    name: 'BaseButton',
+    name: 'HomeHeaderSection',
     props: {
-      to: { type: String, default: '' },
+      isSessionActive: { type: Boolean, required: true },
+      displayName: { type: String, default: undefined },
+      showPlayButton: { type: Boolean, required: true },
     },
-    template: `<a class="base-button" :data-to="to"><slot /></a>`,
+    template: `
+      <section
+        class="home-header"
+        :data-session="isSessionActive ? 'true' : 'false'"
+        :data-display-name="displayName ? displayName : ''"
+        :data-show-play="showPlayButton ? 'true' : 'false'"
+      />
+    `,
   }),
 }))
+vi.mock('@/components/player-dashboard/PlayerShopCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerShopCard', template: '<div class="player-shop-card" />' })
+}))
+vi.mock('@/components/player-dashboard/PlayerCompetitiveCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card" />' })
+}))
+vi.mock('@/components/player-dashboard/PlayerRankCard.vue', () => ({
+  default: defineComponent({ name: 'PlayerRankCard', template: '<div class="player-rank-card" />' })
+}))
 
-vi.mock('@/components/ui/BaseCard.vue', () => ({
+vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({
   default: defineComponent({
-    name: 'BaseCard',
-    template: `<section class="base-card"><slot /></section>`,
+    name: 'PlayerDashboardSection',
+    template: '<section class="player-dashboard" />',
   }),
 }))
 
-import TestHomeView from '@/views/TestHomeView.vue'
+import HomeView from '../../../src/views/HomeView.vue'
 
-const mountView = () => mount(TestHomeView)
+const mountView = () => mount(HomeView)
 
 beforeEach(() => {
-  fakeStore.maps.splice(0)
+  userStoreState.currentRole = 'player'
+  authState.isAuthenticated = false
+  authState.user = null
 })
 
-describe('TestHomeView - unit', () => {
-  it('affiche le hero title/subtitle', () => {
+describe('HomeView', () => {
+  it('render HomeHeaderSection avec les props dérivées de auth et role', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
+    userStoreState.currentRole = 'player'
     const wrapper = mountView()
-    expect(wrapper.find('.hero-title').text()).toBe('Home title')
-    expect(wrapper.find('.hero-subtitle').text()).toBe('Home subtitle')
+    await nextTick()
+    const header = wrapper.find('.home-header')
+    expect(header.exists()).toBe(true)
+    expect(header.attributes('data-session')).toBe('true')
+    expect(header.attributes('data-display-name')).toBe('alice')
+    expect(header.attributes('data-show-play')).toBe('true')
   })
 
-  it('affiche le nombre de maps depuis le store', () => {
-    fakeStore.maps.push({ id: 1 }, { id: 2 })
+  it('affiche le dashboard uniquement pour les players', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
+    userStoreState.currentRole = 'player'
     const wrapper = mountView()
-    expect(wrapper.find('.big-number').text()).toBe('2')
-    expect(wrapper.text()).toContain('2 maps created')
-  })
-})
-
-describe('TestHomeView - integration (simple)', () => {
-  it('contient les 2 actions avec les bonnes routes', () => {
-    const wrapper = mountView()
-    const tos = wrapper
-      .findAll('.base-button')
-      .map((el) => el.attributes('data-to'))
-      .filter((v): v is string => typeof v === 'string')
-
-    expect(tos).toContain('/test/maps/new')
-    expect(tos).toContain('/test/maps')
+    await nextTick()
+    expect(wrapper.find('.player-dashboard').exists()).toBe(true)
   })
 
-  it('se met à jour quand store.maps change', async () => {
+  it('masque le dashboard pour admin/moderator', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
+    userStoreState.currentRole = 'admin'
     const wrapper = mountView()
-    expect(wrapper.find('.big-number').text()).toBe('0')
+    await nextTick()
+    expect(wrapper.find('.player-dashboard').exists()).toBe(false)
+    expect(wrapper.find('.home-header').attributes('data-show-play')).toBe('false')
+  })
 
-    fakeStore.maps.push({ id: 1 })
+  it('se met à jour quand le role change', async () => {
+    authState.isAuthenticated = true
+    authState.user = { id: 'u1', email: 'user@test.local', username: 'alice' }
+    userStoreState.currentRole = 'player'
+    const wrapper = mountView()
+    await nextTick()
+    expect(wrapper.find('.player-dashboard').exists()).toBe(true)
+
+    userStoreState.currentRole = 'moderator'
     await nextTick()
 
-    expect(wrapper.find('.big-number').text()).toBe('1')
+    expect(wrapper.find('.player-dashboard').exists()).toBe(false)
+    expect(wrapper.find('.home-header').attributes('data-show-play')).toBe('false')
   })
 })

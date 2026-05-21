@@ -1,19 +1,17 @@
-import type { ApiError, BackendErrorPayload } from '@/types/apiError';
-import type { AxiosError } from 'axios';
+import type { AxiosError } from 'axios'
+
+import type { ApiError, BackendErrorPayload } from '@/types/apiError'
 
 export function toApiError(err: unknown, fallbackMessage = 'Erreur réseau'): ApiError {
-  const e = err as AxiosError<BackendErrorPayload>;
+  const e = err as AxiosError<BackendErrorPayload>
 
-  const status = e.response?.status;
-  const data = e.response?.data;
+  const status = e.response?.status
+  const data = e.response?.data
 
-  const message =
-    data?.error?.message ??
-    e.message ??
-    fallbackMessage;
+  const message = data?.error?.message ?? e.message ?? fallbackMessage
 
-  const code = data?.error?.code;
-  const details = data?.error?.details;
+  const code = data?.error?.code
+  const details = data?.error?.details
 
-  return { status, code, message, details };
+  return { status, code, message, details }
 }

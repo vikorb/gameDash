@@ -1,5 +1,7 @@
 import { fileURLToPath } from 'node:url'
-import { mergeConfig, defineConfig, configDefaults } from 'vitest/config'
+
+import { configDefaults,defineConfig, mergeConfig } from 'vitest/config'
+
 import viteConfig from './vite.config'
 
 export default mergeConfig(
@@ -9,6 +11,7 @@ export default mergeConfig(
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
+      pool: 'vmThreads',
     },
   }),
 )

@@ -1,0 +1,311 @@
+{
+  "backoffice": {
+    "common": {
+      "actions": {
+        "backToBackoffice": "Back to backoffice",
+        "resetPeriod": "Reset period"
+      },
+      "time": {
+        "justNow": "Just now",
+        "minutesAgo": "{count} min ago",
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago"
+      }
+    },
+    "hub": {
+      "badge": "Studio backoffice",
+      "title": "GameDash control room",
+      "subtitle": "Central place for KPIs, matchmaking balance, virtual economy and moderation. One hub for the whole studio.",
+      "primaryAction": "View KPIs",
+      "secondaryAction": "Go to moderation",
+      "highlight": {
+        "label": "Staff access",
+        "title": "Live ops control",
+        "text": "All critical actions are audited. Settings updates apply immediately to the game."
+      },
+      "stats": {
+        "role": { "label": "Your role" },
+        "audit": { "label": "Audit logs", "value": "Enabled" }
+      },
+      "sections": {
+        "title": "Backoffice sections",
+        "subtitle": "Four pillars: overview, competitive balance, economy and community moderation."
+      },
+      "cards": {
+        "dashboard": {
+          "title": "KPI Dashboard",
+          "description": "Live overview: active players, matches/day, transactions, rank distribution, top maps.",
+          "badge": "Live",
+          "items": {
+            "kpis": "Real-time KPIs",
+            "ranks": "Rank distribution",
+            "maps": "Top maps & creators"
+          }
+        },
+        "matchmaking": {
+          "title": "Matchmaking",
+          "description": "Tune queues: max wait, MMR window, team size. Changes apply immediately.",
+          "items": {
+            "queues": "Live queues",
+            "settings": "Per-mode settings",
+            "audit": "Audit trail"
+          }
+        },
+        "economy": {
+          "title": "Economy",
+          "description": "Manage shop prices and rewards (XP, soft currency, hard currency, quests).",
+          "items": {
+            "prices": "Shop prices",
+            "rewards": "Rewards",
+            "currencies": "Currencies"
+          }
+        },
+        "moderation": {
+          "title": "Moderation",
+          "description": "Suspensions, bans, map moderation, report handling and sanction history.",
+          "items": {
+            "users": "Users",
+            "reports": "Reports",
+            "maps": "Maps & content"
+          }
+        }
+      },
+      "actions": { "open": "Open section" },
+      "roles": {
+        "admin": "Administrator",
+        "moderator": "Moderator",
+        "staff": "Staff"
+      }
+    },
+    "dashboard": {
+      "badge": "Overview",
+      "title": "KPI Dashboard",
+      "subtitle": "Real-time tracking of GameDash activity: players, matches, economy and community content.",
+      "side": {
+        "label": "POC mode",
+        "title": "Simulated data",
+        "text": "Numbers come from POC seeds. The view will plug into /admin/kpi endpoints later.",
+        "chips": { "live": "Live", "poc": "POC", "rbac": "Staff/Admin" }
+      },
+      "period": {
+        "title": "Period filter",
+        "subtitle": "Select the time window for KPIs and activity.",
+        "options": { "7d": "7 days", "30d": "30 days", "90d": "90 days" }
+      },
+      "kpis": {
+        "activeUsers": "Active players",
+        "activeUsersCaption": "On {period}, sessions with ≥ 1 match",
+        "matches": "Matches / day",
+        "matchesCaption": "Daily average, all modes",
+        "transactions": "Transactions / day",
+        "transactionsCaption": "Shop purchases (soft + hard)",
+        "maps": "Published maps",
+        "mapsCaption": "Approved publications on {period}",
+        "revenue": "Virtual revenue",
+        "revenueCaption": "Total hard currency sold (€ equivalent)",
+        "reports": "Open reports",
+        "reportsCaption": "Awaiting moderation"
+      },
+      "ranks": {
+        "title": "Rank distribution",
+        "subtitle": "Player spread across the competitive ladder.",
+        "totalPlayers": "{count} ranked players",
+        "labels": {
+          "bronze": "Bronze",
+          "silver": "Silver",
+          "gold": "Gold",
+          "platinum": "Platinum",
+          "diamond": "Diamond",
+          "master": "Master"
+        }
+      },
+      "topMaps": {
+        "title": "Top maps",
+        "subtitle": "Most played community maps.",
+        "period": "{label}",
+        "by": "by",
+        "tests": "tests"
+      },
+      "topCreators": {
+        "title": "Top creators",
+        "subtitle": "Most active creators on the period.",
+        "maps": "{count} maps published",
+        "tests": "total tests"
+      },
+      "activity": {
+        "title": "Recent activity",
+        "subtitle": "Latest events from the services.",
+        "justNow": "Just now",
+        "minutesAgo": "{count} min ago",
+        "hoursAgo": "{count}h ago",
+        "daysAgo": "{count}d ago",
+        "events": {
+          "match": "{actor} played a match ({target})",
+          "transaction": "{actor} bought: {target}",
+          "map": "{actor} published {target}",
+          "sanction": "{actor} sanctioned {target}"
+        }
+      }
+    },
+    "matchmaking": {
+      "badge": "Live ops",
+      "title": "Matchmaking settings",
+      "subtitle": "Adjust max wait, MMR window and team size per mode. Changes apply immediately.",
+      "side": {
+        "label": "Audit",
+        "title": "All changes are tracked",
+        "text": "Each save creates a SETTINGS_UPDATE entry in the audit logs.",
+        "chips": { "live": "Live ops", "audit": "Audit logs", "poc": "POC" }
+      },
+      "actions": {
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "resetAll": "Cancel all"
+      },
+      "stats": {
+        "totalInQueue": "Players in queue",
+        "totalInQueueCaption": "Across all active modes",
+        "avgWait": "Avg max wait",
+        "avgWaitCaption": "Mean configured max wait time",
+        "activeModes": "Active modes",
+        "activeModesCaption": "Configured and open",
+        "lastUpdate": "Last change",
+        "lastUpdateCaption": "By {actor}"
+      },
+      "modes": {
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "playersInQueue": "in queue",
+        "matchesLastHour": "matches (1h)",
+        "ranked": {
+          "label": "Ranked",
+          "description": "Competitive queue with MMR impact and rank progression."
+        },
+        "casual": {
+          "label": "Casual",
+          "description": "Quick queue without MMR impact, ideal to test comps."
+        },
+        "fun": {
+          "label": "Fun",
+          "description": "Alternative modes and limited-time events."
+        }
+      },
+      "settings": {
+        "maxWaitTime": "Max wait time",
+        "maxWaitTimeHint": "Beyond this, the algorithm widens the MMR window.",
+        "mmrWindow": "Allowed MMR gap",
+        "mmrWindowHint": "Max MMR difference between players at match start.",
+        "teamSize": "Team size",
+        "teamSizeHint": "Players per team (symmetric matches).",
+        "enabled": "Mode open",
+        "enabledHint": "Disabling closes the queue immediately (ongoing matches finish)."
+      },
+      "units": { "seconds": "s", "mmr": "MMR pts" },
+      "audit": {
+        "lastUpdated": "Updated by {actor} on {date}",
+        "unsavedChanges": "Unsaved changes"
+      },
+      "feedback": {
+        "saved": "Settings for \"{mode}\" saved (POC simulation)."
+      },
+      "history": {
+        "title": "Change history",
+        "subtitle": "Audit log of matchmaking settings changes.",
+        "entries": "entries",
+        "action": "{actor} updated \"{mode}\"",
+        "emptyTitle": "No changes yet",
+        "emptyText": "Saves will appear here with their diff."
+      }
+    },
+    "economy": {
+      "badge": "Live ops",
+      "title": "Virtual economy",
+      "subtitle": "Configure shop prices and XP/currency rewards. Every change is audited.",
+      "side": {
+        "label": "POC mode",
+        "title": "Shop & rewards",
+        "text": "Simulated changes: no impact on real transactions. Audit log records every action.",
+        "chips": { "prices": "Prices", "rewards": "Rewards", "audit": "Audit logs" }
+      },
+      "actions": {
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "saveRewards": "Save rewards",
+        "resetAll": "Cancel all"
+      },
+      "unsavedChanges": "Unsaved changes",
+      "lastUpdated": "Updated by {actor} on {date}",
+      "feedback": {
+        "itemSaved": "Item \"{name}\" updated (POC simulation).",
+        "rewardsSaved": "Rewards updated (POC simulation)."
+      },
+      "currencies": {
+        "soft": "Soft currency ⬣",
+        "softCaption": "Total earned by players (30d)",
+        "hard": "Hard currency ⬢",
+        "hardCaption": "Total sold (30d)",
+        "revenue": "Simulated revenue",
+        "revenueCaption": "€ equivalent (sandbox payments)",
+        "transactions": "Transactions",
+        "transactionsCaption": "On the last 7 days"
+      },
+      "rewards": {
+        "title": "Rewards",
+        "subtitle": "Configure XP and soft currency granted per action.",
+        "xpWin": "XP per win",
+        "xpWinHint": "XP awarded at the end of a winning match.",
+        "xpLoss": "XP per loss",
+        "xpLossHint": "Minimum XP granted on defeat.",
+        "softWin": "Soft per win",
+        "softWinHint": "Soft currency earned per victory.",
+        "softLoss": "Soft per loss",
+        "softLossHint": "Soft compensation on defeat.",
+        "dailyQuest": "Daily quest",
+        "dailyQuestHint": "Soft reward for the daily quest.",
+        "levelUp": "Level up",
+        "levelUpHint": "Hard currency granted every 10 levels."
+      },
+      "shop": {
+        "title": "Shop",
+        "subtitle": "Edit item prices and availability.",
+        "itemsCount": "items",
+        "itemsDirty": "{count} pending save",
+        "searchPlaceholder": "Search an item…",
+        "last7d": "over 7d",
+        "emptyTitle": "No items",
+        "emptyText": "Filters return no results.",
+        "filters": {
+          "allCategories": "All categories",
+          "allCurrencies": "All currencies"
+        },
+        "categories": {
+          "cosmetic": "Cosmetic",
+          "pack": "Pack",
+          "pass": "Season pass",
+          "boost": "Booster"
+        },
+        "statuses": {
+          "available": "Available",
+          "hidden": "Hidden"
+        },
+        "columns": {
+          "item": "Item",
+          "category": "Category",
+          "price": "Price",
+          "sales": "Sales",
+          "status": "Status",
+          "actions": "Actions"
+        }
+      },
+      "history": {
+        "title": "Economy history",
+        "subtitle": "Price, rewards and availability changes.",
+        "entries": "entries",
+        "emptyTitle": "No changes yet",
+        "emptyText": "Changes will appear here with their diff."
+      }
+    }
+  }
+}
