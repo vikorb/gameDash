@@ -27,6 +27,7 @@
               </svg>
               {{ t('maps.actions.activity') }}
             </RouterLink>
+            <ExportButton v-if="userStore.isAdmin" entity="maps" :client-rows="mapsExportRows" />
           </div>
         </div>
 
@@ -184,16 +185,21 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
+import ExportButton from '@/components/export/ExportButton.vue'
 import MapCard from '@/components/MapCard.vue'
+import { buildMapsExportRows } from '@/services/export'
 import { useMapsStore } from '@/stores/mapsStore'
+import { useUserStore } from '@/stores/userStore'
 import type { MapTag } from '@/types/maps'
 
 const store = useMapsStore()
+const userStore = useUserStore()
 const router = useRouter()
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const filtered = computed(() => store.filteredMaps)
 const featured = computed(() => store.featuredMap)
+const mapsExportRows = computed(() => buildMapsExportRows(store.filteredMaps))
 
 function tagLabel(tag: MapTag) {
   return locale.value === 'fr' ? tag.label_fr : tag.label_en

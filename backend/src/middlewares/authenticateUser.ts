@@ -106,8 +106,19 @@ export async function authenticateUser(
     };
 
     if (user) {
+      const normalizedId =
+        typeof user.id === "number"
+          ? user.id
+          : typeof user.id === "string"
+            ? Number(user.id)
+            : NaN;
+
+      if (!Number.isFinite(normalizedId)) {
+        throw unauthorized("Utilisateur authentifié invalide", "UNAUTHORIZED");
+      }
+
       requestWithUser.user = {
-        id: user.id,
+        id: normalizedId,
         role: user.role,
         pocketbase_user_id: user.pocketbase_user_id,
       };

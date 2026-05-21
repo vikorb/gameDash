@@ -72,6 +72,13 @@ export const useMatchHistoricStore = defineStore('matchHistoric', {
       await this.fetch(userId)
     },
 
+    async setLimit(userId: number, limit: number) {
+      if (!Number.isFinite(limit) || limit <= 0) return
+      this.limit = limit
+      this.offset = 0
+      await this.fetch(userId)
+    },
+
     reset() {
       this.matches = []
       this.total = 0

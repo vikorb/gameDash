@@ -11,6 +11,8 @@
         </div>
 
         <div class="page-header__actions">
+          <ExportButton entity="users" />
+
           <button
             type="button"
             class="toolbar-btn toolbar-btn--primary"
@@ -369,6 +371,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import ExportButton from '@/components/export/ExportButton.vue'
 import { useModerationUsersStore } from '@/stores/moderation'
 
 type UserRole = 'player' | 'admin' | 'moderator'
