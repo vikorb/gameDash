@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/index.ts",
-    "migrate": "knex migrate:latest --knexfile src/knexfile.ts",
+    "migrate": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
+    "seed": "knex seed:run",
     "build": "tsc && tsc-paths -p tsconfig.json -s src -o dist",
-    "seed": "knex seed:run --knexfile src/knexfile.ts",
     "type-check": "tsc --noEmit",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",

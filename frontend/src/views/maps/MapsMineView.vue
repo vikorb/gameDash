@@ -347,12 +347,12 @@ function formatRelativeDate(iso: string) {
 }
 
 /* ── Status cycling ──────────────────────────────────────────── */
-function cycleStatus(mapId: string) {
+async function cycleStatus(mapId: string | number) {
   const m = store.getMap(mapId)
   if (!m) return
   const order: MapStatus[] = ['draft', 'beta', 'stable']
   const next = order[(order.indexOf(m.status) + 1) % order.length]!
-  store.updateMap(mapId, { status: next })
+  await store.updateMap(mapId, { status: next })
   showToast(
     locale.value === 'fr'
       ? `Statut → ${t(`maps.status.${next}`)}`
@@ -361,18 +361,18 @@ function cycleStatus(mapId: string) {
 }
 
 /* ── Inline new version ──────────────────────────────────────── */
-const openVersionForms = reactive(new Set<string>())
+const openVersionForms = reactive(new Set<string | number>())
 const versionNotes = reactive<Record<string, string>>({})
 
-function closeVersionForm(mapId: string) {
+function closeVersionForm(mapId: string | number) {
   openVersionForms.delete(mapId)
-  versionNotes[mapId] = ''
+  versionNotes[String(mapId)] = ''
 }
 
-function publishVersion(mapId: string) {
-  const notes = versionNotes[mapId]?.trim()
+async function publishVersion(mapId: string | number) {
+  const notes = versionNotes[String(mapId)]?.trim()
   if (!notes) return
-  store.updateMap(mapId, { releaseNotes: notes })
+  await store.publishVersion(mapId, notes)
   closeVersionForm(mapId)
   const m = store.getMap(mapId)
   showToast(
@@ -395,8 +395,9 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
   }, 3000)
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo({ top: 0 })
+  await store.loadMaps()
 })
 </script>
 

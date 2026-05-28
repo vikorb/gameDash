@@ -89,11 +89,11 @@
           </button>
           <button
             type="button"
-            :class="['action-fav', { 'is-active': map.is_favorite }]"
+            :class="['action-fav', { 'is-active': map.user_favorite }]"
             @click="onFavorite"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path :d="map.is_favorite ? mdiHeart : mdiHeartOutline" />
+              <path :d="map.user_favorite ? mdiHeart : mdiHeartOutline" />
             </svg>
             <span>{{ formatNumber(map.stats.favorites_count) }}</span>
           </button>
@@ -471,7 +471,7 @@ import {
   mdiThumbUp,
   mdiTrophy,
 } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
@@ -505,16 +505,22 @@ const creatorMaps = computed(() => {
     .slice(0, 3)
 })
 
-function onLike() {
-  if (map.value) store.toggleVote(map.value.id, 'like')
+async function loadDetail() {
+  await store.loadMaps()
+  await store.loadMapDetail(props.id)
+  activeIndex.value = 0
 }
-function onDislike() {
-  if (map.value) store.toggleVote(map.value.id, 'dislike')
+
+async function onLike() {
+  if (map.value) await store.toggleVote(map.value.id, 'like')
 }
-function onFavorite() {
-  if (map.value) store.toggleFavorite(map.value.id)
+async function onDislike() {
+  if (map.value) await store.toggleVote(map.value.id, 'dislike')
 }
-function onViewMap(id: string) {
+async function onFavorite() {
+  if (map.value) await store.toggleFavorite(map.value.id)
+}
+function onViewMap(id: string | number) {
   router.push(`/maps/${id}`)
 }
 
@@ -537,7 +543,7 @@ async function handleTest() {
   launchStep.value = 2
   await delay(900)
   launchStep.value = 3
-  if (map.value) store.recordTest(map.value.id)
+  if (map.value) await store.recordTest(map.value.id)
   showToast(t('maps.detail.testRecorded'), 'success')
   await delay(2200)
   launchStep.value = 0
@@ -554,10 +560,15 @@ const mapComments = computed(() => (props.id ? store.getCommentsForMap(props.id)
 async function submitComment() {
   if (!newComment.value.trim() || isPosting.value || !map.value) return
   isPosting.value = true
-  await delay(280)
-  store.addComment(map.value.id, newComment.value)
-  newComment.value = ''
-  isPosting.value = false
+
+  try {
+    await store.addComment(map.value.id, newComment.value.trim())
+    newComment.value = ''
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : t('maps.detail.comments.error'), 'error')
+  } finally {
+    isPosting.value = false
+  }
 }
 
 /* ── Toast ──────────────────────────────────────────────────── */
@@ -599,6 +610,9 @@ function formatDate(iso: string) {
     year: 'numeric',
   })
 }
+
+onMounted(loadDetail)
+watch(() => props.id, loadDetail)
 </script>
 
 <style scoped>

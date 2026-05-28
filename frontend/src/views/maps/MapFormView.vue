@@ -391,7 +391,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import { useMapsStore } from '@/stores/mapsStore'
-import type { MapStatus, MapTag } from '@/types/maps'
+import type { GridData, MapItem, MapStatus, MapTag } from '@/types/maps'
 
 const props = defineProps<{ id?: string }>()
 const store = useMapsStore()
@@ -557,6 +557,17 @@ function applyTemplate(r: (() => number) | null) {
   grid[mid]![mid] = 'objective'
 }
 
+function applyGridData(data: GridData | null | undefined) {
+  applyTemplate(null)
+  if (!data?.blocks?.length) return
+
+  for (const block of data.blocks) {
+    if (grid[block.y] && block.x >= 0 && block.x < GRID_SIZE) {
+      grid[block.y]![block.x] = block.type
+    }
+  }
+}
+
 function randomize() {
   applyTemplate(makeMulberry(Math.floor(Math.random() * 999_999)))
 }
@@ -579,8 +590,8 @@ const blockCounts = computed(() => {
   return c
 })
 
-const mapJson = computed(() => {
-  const blocks: { x: number; y: number; type: BlockType; rotation: number }[] = []
+const mapJson = computed<GridData>(() => {
+  const blocks: GridData['blocks'] = []
 
   for (let y = 0; y < GRID_SIZE; y++) {
     for (let x = 0; x < GRID_SIZE; x++) {
@@ -625,50 +636,59 @@ async function handleSubmit() {
     errors.title = t('maps.form.titleRequired')
     return
   }
+
   isSaving.value = true
-  await new Promise((r) => setTimeout(r, 750))
-  const ssPayload = realScreenshots.value.map((s) => ({ url: s.url, position: s.position }))
-  if (isEditMode.value && existingMap.value) {
-    store.updateMap(existingMap.value.id, {
-      title: form.title,
-      description: form.description,
+
+  try {
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim(),
       status: form.status,
       tags: selectedTags.value,
+      screenshots: realScreenshots.value.map((s, position) => ({ url: s.url, position })),
+      gridData: mapJson.value,
       releaseNotes: form.releaseNotes.trim() || undefined,
-      screenshots: ssPayload,
-    })
+    }
+
+    if (isEditMode.value && existingMap.value) {
+      const updated = await store.updateMap(existingMap.value.id, payload)
+      showToast(t('maps.form.savedSuccess'))
+      await new Promise((r) => setTimeout(r, 650))
+      router.push(`/maps/${updated.id}`)
+    } else {
+      const created = await store.createMap(payload)
+      showToast(t('maps.form.createdSuccess'))
+      await new Promise((r) => setTimeout(r, 650))
+      router.push(`/maps/${created.id}`)
+    }
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : t('maps.form.saveError'), 'error')
+  } finally {
     isSaving.value = false
-    showToast(t('maps.form.savedSuccess'))
-    await new Promise((r) => setTimeout(r, 1100))
-    router.push(`/maps/${existingMap.value.id}`)
-  } else {
-    const newId = store.createMap({
-      title: form.title,
-      description: form.description,
-      status: form.status,
-      tags: selectedTags.value,
-      screenshots: ssPayload,
-    })
-    isSaving.value = false
-    showToast(t('maps.form.createdSuccess'))
-    await new Promise((r) => setTimeout(r, 1100))
-    router.push(`/maps/${newId}`)
   }
 }
 
+function hydrateForm(map: MapItem) {
+  form.title = map.title
+  form.description = map.description
+  form.status = map.status
+  selectedTags.value = [...map.tags]
+  screenshots.value = [...map.screenshots]
+    .sort((a, b) => a.position - b.position)
+    .map((s, position) => ({ id: String(s.id), url: s.url, position, isLoading: false }))
+  applyGridData(map.grid_data)
+}
+
 /* ── Init ─────────────────────────────────────────────────────── */
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo({ top: 0 })
-  const seed = props.id ? parseInt(props.id.replace(/\D/g, '') || '42') : 0
-  applyTemplate(seed > 0 ? makeMulberry(seed) : null)
-  if (isEditMode.value && existingMap.value) {
-    form.title = existingMap.value.title
-    form.description = existingMap.value.description
-    form.status = existingMap.value.status
-    selectedTags.value = [...existingMap.value.tags]
-    screenshots.value = [...existingMap.value.screenshots]
-      .sort((a, b) => a.position - b.position)
-      .map((s) => ({ id: s.id, url: s.url, position: s.position, isLoading: false }))
+  await store.loadMaps()
+
+  if (isEditMode.value && props.id) {
+    const map = existingMap.value ?? (await store.loadMapDetail(props.id))
+    hydrateForm(map)
+  } else {
+    applyTemplate(null)
   }
 })
 </script>

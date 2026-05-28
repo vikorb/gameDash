@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 import api from '@/api'
 import { type AsyncState,run } from '@/stores/helpers/storeAsync'
-import type { GameMap } from '@/types/map'
+import type { GameMap } from '@/types/maps'
 import { replaceAll,upsertById } from '@/utils/upsert'
 
 export const useMapStore = defineStore('mapStore', {

@@ -113,7 +113,7 @@
                   <button
                     type="button"
                     :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
-                    @click="store.toggleCommentLike(comment.id)"
+                    @click="handleCommentLike(comment.id)"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
@@ -225,8 +225,7 @@ const TABS: Tab[] = [
 ]
 
 const activeTab = ref<TabKey>('favorites')
-const currentTab = computed(() => TABS.find((t) => t.key === activeTab.value) ?? TABS[0]!)
-
+const currentTab = computed(() => TABS.find((tab) => tab.key === activeTab.value) ?? TABS[0]!)
 const displayedMaps = computed(() => {
   switch (activeTab.value) {
     case 'favorites':
@@ -237,6 +236,8 @@ const displayedMaps = computed(() => {
       return store.dislikedMaps
     case 'tested':
       return store.testedMaps
+    case 'commented':
+      return []
     default:
       return []
   }
@@ -273,16 +274,20 @@ function tabCount(key: TabKey) {
   }
 }
 
-function onView(id: string) {
+function onView(id: string | number) {
   router.push(`/maps/${id}`)
 }
 
 /* Comment history helpers */
-function getMapTitle(mapId: string) {
-  return store.getMap(mapId)?.title ?? mapId
+function getMapTitle(mapId: number) {
+  return store.getMap(mapId)?.title ?? String(mapId)
 }
-function getMapThumb(mapId: string) {
+function getMapThumb(mapId: number) {
   return store.getMap(mapId)?.screenshots[0]?.url ?? ''
+}
+
+async function handleCommentLike(commentId: number) {
+  await store.toggleCommentLike(commentId)
 }
 
 function formatRelativeDate(iso: string) {
@@ -294,12 +299,14 @@ function formatRelativeDate(iso: string) {
   if (days < 7) return isFr ? `il y a ${days} jours` : `${days} days ago`
   const w = Math.floor(days / 7)
   if (days < 30) return isFr ? `il y a ${w} sem.` : `${w}w ago`
-  const m = Math.floor(days / 30)
-  return isFr ? `il y a ${m} mois` : `${m}mo ago`
+  const mo = Math.floor(days / 30)
+  return isFr ? `il y a ${mo} mois` : `${mo}mo ago`
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo({ top: 0 })
+  await store.loadMaps()
+  await store.loadActivity(true)
 })
 </script>
 

@@ -180,7 +180,7 @@
 
 <script setup lang="ts">
 import { mdiChartTimelineVariant, mdiFilterRemove, mdiHistory, mdiMagnify, mdiPlus } from '@mdi/js'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
@@ -204,7 +204,7 @@ function formatNumber(n: number) {
   return n.toString()
 }
 
-function onView(id: string) {
+function onView(id: string | number) {
   router.push(`/maps/${id}`)
 }
 
@@ -219,6 +219,11 @@ function resetFilters() {
   store.selectedStatus = ''
   store.sortKey = 'popular'
 }
+
+onMounted(async () => {
+  window.scrollTo({ top: 0 })
+  await store.loadMaps()
+})
 </script>
 
 <style scoped>

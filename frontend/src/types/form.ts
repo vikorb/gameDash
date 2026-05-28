@@ -1,4 +1,4 @@
-import type { GameMap, MapStatus, ModerationStatus } from '@/types/map'
+import type { GameMap, MapStatus, ModerationStatus } from '@/types/maps'
 
 export type MapFormData = {
   id?: GameMap['id']
