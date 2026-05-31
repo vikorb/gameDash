@@ -1,9 +1,8 @@
-import {flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import api from '@/api'
-
-import ExportButton from './ExportButton.vue'
+import ExportButton from '@/components/export/ExportButton.vue'
 
 vi.mock('@/api', () => ({
   default: {
@@ -16,8 +15,19 @@ describe('ExportButton integration', () => {
 
   beforeEach(() => {
     apiGet.mockReset()
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-url')
-    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: vi.fn(() => 'blob:test-url'),
+      writable: true,
+      configurable: true,
+    })
+
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: vi.fn(() => undefined),
+      writable: true,
+      configurable: true,
+    })
+
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
   })
 
@@ -29,12 +39,14 @@ describe('ExportButton integration', () => {
   it('exports client rows without calling backend API', async () => {
     const capturedParts: BlobPart[][] = []
     const OriginalBlob = globalThis.Blob
+
     class MockBlob extends OriginalBlob {
       constructor(parts: BlobPart[], options?: BlobPropertyBag) {
         super(parts, options)
         capturedParts.push(parts)
       }
     }
+
     vi.stubGlobal('Blob', MockBlob)
 
     const wrapper = mount(ExportButton, {
@@ -54,12 +66,16 @@ describe('ExportButton integration', () => {
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
 
     const csvContent = capturedParts[0]?.[0] as string
+
     expect(csvContent).toContain('"id","title"')
     expect(csvContent).toContain('"m1","Map 1"')
+    expect(csvContent).toContain('"m2","Map 2"')
   })
 
   it('falls back to backend export when no client rows are provided', async () => {
-    apiGet.mockResolvedValueOnce({ data: '"id"\n"1"' })
+    apiGet.mockResolvedValueOnce({
+      data: new Blob(['"id"\n"1"'], { type: 'text/csv' }),
+    })
 
     const wrapper = mount(ExportButton, {
       props: {
@@ -70,9 +86,11 @@ describe('ExportButton integration', () => {
     await wrapper.get('button').trigger('click')
     await flushPromises()
 
+    expect(apiGet).toHaveBeenCalledTimes(1)
     expect(apiGet).toHaveBeenCalledWith('/admin/export/users', {
       responseType: 'blob',
     })
+
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
   })
 })

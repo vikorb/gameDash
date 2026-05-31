@@ -1,13 +1,11 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
 
 import { useMapsStore } from '@/stores/mapsStore'
 import { useUserStore } from '@/stores/userStore'
 import type { MapItem } from '@/types/maps'
-
-import MapsBrowseView from './MapsBrowseView.vue'
+import MapsBrowseView from '@/views/maps/MapsBrowseView.vue'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -26,6 +24,15 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: vi.fn(),
   }),
+}))
+
+vi.mock('@/services/gameMode', () => ({
+  fetchGameModes: vi.fn(() =>
+    Promise.resolve([
+      { id: 1, name: 'Classé', is_active: true, created_at: '', updated_at: '' },
+      { id: 2, name: 'Normal', is_active: true, created_at: '', updated_at: '' },
+    ]),
+  ),
 }))
 
 const sampleMap: MapItem = {
@@ -89,6 +96,7 @@ function mountView() {
         },
         MapCard: true,
         MapReportModal: true,
+        PlayerDashboardSection: true,
         Transition: false,
         ExportButton: {
           name: 'ExportButton',
@@ -103,10 +111,12 @@ function mountView() {
 describe('MapsBrowseView integration', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    vi.clearAllMocks()
 
     Object.defineProperty(window, 'scrollTo', {
       value: vi.fn(),
       writable: true,
+      configurable: true,
     })
   })
 
@@ -132,13 +142,13 @@ describe('MapsBrowseView integration', () => {
 
     mapsStore.maps = [sampleMap]
 
-    if ('loadMaps' in mapsStore) {
-      vi.spyOn(mapsStore, 'loadMaps').mockResolvedValue(undefined)
-    }
+    vi.spyOn(mapsStore, 'loadMaps').mockImplementation(async () => {
+      mapsStore.maps = [sampleMap]
+    })
 
     const wrapper = mountView()
 
-    await nextTick()
+    await flushPromises()
 
     const exportButton = wrapper.findComponent({ name: 'ExportButton' })
 
@@ -179,13 +189,13 @@ describe('MapsBrowseView integration', () => {
 
     mapsStore.maps = [sampleMap]
 
-    if ('loadMaps' in mapsStore) {
-      vi.spyOn(mapsStore, 'loadMaps').mockResolvedValue(undefined)
-    }
+    vi.spyOn(mapsStore, 'loadMaps').mockImplementation(async () => {
+      mapsStore.maps = [sampleMap]
+    })
 
     const wrapper = mountView()
 
-    await nextTick()
+    await flushPromises()
 
     expect(wrapper.findComponent({ name: 'ExportButton' }).exists()).toBe(false)
   })
