@@ -14,19 +14,9 @@ const apiMock = vi.hoisted(() => ({
   },
 }))
 
+// Un seul mock, via l'alias @/ uniquement
 vi.mock('@/api', () => ({
   default: apiMock,
-}))
-
-vi.mock('../../../src/api', () => ({
-  default: apiMock,
-}))
-
-vi.mock('axios', () => ({
-  default: {
-    create: vi.fn(() => apiMock),
-    isAxiosError: vi.fn(() => false),
-  },
 }))
 
 vi.mock('@/services/pocketbase', () => ({

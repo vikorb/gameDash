@@ -1,12 +1,14 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchMatchHistory } from '../../../src/services/matches'
-import { useRateStore } from '../../../src/stores/rateStore'
-
+// Le mock DOIT être déclaré avant l'import du module mocké
 vi.mock('@/services/matches', () => ({
   fetchMatchHistory: vi.fn(),
 }))
+
+// Import via alias @/ pour matcher le mock ci-dessus
+import { fetchMatchHistory } from '@/services/matches'
+import { useRateStore } from '@/stores/rateStore'
 
 const mockFetchMatchHistory = vi.mocked(fetchMatchHistory)
 
@@ -21,12 +23,7 @@ describe('Rate Integration', () => {
       .mockResolvedValueOnce({ matches: [], total: 4, limit: 1, offset: 0 })
       .mockResolvedValueOnce({ matches: [], total: 3, limit: 1, offset: 0 })
       .mockResolvedValueOnce({
-        matches: [
-          { nb_kills: 2 },
-          { nb_kills: 4 },
-          { nb_kills: 5 },
-          { nb_kills: 3 },
-        ] as never,
+        matches: [{ nb_kills: 2 }, { nb_kills: 4 }, { nb_kills: 5 }, { nb_kills: 3 }] as never,
         total: 4,
         limit: 100,
         offset: 0,
