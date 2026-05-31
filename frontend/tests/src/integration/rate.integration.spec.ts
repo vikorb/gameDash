@@ -1,12 +1,35 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Le mock DOIT être déclaré avant l'import du module mocké
+// Bloquer toute la chaîne d'imports qui remonte vers api.ts
+vi.mock('@/services/pocketbase', () => ({
+  pb: { authStore: { token: '' } },
+  authService: {
+    isAuthenticated: () => true,
+    getUser: () => ({ id: 'u1', username: 'alice' }),
+  },
+}))
+
+vi.mock('@/api', () => ({
+  default: {
+    get: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
+
+vi.mock('@/stores/mapsStore', () => ({
+  useMapsStore: () => ({ maps: [] }),
+}))
+
+// Mock du service matches — via @/ pour correspondre à ce que rateStore importe
 vi.mock('@/services/matches', () => ({
   fetchMatchHistory: vi.fn(),
 }))
 
-// Import via alias @/ pour matcher le mock ci-dessus
+// Imports APRÈS les mocks
 import { fetchMatchHistory } from '@/services/matches'
 import { useRateStore } from '@/stores/rateStore'
 

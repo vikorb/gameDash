@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock déclaré AVANT tout import — vi.hoisted garantit l'exécution avant les imports
 const apiMock = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
@@ -13,10 +14,16 @@ const apiMock = vi.hoisted(() => ({
   },
 }))
 
-// Un seul mock, via l'alias @/ uniquement
-vi.mock('@/api', () => ({
-  default: apiMock,
+vi.mock('@/services/pocketbase', () => ({
+  pb: { authStore: { token: '' } },
+  authService: {
+    isAuthenticated: () => true,
+    getUser: () => ({ id: 'u1', username: 'alice' }),
+  },
 }))
+
+// On mock le module entier @/api pour retourner notre instance contrôlée
+vi.mock('@/api', () => ({ default: apiMock }))
 
 const rankedData = {
   rank: 'Gold',
@@ -30,11 +37,6 @@ const rankedData = {
   divisionMaxXp: 2000,
 }
 
-async function useFreshRankStore() {
-  const { useRankStore } = await import('@/stores/rankStore')
-  return useRankStore()
-}
-
 describe('Rank Progression Integration', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -43,7 +45,8 @@ describe('Rank Progression Integration', () => {
   })
 
   it('fetches and updates rank for user and mode', async () => {
-    const rankStore = await useFreshRankStore()
+    const { useRankStore } = await import('@/stores/rankStore')
+    const rankStore = useRankStore()
 
     await rankStore.fetchRank(1, 1)
 
@@ -54,7 +57,8 @@ describe('Rank Progression Integration', () => {
   })
 
   it('fetches rank without modeId', async () => {
-    const rankStore = await useFreshRankStore()
+    const { useRankStore } = await import('@/stores/rankStore')
+    const rankStore = useRankStore()
 
     await rankStore.fetchRank(1)
 
@@ -64,7 +68,8 @@ describe('Rank Progression Integration', () => {
   })
 
   it('sets loading to false after fetch', async () => {
-    const rankStore = await useFreshRankStore()
+    const { useRankStore } = await import('@/stores/rankStore')
+    const rankStore = useRankStore()
 
     await rankStore.fetchRank(1, 1)
 
@@ -72,16 +77,15 @@ describe('Rank Progression Integration', () => {
   })
 
   it('resets rankData between store instances', async () => {
-    const store1 = await useFreshRankStore()
+    const { useRankStore } = await import('@/stores/rankStore')
+    const store1 = useRankStore()
 
     await store1.fetchRank(1, 1)
-
     expect(store1.rankData?.rank).toBe('Gold')
 
     setActivePinia(createPinia())
 
-    const store2 = await useFreshRankStore()
-
+    const store2 = useRankStore()
     expect(store2.rankData).toBeNull()
   })
 })

@@ -14,22 +14,15 @@ const apiMock = vi.hoisted(() => ({
   },
 }))
 
-// Un seul mock, via l'alias @/ uniquement
-vi.mock('@/api', () => ({
-  default: apiMock,
-}))
-
 vi.mock('@/services/pocketbase', () => ({
-  pb: {
-    authStore: {
-      token: '',
-    },
-  },
+  pb: { authStore: { token: '' } },
   authService: {
     isAuthenticated: () => true,
     getUser: () => ({ id: 'u1', username: 'alice' }),
   },
 }))
+
+vi.mock('@/api', () => ({ default: apiMock }))
 
 const modes = [
   { id: 1, name: 'Classé', is_active: true, created_at: '', updated_at: '' },
@@ -60,18 +53,6 @@ const unrankedData = {
   divisionMaxXp: null,
 }
 
-async function mountCardRank() {
-  const { default: CardRank } = await import('@/views/progress/CardRank.vue')
-
-  return mount(CardRank, {
-    props: {
-      userId: 1,
-      selectedModeId: 1,
-      modes,
-    },
-  })
-}
-
 describe('CardRank', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -81,7 +62,10 @@ describe('CardRank', () => {
   it('affiche le titre "Rang actuel"', async () => {
     apiMock.get.mockResolvedValueOnce({ data: rankedData })
 
-    const wrapper = await mountCardRank()
+    const { default: CardRank } = await import('@/views/progress/CardRank.vue')
+    const wrapper = mount(CardRank, {
+      props: { userId: 1, selectedModeId: 1, modes },
+    })
 
     await flushPromises()
 
@@ -91,7 +75,10 @@ describe('CardRank', () => {
   it('affiche le rang et la division après chargement', async () => {
     apiMock.get.mockResolvedValueOnce({ data: rankedData })
 
-    const wrapper = await mountCardRank()
+    const { default: CardRank } = await import('@/views/progress/CardRank.vue')
+    const wrapper = mount(CardRank, {
+      props: { userId: 1, selectedModeId: 1, modes },
+    })
 
     await flushPromises()
 
@@ -103,7 +90,10 @@ describe('CardRank', () => {
   it("affiche l'état Unranked si le rang est Unranked", async () => {
     apiMock.get.mockResolvedValueOnce({ data: unrankedData })
 
-    const wrapper = await mountCardRank()
+    const { default: CardRank } = await import('@/views/progress/CardRank.vue')
+    const wrapper = mount(CardRank, {
+      props: { userId: 1, selectedModeId: 1, modes },
+    })
 
     await flushPromises()
 

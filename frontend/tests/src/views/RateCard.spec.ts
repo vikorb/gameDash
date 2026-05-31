@@ -1,8 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import RateCard from '../../../src/views/progress/RateCard.vue'
-
+// Import via @/ pour matcher les mocks
 const fetchMock = vi.fn()
 
 vi.mock('@/stores/rateStore', () => ({
@@ -28,11 +27,14 @@ describe('RateCard', () => {
   })
 
   it('displays winrate and kill rate values', async () => {
+    // Import dynamique via @/ — même résolution que le mock
+    const { default: RateCard } = await import('@/views/progress/RateCard.vue')
+
     const wrapper = mount(RateCard, {
       props: { userId: 1, modeId: 2 },
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(wrapper.text()).toContain('Winrate')
     expect(wrapper.text()).toContain('75%')
@@ -41,11 +43,13 @@ describe('RateCard', () => {
   })
 
   it('fetches rates on mount with props', async () => {
+    const { default: RateCard } = await import('@/views/progress/RateCard.vue')
+
     mount(RateCard, {
       props: { userId: 1, modeId: 2, dateFrom: '2026-01-01', dateTo: '2026-12-31' },
     })
 
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(fetchMock).toHaveBeenCalledWith(1, 2, '2026-01-01', '2026-12-31')
   })
