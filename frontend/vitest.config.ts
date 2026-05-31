@@ -11,7 +11,10 @@ export default mergeConfig(
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
-      pool: 'vmThreads',
+      // 'forks' au lieu de 'vmThreads' : chaque fichier de test tourne dans
+      // un process isolé, les mocks de modules sont correctement réinitialisés
+      // entre fichiers et ne polluent pas le cache des autres workers
+      pool: 'forks',
       setupFiles: ['./tests/setup.ts'],
       clearMocks: true,
       restoreMocks: true,
