@@ -1407,29 +1407,17 @@ import {
   useShopStore,
 } from '@/stores/shopStore'
 import { useUserStore } from '@/stores/userStore'
+import type {
+  BundlePayload,
+  Currency,
+  ItemCategory,
+  ItemRarity,
+  ItemSlot,
+  RewardsConfig,
+  ShopItemPayload,
+} from '@/types/shops'
 
-type ItemCategory = 'cosmetic' | 'pack' | 'pass' | 'boost'
-type ItemCurrency = 'soft' | 'hard'
 type FeedbackType = 'success' | 'warning' | 'error'
-type ItemRarity = 'common' | 'rare' | 'epic' | 'legendary'
-type ItemSlot = 'avatar' | 'banner' | 'frame' | 'emote' | 'trail' | 'spray' | null
-
-type RewardsConfig = {
-  xpWin: number
-  xpLoss: number
-  softWin: number
-  softLoss: number
-  dailyQuestSoft: number
-  levelUpHard: number
-}
-
-type AuditEntry = {
-  id: number
-  kind: 'price' | 'rewards' | 'availability'
-  summary: string
-  actor: string
-  timestamp: string
-}
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -1437,11 +1425,15 @@ const { profile } = storeToRefs(userStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 const shopStore = useShopStore()
 
-// ─── Items bridged from shopStore ────────────────────────────────────────────
-// `items` is a computed alias so the table still works with its local refs
 const items = computed(() => shopStore.shopItems)
+const economySnapshot = computed(() => shopStore.economySnapshot)
+const auditTrail = computed(() => shopStore.auditTrail)
+const currentRewards = computed(() => shopStore.rewards)
+const rewardsLastUpdatedAt = computed(
+  () => shopStore.rewardsLastUpdatedAt ?? new Date().toISOString(),
+)
+const rewardsLastUpdatedBy = computed(() => shopStore.rewardsLastUpdatedBy ?? 'system')
 
-// ─── Item modal constants ────────────────────────────────────────────────────
 const ITEM_CATEGORIES = computed(() => [
   { value: 'cosmetic' as const, label: t('backoffice.economy.shop.categories.cosmetic') },
   { value: 'pack' as const, label: t('backoffice.economy.shop.categories.pack') },
@@ -1450,32 +1442,33 @@ const ITEM_CATEGORIES = computed(() => [
 ])
 
 const ITEM_SLOTS = computed(() => [
-  { value: null as ItemSlot, label: t('backoffice.economy.shop.modal.noSlot') },
-  { value: 'avatar' as ItemSlot, label: t('shop.slots.avatar') },
-  { value: 'banner' as ItemSlot, label: t('shop.slots.banner') },
-  { value: 'frame' as ItemSlot, label: t('shop.slots.frame') },
-  { value: 'emote' as ItemSlot, label: t('shop.slots.emote') },
-  { value: 'trail' as ItemSlot, label: t('shop.slots.trail') },
-  { value: 'spray' as ItemSlot, label: t('shop.slots.spray') },
+  { value: null, label: t('backoffice.economy.shop.modal.noSlot') },
+  { value: 'avatar' as const, label: t('shop.slots.avatar') },
+  { value: 'banner' as const, label: t('shop.slots.banner') },
+  { value: 'frame' as const, label: t('shop.slots.frame') },
+  { value: 'emote' as const, label: t('shop.slots.emote') },
+  { value: 'trail' as const, label: t('shop.slots.trail') },
+  { value: 'spray' as const, label: t('shop.slots.spray') },
 ])
 
 const ITEM_RARITIES = computed(() => [
-  { value: 'common' as ItemRarity, label: t('backoffice.economy.shop.rarities.common') },
-  { value: 'rare' as ItemRarity, label: t('backoffice.economy.shop.rarities.rare') },
-  { value: 'epic' as ItemRarity, label: t('backoffice.economy.shop.rarities.epic') },
-  { value: 'legendary' as ItemRarity, label: t('backoffice.economy.shop.rarities.legendary') },
+  { value: 'common' as const, label: t('backoffice.economy.shop.rarities.common') },
+  { value: 'rare' as const, label: t('backoffice.economy.shop.rarities.rare') },
+  { value: 'epic' as const, label: t('backoffice.economy.shop.rarities.epic') },
+  { value: 'legendary' as const, label: t('backoffice.economy.shop.rarities.legendary') },
 ])
 
-// ─── Item modal state ────────────────────────────────────────────────────────
+const BUNDLE_BADGES = ['Limité', 'Nouveau', 'Populaire', 'Exclusif'] as const
+
 const itemModal = reactive({
   open: false,
   editId: null as number | null,
   name: '',
   imageSeed: '',
   category: 'cosmetic' as ItemCategory,
-  slot: null as ItemSlot,
+  slot: null as ItemSlot | null,
   rarity: 'common' as ItemRarity,
-  currency: 'hard' as ItemCurrency,
+  currency: 'hard' as Currency,
   price: 0,
   isNew: false,
   isFeatured: false,
@@ -1515,78 +1508,67 @@ function closeItemModal() {
   itemModal.open = false
 }
 
-function saveItemModal() {
-  const data: Omit<ShopItem, 'id' | 'sales7d'> = {
-    name: itemModal.name.trim(),
-    imageSeed: itemModal.imageSeed || `item-custom-${Date.now()}`,
+async function saveItemModal() {
+  const name = itemModal.name.trim()
+  if (!name || itemModal.price < 0) {
+    showFeedback('error', t('backoffice.economy.feedback.saveError'))
+    return
+  }
+
+  const data: ShopItemPayload = {
+    name,
+    imageSeed: itemModal.imageSeed.trim() || `item-custom-${Date.now()}`,
     category: itemModal.category,
     slot: itemModal.slot,
     rarity: itemModal.rarity,
     currency: itemModal.currency,
-    price: itemModal.price,
+    price: Math.max(0, Math.round(itemModal.price)),
     isNew: itemModal.isNew,
     isFeatured: itemModal.isFeatured,
     available: itemModal.available,
   }
 
-  const actor = profile.value?.username || 'Admin'
-  const now = new Date().toISOString()
-
-  if (itemModal.editId) {
-    shopStore.updateShopItem(itemModal.editId, data)
-    auditTrail.value.unshift({
-      id: Date.now(),
-      kind: 'price',
-      summary: `Article "${data.name}" mis à jour (${data.price} ${data.currency === 'soft' ? '◇' : '◈'})`,
-      actor,
-      timestamp: now,
-    })
-    feedback.value = {
-      type: 'success',
-      message: t('backoffice.economy.shop.modal.feedback.updated', { name: data.name }),
+  try {
+    if (itemModal.editId) {
+      const saved = await shopStore.updateShopItem(itemModal.editId, data)
+      pendingPrices[saved.id] = saved.price
+      pendingAvailability[saved.id] = saved.available
+      showFeedback(
+        'success',
+        t('backoffice.economy.shop.modal.feedback.updated', { name: data.name }),
+      )
+    } else {
+      const saved = await shopStore.addShopItem(data)
+      pendingPrices[saved.id] = saved.price
+      pendingAvailability[saved.id] = saved.available
+      showFeedback(
+        'success',
+        t('backoffice.economy.shop.modal.feedback.created', { name: data.name }),
+      )
     }
-  } else {
-    shopStore.addShopItem(data)
-    auditTrail.value.unshift({
-      id: Date.now(),
-      kind: 'price',
-      summary: `Article "${data.name}" créé — ${data.rarity}, ${data.price} ${data.currency === 'soft' ? '◇' : '◈'}`,
-      actor,
-      timestamp: now,
-    })
-    feedback.value = {
-      type: 'success',
-      message: t('backoffice.economy.shop.modal.feedback.created', { name: data.name }),
-    }
+    closeItemModal()
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
   }
-
-  closeItemModal()
 }
 
-function confirmDeleteItem(id: number) {
+async function confirmDeleteItem(id: number) {
   const item = shopStore.getItemById(id)
   if (!item) return
-  shopStore.deleteShopItem(id)
-  // Remove from pending maps
-  delete pendingPrices[id]
-  delete pendingAvailability[id]
-  const actor = profile.value?.username || 'Admin'
-  auditTrail.value.unshift({
-    id: Date.now(),
-    kind: 'availability',
-    summary: `Article "${item.name}" supprimé`,
-    actor,
-    timestamp: new Date().toISOString(),
-  })
-  feedback.value = {
-    type: 'warning',
-    message: t('backoffice.economy.shop.modal.feedback.deleted', { name: item.name }),
+
+  try {
+    await shopStore.deleteShopItem(id)
+    delete pendingPrices[id]
+    delete pendingAvailability[id]
+    showFeedback(
+      'warning',
+      t('backoffice.economy.shop.modal.feedback.deleted', { name: item.name }),
+    )
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
   }
 }
 
-const BUNDLE_BADGES = ['Limité', 'Nouveau', 'Populaire', 'Exclusif'] as const
-
-// ─── Item filters helpers ────────────────────────────────────────────────────
 const hasItemFilters = computed(
   () => !!search.value || selectedCategory.value !== 'all' || selectedCurrency.value !== 'all',
 )
@@ -1597,14 +1579,13 @@ function resetItemFilters() {
   selectedCurrency.value = 'all'
 }
 
-// ─── Bundle modal state ──────────────────────────────────────────────────────
 const bundleModal = reactive({
   open: false,
   editId: null as number | null,
   name: '',
   description: '',
   badge: '' as string,
-  gradient: GRADIENT_PRESETS[0]!.value,
+  gradient: GRADIENT_PRESETS[0]?.value ?? '',
   imageSeed: '',
   bundlePrice: 0,
   expiresAt: '',
@@ -1621,18 +1602,18 @@ const filteredBundleItems = computed(() => {
 
 const bundleModalOriginalPrice = computed(() =>
   bundleModal.itemIds
-    .map((id) => items.value.find((i) => i.id === id)?.price ?? 0)
-    .reduce((s, p) => s + p, 0),
+    .map((id) => items.value.find((item) => item.id === id)?.price ?? 0)
+    .reduce((sum, price) => sum + price, 0),
 )
 
 function openBundleModal(bundle: Bundle | null) {
   if (bundle) {
     bundleModal.editId = bundle.id
     bundleModal.name = bundle.name
-    bundleModal.description = bundle.description
+    bundleModal.description = bundle.description ?? ''
     bundleModal.badge = bundle.badge ?? ''
-    bundleModal.gradient = bundle.gradient ?? GRADIENT_PRESETS[0]!.value
-    bundleModal.imageSeed = (bundle as Bundle & Record<string, unknown>).imageSeed ?? ''
+    bundleModal.gradient = bundle.gradient ?? GRADIENT_PRESETS[0]?.value ?? ''
+    bundleModal.imageSeed = bundle.imageSeed ?? ''
     bundleModal.bundlePrice = bundle.bundlePrice
     bundleModal.expiresAt = bundle.expiresAt
       ? new Date(bundle.expiresAt).toISOString().slice(0, 16)
@@ -1643,7 +1624,7 @@ function openBundleModal(bundle: Bundle | null) {
     bundleModal.name = ''
     bundleModal.description = ''
     bundleModal.badge = ''
-    bundleModal.gradient = GRADIENT_PRESETS[0]!.value
+    bundleModal.gradient = GRADIENT_PRESETS[0]?.value ?? ''
     bundleModal.imageSeed = `bundle-custom-${Date.now()}`
     bundleModal.bundlePrice = 0
     bundleModal.expiresAt = ''
@@ -1657,74 +1638,76 @@ function closeBundleModal() {
   bundleModal.open = false
 }
 
-function saveBundle() {
-  const data = {
-    name: bundleModal.name,
-    description: bundleModal.description,
+async function saveBundle() {
+  const name = bundleModal.name.trim()
+  if (!name || bundleModal.bundlePrice < 0 || bundleModal.itemIds.length === 0) {
+    showFeedback('error', t('backoffice.economy.feedback.saveError'))
+    return
+  }
+
+  const currentBundle = bundleModal.editId
+    ? shopStore.bundles.find((bundle) => bundle.id === bundleModal.editId)
+    : null
+
+  const data: BundlePayload = {
+    name,
+    description: bundleModal.description.trim() || null,
     badge: bundleModal.badge || null,
-    gradient: bundleModal.gradient,
-    imageSeed: bundleModal.imageSeed || `bundle-custom-${Date.now()}`,
-    bundlePrice: bundleModal.bundlePrice,
+    gradient: bundleModal.gradient || null,
+    imageSeed: bundleModal.imageSeed.trim() || `bundle-custom-${Date.now()}`,
+    bundlePrice: Math.max(0, Math.round(bundleModal.bundlePrice)),
+    originalPrice: bundleModalOriginalPrice.value,
     itemIds: [...bundleModal.itemIds],
-    currency: 'hard' as const,
+    currency: currentBundle?.currency ?? 'hard',
     expiresAt: bundleModal.expiresAt ? new Date(bundleModal.expiresAt).toISOString() : null,
-    available: true,
-    originalPrice: 0,
+    available: currentBundle?.available ?? true,
+    isFeatured: currentBundle?.isFeatured ?? false,
   }
-  if (bundleModal.editId) {
-    shopStore.updateBundle(bundleModal.editId, data)
-    auditTrail.value.unshift({
-      id: Date.now(),
-      kind: 'price',
-      summary: `Bundle "${data.name}" mis à jour`,
-      actor: profile.value?.username ?? 'Admin',
-      timestamp: new Date().toISOString(),
-    })
-    showFeedback('success', t('backoffice.economy.bundles.feedback.updated', { name: data.name }))
-  } else {
-    shopStore.addBundle(data)
-    auditTrail.value.unshift({
-      id: Date.now(),
-      kind: 'price',
-      summary: `Bundle "${data.name}" créé (${data.itemIds.length} items, ${data.bundlePrice} ◈)`,
-      actor: profile.value?.username ?? 'Admin',
-      timestamp: new Date().toISOString(),
-    })
-    showFeedback('success', t('backoffice.economy.bundles.feedback.created', { name: data.name }))
+
+  try {
+    if (bundleModal.editId) {
+      await shopStore.updateBundle(bundleModal.editId, data)
+      showFeedback('success', t('backoffice.economy.bundles.feedback.updated', { name: data.name }))
+    } else {
+      await shopStore.addBundle(data)
+      showFeedback('success', t('backoffice.economy.bundles.feedback.created', { name: data.name }))
+    }
+    closeBundleModal()
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
   }
-  closeBundleModal()
 }
 
-function confirmDeleteBundle(id: number) {
-  const bundle = shopStore.bundles.find((b) => b.id === id)
+async function confirmDeleteBundle(id: number) {
+  const bundle = shopStore.bundles.find((entry) => entry.id === id)
   if (!bundle) return
-  shopStore.deleteBundle(id)
-  auditTrail.value.unshift({
-    id: Date.now(),
-    kind: 'price',
-    summary: `Bundle "${bundle.name}" supprimé`,
-    actor: profile.value?.username ?? 'Admin',
-    timestamp: new Date().toISOString(),
-  })
-  showFeedback('warning', t('backoffice.economy.bundles.feedback.deleted', { name: bundle.name }))
+
+  try {
+    await shopStore.deleteBundle(id)
+    showFeedback('warning', t('backoffice.economy.bundles.feedback.deleted', { name: bundle.name }))
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
+  }
 }
+
+const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 function showFeedback(type: FeedbackType, message: string) {
   feedback.value = { type, message }
-  setTimeout(() => {
+  if (feedbackTimer) clearTimeout(feedbackTimer)
+  feedbackTimer = setTimeout(() => {
     feedback.value = null
   }, 3500)
 }
 
-const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
 const savingItemId = ref<number | null>(null)
 const rewardsSaving = ref(false)
 
 const search = ref('')
 const selectedCategory = ref<'all' | ItemCategory>('all')
-const selectedCurrency = ref<'all' | ItemCurrency>('all')
+const selectedCurrency = ref<'all' | Currency>('all')
 
-// ─── Items pagination ────────────────────────────────────────────────────────
 const itemsPage = ref(1)
 const itemsPerPage = ref(10)
 
@@ -1738,19 +1721,18 @@ const paginatedItems = computed(() =>
 const visibleItemPages = computed(() => {
   const total = itemsTotalPages.value
   const cur = itemsPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
   const pages: number[] = []
   const start = Math.max(1, cur - 2)
   const end = Math.min(total, cur + 2)
   if (start > 1) pages.push(1)
-  if (start > 2) pages.push(-1) // ellipsis sentinel
-  for (let i = start; i <= end; i++) pages.push(i)
+  if (start > 2) pages.push(-1)
+  for (let page = start; page <= end; page++) pages.push(page)
   if (end < total - 1) pages.push(-2)
   if (end < total) pages.push(total)
   return pages
 })
 
-// ─── Bundles filters ─────────────────────────────────────────────────────────
 const bundleSearch = ref('')
 const selectedBundleBadge = ref('')
 const selectedBundleStatus = ref<'all' | 'available' | 'hidden' | 'expiring'>('all')
@@ -1767,29 +1749,30 @@ function resetBundleFilters() {
 
 const filteredBundles = computed(() => {
   const q = bundleSearch.value.trim().toLowerCase()
-  return shopStore.bundles.filter((b) => {
+  return shopStore.bundles.filter((bundle) => {
     const matchQ =
-      !q || b.name.toLowerCase().includes(q) || (b.description ?? '').toLowerCase().includes(q)
+      !q ||
+      bundle.name.toLowerCase().includes(q) ||
+      (bundle.description ?? '').toLowerCase().includes(q)
     const matchBadge = !selectedBundleBadge.value
       ? true
       : selectedBundleBadge.value === '__none'
-        ? !b.badge
-        : b.badge === selectedBundleBadge.value
+        ? !bundle.badge
+        : bundle.badge === selectedBundleBadge.value
     const matchStatus =
       selectedBundleStatus.value === 'all'
         ? true
         : selectedBundleStatus.value === 'available'
-          ? b.available
+          ? bundle.available
           : selectedBundleStatus.value === 'hidden'
-            ? !b.available
-            : /* expiring */ b.available &&
-              !!b.expiresAt &&
-              new Date(b.expiresAt).getTime() - Date.now() < 3 * 86_400_000
+            ? !bundle.available
+            : bundle.available &&
+              !!bundle.expiresAt &&
+              new Date(bundle.expiresAt).getTime() - Date.now() < 3 * 86_400_000
     return matchQ && matchBadge && matchStatus
   })
 })
 
-// ─── Bundles pagination ──────────────────────────────────────────────────────
 const bundlesPage = ref(1)
 const bundlesPerPage = ref(5)
 
@@ -1806,13 +1789,13 @@ const paginatedBundles = computed(() =>
 const visibleBundlePages = computed(() => {
   const total = bundlesTotalPages.value
   const cur = bundlesPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
   const pages: number[] = []
   const start = Math.max(1, cur - 2)
   const end = Math.min(total, cur + 2)
   if (start > 1) pages.push(1)
   if (start > 2) pages.push(-1)
-  for (let i = start; i <= end; i++) pages.push(i)
+  for (let page = start; page <= end; page++) pages.push(page)
   if (end < total - 1) pages.push(-2)
   if (end < total) pages.push(total)
   return pages
@@ -1822,60 +1805,34 @@ watch([bundleSearch, selectedBundleBadge, selectedBundleStatus], () => {
   bundlesPage.value = 1
 })
 
-const economySnapshot = ref({
-  softCurrencyEarned: 1280450,
-  hardCurrencySold: 48230,
-  virtualRevenue: 18430,
-  transactionsLast7d: 2884,
-})
-
 const pendingPrices = reactive<Record<number, number>>({})
 const pendingAvailability = reactive<Record<number, boolean>>({})
 
-// Initialize pending maps from shopStore items (reactive to new items)
-shopStore.shopItems.forEach((item) => {
-  if (pendingPrices[item.id] === undefined) pendingPrices[item.id] = item.price
-  if (pendingAvailability[item.id] === undefined) pendingAvailability[item.id] = item.available
-})
+function syncPendingItems() {
+  for (const item of items.value) {
+    if (pendingPrices[item.id] === undefined) pendingPrices[item.id] = item.price
+    if (pendingAvailability[item.id] === undefined) pendingAvailability[item.id] = item.available
+  }
+}
 
-const baseRewards: RewardsConfig = {
+watch(items, syncPendingItems, { immediate: true })
+
+const pendingRewards = reactive<RewardsConfig>({
   xpWin: 150,
   xpLoss: 50,
   softWin: 100,
   softLoss: 25,
   dailyQuestSoft: 250,
   levelUpHard: 5,
-}
+})
 
-const currentRewards = ref<RewardsConfig>({ ...baseRewards })
-const pendingRewards = reactive<RewardsConfig>({ ...baseRewards })
-
-const rewardsLastUpdatedAt = ref(hoursAgo(48))
-const rewardsLastUpdatedBy = ref('enzo')
-
-const auditTrail = ref<AuditEntry[]>([
-  {
-    id: 1,
-    kind: 'price',
-    summary: 'Season 4 Pass: 100 → 120 ⬢',
-    actor: 'enzo',
-    timestamp: hoursAgo(12),
+watch(
+  currentRewards,
+  (value) => {
+    Object.assign(pendingRewards, value)
   },
-  {
-    id: 2,
-    kind: 'rewards',
-    summary: 'XP Win: 120 → 150',
-    actor: 'enzo',
-    timestamp: hoursAgo(48),
-  },
-  {
-    id: 3,
-    kind: 'availability',
-    summary: 'Legacy Frame: hidden',
-    actor: 'alice',
-    timestamp: hoursAgo(96),
-  },
-])
+  { immediate: true, deep: true },
+)
 
 const categoryOptions = computed(() => [
   { value: 'all' as const, label: t('backoffice.economy.shop.filters.allCategories') },
@@ -1897,30 +1854,25 @@ const filteredItems = computed(() => {
   return items.value.filter((item) => {
     const matchesQuery =
       query === '' || item.name.toLowerCase().includes(query) || String(item.id).includes(query)
-
     const matchesCategory =
       selectedCategory.value === 'all' || item.category === selectedCategory.value
     const matchesCurrency =
       selectedCurrency.value === 'all' || item.currency === selectedCurrency.value
-
     return matchesQuery && matchesCategory && matchesCurrency
   })
 })
 
-// Reset page when filters change
 watch([search, selectedCategory, selectedCurrency], () => {
   itemsPage.value = 1
 })
 
 const dirtyItems = computed(() => {
   const dirty = new Set<number>()
-
   items.value.forEach((item) => {
     if (pendingPrices[item.id] !== item.price || pendingAvailability[item.id] !== item.available) {
       dirty.add(item.id)
     }
   })
-
   return dirty
 })
 
@@ -1935,16 +1887,13 @@ const rewardsDirty = computed(() => {
   )
 })
 
-// --- Actions ---------------------------------------------------------------
-
 function goBackToBackoffice() {
   router.push('/backoffice')
 }
 
 function resetItem(itemId: number) {
-  const item = items.value.find((i) => i.id === itemId)
+  const item = items.value.find((entry) => entry.id === itemId)
   if (!item) return
-
   pendingPrices[itemId] = item.price
   pendingAvailability[itemId] = item.available
 }
@@ -1960,13 +1909,11 @@ function resetAll() {
 }
 
 function toggleAvailable(itemId: number) {
-  const item = items.value.find((i) => i.id === itemId)
+  const item = items.value.find((entry) => entry.id === itemId)
   if (!item) return
-
   pendingAvailability[itemId] = !getPendingAvailability(item)
 }
 
-// ─── Journal state ───────────────────────────────────────────────────────────
 const journalTab = ref<'transactions' | 'audit'>('transactions')
 const txSearch = ref('')
 const txTypeFilter = ref<'all' | 'purchase' | 'payment_sim' | 'reward'>('all')
@@ -2012,15 +1959,15 @@ const paginatedTx = computed(() =>
   filteredTx.value.slice(txPageStart.value, txPageStart.value + txPerPage.value),
 )
 const visibleTxPages = computed(() => {
-  const total = txTotalPages.value,
-    cur = txPage.value
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const total = txTotalPages.value
+  const cur = txPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)
   const pages: number[] = []
-  const start = Math.max(1, cur - 2),
-    end = Math.min(total, cur + 2)
+  const start = Math.max(1, cur - 2)
+  const end = Math.min(total, cur + 2)
   if (start > 1) pages.push(1)
   if (start > 2) pages.push(-1)
-  for (let i = start; i <= end; i++) pages.push(i)
+  for (let page = start; page <= end; page++) pages.push(page)
   if (end < total - 1) pages.push(-2)
   if (end < total) pages.push(total)
   return pages
@@ -2031,108 +1978,37 @@ watch([txSearch, txTypeFilter, txStatusFilter, txCurrencyFilter], () => {
 })
 
 async function saveItem(itemId: number) {
-  const item = items.value.find((i) => i.id === itemId)
+  const item = items.value.find((entry) => entry.id === itemId)
   if (!item) return
 
   savingItemId.value = itemId
 
-  const changes: string[] = []
-  if (pendingPrices[itemId] !== item.price) {
-    changes.push(
-      `${item.name}: ${item.price} → ${pendingPrices[itemId]} ${item.currency === 'soft' ? '◇' : '◈'}`,
-    )
-  }
-  if (pendingAvailability[itemId] !== item.available) {
-    changes.push(
-      `${item.name}: ${pendingAvailability[itemId] ? t('backoffice.economy.shop.statuses.available') : t('backoffice.economy.shop.statuses.hidden')}`,
-    )
-  }
-
-  await wait(250)
-
-  const actor = profile.value?.username || profile.value?.email || 'POC Admin'
-  const now = new Date().toISOString()
-
-  // Persist inline price/availability edits to shopStore
-  shopStore.updateShopItem(itemId, {
-    price: pendingPrices[itemId] ?? item.price,
-    available: pendingAvailability[itemId] ?? item.available,
-  })
-
-  changes.forEach((change, idx) => {
-    auditTrail.value.unshift({
-      id: Date.now() + idx,
-      kind: pendingPrices[itemId] !== item.price ? 'price' : 'availability',
-      summary: change,
-      actor,
-      timestamp: now,
+  try {
+    await shopStore.updateShopItem(itemId, {
+      price: pendingPrices[itemId] ?? item.price,
+      available: pendingAvailability[itemId] ?? item.available,
     })
-  })
-
-  feedback.value = {
-    type: 'success',
-    message: t('backoffice.economy.feedback.itemSaved', { name: item.name }),
+    showFeedback('success', t('backoffice.economy.feedback.itemSaved', { name: item.name }))
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
+    resetItem(itemId)
+  } finally {
+    savingItemId.value = null
   }
-
-  savingItemId.value = null
 }
 
 async function saveRewards() {
   rewardsSaving.value = true
-
-  const changes: string[] = []
-  const rewardKeys: Array<keyof RewardsConfig> = [
-    'xpWin',
-    'xpLoss',
-    'softWin',
-    'softLoss',
-    'dailyQuestSoft',
-    'levelUpHard',
-  ]
-
-  const rewardLabels: Record<keyof RewardsConfig, string> = {
-    xpWin: 'XP Win',
-    xpLoss: 'XP Loss',
-    softWin: 'Soft Win',
-    softLoss: 'Soft Loss',
-    dailyQuestSoft: 'Daily Quest',
-    levelUpHard: 'Level Up',
+  try {
+    await shopStore.updateRewards({ ...pendingRewards })
+    showFeedback('success', t('backoffice.economy.feedback.rewardsSaved'))
+  } catch (error) {
+    showFeedback('error', (error as Error).message || t('backoffice.economy.feedback.saveError'))
+    resetRewards()
+  } finally {
+    rewardsSaving.value = false
   }
-
-  rewardKeys.forEach((key) => {
-    if (pendingRewards[key] !== currentRewards.value[key]) {
-      changes.push(`${rewardLabels[key]}: ${currentRewards.value[key]} → ${pendingRewards[key]}`)
-    }
-  })
-
-  await wait(280)
-
-  const actor = profile.value?.username || profile.value?.email || 'POC Admin'
-  const now = new Date().toISOString()
-
-  currentRewards.value = { ...pendingRewards }
-  rewardsLastUpdatedAt.value = now
-  rewardsLastUpdatedBy.value = actor
-
-  changes.forEach((change, idx) => {
-    auditTrail.value.unshift({
-      id: Date.now() + idx,
-      kind: 'rewards',
-      summary: change,
-      actor,
-      timestamp: now,
-    })
-  })
-
-  feedback.value = {
-    type: 'success',
-    message: t('backoffice.economy.feedback.rewardsSaved'),
-  }
-
-  rewardsSaving.value = false
 }
-
-// --- Helpers ---------------------------------------------------------------
 
 function getPendingAvailability(item: ShopItem) {
   return pendingAvailability[item.id] ?? item.available
@@ -2142,27 +2018,23 @@ function getCategoryLabel(category: ItemCategory) {
   return t(`backoffice.economy.shop.categories.${category}`)
 }
 
-function hoursAgo(hours: number) {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
-}
-
-function formatDate(value: string) {
+function formatDate(value: string | null) {
+  if (!value) return '—'
   return new Intl.DateTimeFormat(locale.value.startsWith('fr') ? 'fr-FR' : 'en-US', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value))
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
-onMounted(() => {
+onMounted(async () => {
   const role = profile.value?.role ?? ''
-
-  if (!['admin', 'moderator'].includes(role)) {
+  if (role && !['admin', 'moderator', 'superadmin'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  await shopStore.fetchBackofficeState()
+  syncPendingItems()
 })
 </script>
 

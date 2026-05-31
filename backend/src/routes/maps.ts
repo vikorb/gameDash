@@ -773,7 +773,7 @@ async function createVersion(
   nextVersion: number,
   releaseNotes: string,
 ): Promise<number> {
-  const rows = (await trx("map_versions")
+  const rows = await trx("map_versions")
     .insert({
       map_id: mapId,
       version_number: nextVersion,
@@ -781,7 +781,7 @@ async function createVersion(
       created_at: new Date(),
       updated_at: new Date(),
     })
-    .returning(["id"]));
+    .returning(["id"]);
 
   const row = rows[0];
   if (!row) throw new Error("Version creation failed");
@@ -916,7 +916,7 @@ export function createMapsRouter(db: Knex): Router {
       const releaseNotes = getReleaseNotes(req.body);
 
       const mapId = await db.transaction(async (trx) => {
-        const mapRows = (await trx("maps")
+        const mapRows = await trx("maps")
           .insert({
             title,
             description,
@@ -929,7 +929,7 @@ export function createMapsRouter(db: Knex): Router {
             created_at: new Date(),
             updated_at: new Date(),
           })
-          .returning(["id"]));
+          .returning(["id"]);
 
         const mapRow = mapRows[0];
         if (!mapRow) throw new Error("Map creation failed");
@@ -1183,7 +1183,7 @@ export function createMapsRouter(db: Knex): Router {
         return;
       }
 
-      const commentRows = (await db("map_comments")
+      const commentRows = await db("map_comments")
         .insert({
           map_id: mapId,
           user_id: userId,
@@ -1191,7 +1191,7 @@ export function createMapsRouter(db: Knex): Router {
           created_at: new Date(),
           updated_at: new Date(),
         })
-        .returning(["id"]));
+        .returning(["id"]);
 
       const commentRow = commentRows[0];
       if (!commentRow) throw new Error("Comment creation failed");

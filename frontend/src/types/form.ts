@@ -1,14 +1,18 @@
-import type { GameMap, MapStatus, ModerationStatus } from '@/types/maps'
+import type { MapItem, MapStatus, ModerationStatus } from '@/types/maps'
 
 export type MapFormData = {
-  id?: GameMap['id']
-  creator_id: GameMap['creator_id']
-  title: GameMap['title']
-  description: string
+  id?: MapItem['id']
+  creator_id: MapItem['creator']['id']
+  title: MapItem['title']
+  description: MapItem['description']
   status?: MapStatus
   moderation_status?: ModerationStatus
-  original?: Pick<
-    GameMap,
-    'id' | 'creator_id' | 'title' | 'description' | 'status' | 'moderation_status'
-  > | null
+  original?: {
+    id: MapItem['id']
+    creator_id: MapItem['creator']['id']
+    title: MapItem['title']
+    description: MapItem['description']
+    status: MapItem['status']
+    moderation_status: MapItem['moderation_status']
+  } | null
 }

@@ -1,533 +1,545 @@
 <template>
   <main class="shop-page">
     <div class="page-shell">
-      <!-- ─── Hero ──────────────────────────────────────────────────────── -->
-      <header class="page-hero">
-        <div>
-          <span class="page-badge">{{ t('shop.badge') }}</span>
-          <h1 class="page-title">{{ t('shop.title') }}</h1>
-          <p class="page-subtitle">{{ t('shop.subtitle') }}</p>
+      <!-- ─── Loading ────────────────────────────────────────────────────── -->
+      <div v-if="store.loading" class="loading-state">
+        <svg viewBox="0 0 24 24" class="loading-icon spinning" aria-hidden="true">
+          <path :d="mdiLoading" />
+        </svg>
+        {{ t('shop.loading') }}
+      </div>
 
-          <div class="hero-actions">
-            <button type="button" class="btn btn--primary" @click="showTopUp = true">
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiPlusCircleOutline" />
-              </svg>
-              {{ t('shop.wallet.topup') }}
-            </button>
-            <router-link to="/inventory" class="btn btn--ghost">
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiPackageVariantClosed" />
-              </svg>
-              {{ t('shop.goToInventory') }}
-            </router-link>
-          </div>
-        </div>
-
-        <aside class="hero-side">
+      <template v-else>
+        <!-- ─── Hero ──────────────────────────────────────────────────────── -->
+        <header class="page-hero">
           <div>
-            <div class="hero-side__label">{{ t('shop.wallet.label') }}</div>
-            <div class="hero-side__title">{{ t('shop.wallet.title') }}</div>
-            <p class="hero-side__text">{{ t('shop.wallet.text') }}</p>
-          </div>
-          <div class="wallet-chips">
-            <div class="wallet-chip wallet-chip--soft">
-              <span class="wallet-chip__label">{{ t('shop.wallet.soft') }}</span>
-              <strong class="wallet-chip__val">{{
-                store.wallet.soft.toLocaleString(locale)
-              }}</strong>
-            </div>
-            <div class="wallet-chip wallet-chip--hard">
-              <span class="wallet-chip__label">{{ t('shop.wallet.hard') }}</span>
-              <strong class="wallet-chip__val">{{
-                store.wallet.hard.toLocaleString(locale)
-              }}</strong>
-            </div>
-          </div>
-        </aside>
-      </header>
+            <span class="page-badge">{{ t('shop.badge') }}</span>
+            <h1 class="page-title">{{ t('shop.title') }}</h1>
+            <p class="page-subtitle">{{ t('shop.subtitle') }}</p>
 
-      <!-- ─── KPIs ──────────────────────────────────────────────────────── -->
-      <section class="stat-grid shop-stat-grid">
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('shop.stats.items') }}</span>
-          <span class="stat-card__value">{{ store.availableItems.length }}</span>
-          <span class="stat-card__caption">{{ t('shop.stats.itemsCaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('shop.stats.bundles') }}</span>
-          <span class="stat-card__value">{{ store.availableBundles.length }}</span>
-          <span class="stat-card__caption">{{ t('shop.stats.bundlesCaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('shop.stats.soft') }}</span>
-          <span class="stat-card__value">{{ store.wallet.soft.toLocaleString(locale) }}</span>
-          <span class="stat-card__caption">{{ t('shop.stats.softCaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('shop.stats.hard') }}</span>
-          <span class="stat-card__value">{{ store.wallet.hard.toLocaleString(locale) }}</span>
-          <span class="stat-card__caption">{{ t('shop.stats.hardCaption') }}</span>
-        </article>
-      </section>
-
-      <!-- ─── Nav tabs ──────────────────────────────────────────────────── -->
-      <nav class="section-nav">
-        <button
-          v-for="tab in TABS"
-          :key="tab.id"
-          type="button"
-          :class="['section-tab', activeTab === tab.id && 'section-tab--active']"
-          @click="activeTab = tab.id"
-        >
-          {{ tab.label }}
-        </button>
-      </nav>
-
-      <!-- ══ TAB BOUTIQUE ══════════════════════════════════════════════════ -->
-      <template v-if="activeTab === 'boutique'">
-        <!-- Featured bundle -->
-        <section v-if="store.featuredBundle" class="surface featured-surface">
-          <div class="featured-img-wrap">
-            <img
-              :src="picsumUrl(store.featuredBundle.imageSeed, 640, 320)"
-              :alt="store.featuredBundle.name"
-              class="featured-img"
-            />
-            <div class="featured-img__overlay"></div>
-            <div class="featured-img__meta">
-              <span v-if="store.featuredBundle.badge" class="item-badge">
-                {{ store.featuredBundle.badge }}
-              </span>
-              <span v-if="store.featuredBundle.expiresAt" class="timer-chip">
-                <svg viewBox="0 0 24 24" class="timer-chip__icon" aria-hidden="true">
-                  <path :d="mdiTimerOutline" />
+            <div class="hero-actions">
+              <button type="button" class="btn btn--primary" @click="showTopUp = true">
+                <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                  <path :d="mdiPlusCircleOutline" />
                 </svg>
-                {{ formatTimeLeft(store.featuredBundle.expiresAt) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="featured-body">
-            <div class="featured-body__left">
-              <h2 class="surface-title">{{ store.featuredBundle.name }}</h2>
-              <p class="surface-subtitle">{{ store.featuredBundle.description }}</p>
-              <div class="bundle-items-row">
-                <div
-                  v-for="id in store.featuredBundle.itemIds"
-                  :key="id"
-                  :class="[
-                    'bundle-item-chip',
-                    `rarity--${store.getItemById(id)?.rarity}`,
-                    store.isOwned(id) && 'bundle-item-chip--owned',
-                  ]"
-                >
-                  <img
-                    :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 40, 40)"
-                    :alt="store.getItemById(id)?.name"
-                    class="bundle-item-chip__img"
-                  />
-                  <span class="bundle-item-chip__name">{{ store.getItemById(id)?.name }}</span>
-                  <svg
-                    v-if="store.isOwned(id)"
-                    viewBox="0 0 24 24"
-                    class="owned-check"
-                    aria-hidden="true"
-                  >
-                    <path :d="mdiCheck" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div class="featured-body__right">
-              <div class="pricing-block">
-                <span class="saving-badge"
-                  >-{{ savingPct(store.featuredBundle) }}% {{ t('shop.bundle.saving') }}</span
-                >
-                <div class="pricing-block__prices">
-                  <span class="price-original"
-                    >{{ store.featuredBundle.originalPrice.toLocaleString(locale) }} ◈</span
-                  >
-                  <strong class="price-final"
-                    >{{ store.featuredBundle.bundlePrice.toLocaleString(locale) }}
-                    <span class="price-cur">◈</span></strong
-                  >
-                </div>
-              </div>
-              <button
-                type="button"
-                class="btn btn--primary"
-                :disabled="!canAffordBundle(store.featuredBundle)"
-                @click="openBundlePurchase(store.featuredBundle)"
-              >
-                {{
-                  canAffordBundle(store.featuredBundle)
-                    ? t('shop.bundle.buy')
-                    : t('shop.item.insufficient')
-                }}
+                {{ t('shop.wallet.topup') }}
               </button>
+              <router-link to="/inventory" class="btn btn--ghost">
+                <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                  <path :d="mdiPackageVariantClosed" />
+                </svg>
+                {{ t('shop.goToInventory') }}
+              </router-link>
             </div>
           </div>
+
+          <aside class="hero-side">
+            <div>
+              <div class="hero-side__label">{{ t('shop.wallet.label') }}</div>
+              <div class="hero-side__title">{{ t('shop.wallet.title') }}</div>
+              <p class="hero-side__text">{{ t('shop.wallet.text') }}</p>
+            </div>
+            <div class="wallet-chips">
+              <div class="wallet-chip wallet-chip--soft">
+                <span class="wallet-chip__label">{{ t('shop.wallet.soft') }}</span>
+                <strong class="wallet-chip__val">{{
+                  store.wallet.soft.toLocaleString(locale)
+                }}</strong>
+              </div>
+              <div class="wallet-chip wallet-chip--hard">
+                <span class="wallet-chip__label">{{ t('shop.wallet.hard') }}</span>
+                <strong class="wallet-chip__val">{{
+                  store.wallet.hard.toLocaleString(locale)
+                }}</strong>
+              </div>
+            </div>
+          </aside>
+        </header>
+
+        <!-- ─── KPIs ──────────────────────────────────────────────────────── -->
+        <section class="stat-grid shop-stat-grid">
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('shop.stats.items') }}</span>
+            <span class="stat-card__value">{{ store.availableItems.length }}</span>
+            <span class="stat-card__caption">{{ t('shop.stats.itemsCaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('shop.stats.bundles') }}</span>
+            <span class="stat-card__value">{{ store.availableBundles.length }}</span>
+            <span class="stat-card__caption">{{ t('shop.stats.bundlesCaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('shop.stats.soft') }}</span>
+            <span class="stat-card__value">{{ store.wallet.soft.toLocaleString(locale) }}</span>
+            <span class="stat-card__caption">{{ t('shop.stats.softCaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('shop.stats.hard') }}</span>
+            <span class="stat-card__value">{{ store.wallet.hard.toLocaleString(locale) }}</span>
+            <span class="stat-card__caption">{{ t('shop.stats.hardCaption') }}</span>
+          </article>
         </section>
 
-        <!-- Bundles grid -->
-        <section class="surface">
-          <div class="surface-header">
-            <div>
-              <h2 class="surface-title">{{ t('shop.section.bundles') }}</h2>
-              <p class="surface-subtitle">
-                {{ t('shop.section.bundlesSubtitle', { count: store.availableBundles.length }) }}
-              </p>
-            </div>
-            <button type="button" class="btn btn--ghost" @click="activeTab = 'bundles'">
-              {{ t('shop.seeAll') }}
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiChevronRight" />
-              </svg>
-            </button>
-          </div>
+        <!-- ─── Nav tabs ──────────────────────────────────────────────────── -->
+        <nav class="section-nav">
+          <button
+            v-for="tab in TABS"
+            :key="tab.id"
+            type="button"
+            :class="['section-tab', activeTab === tab.id && 'section-tab--active']"
+            @click="activeTab = tab.id"
+          >
+            {{ tab.label }}
+          </button>
+        </nav>
 
-          <div class="bundles-grid">
-            <article
-              v-for="bundle in store.availableBundles.slice(0, 4)"
-              :key="bundle.id"
-              class="bundle-card"
-              @click="openBundlePurchase(bundle)"
-            >
-              <div class="bundle-card__img-wrap">
-                <img
-                  :src="picsumUrl(bundle.imageSeed, 400, 200)"
-                  :alt="bundle.name"
-                  class="bundle-card__img"
-                />
-                <div class="bundle-card__img-overlay"></div>
-                <span v-if="bundle.badge" class="item-badge item-badge--abs">{{
-                  bundle.badge
-                }}</span>
-                <span v-if="bundle.expiresAt" class="timer-chip timer-chip--abs">
+        <!-- ══ TAB BOUTIQUE ══════════════════════════════════════════════════ -->
+        <template v-if="activeTab === 'boutique'">
+          <!-- Featured bundle -->
+          <section v-if="store.featuredBundle" class="surface featured-surface">
+            <div class="featured-img-wrap">
+              <img
+                :src="picsumUrl(store.featuredBundle.imageSeed, 640, 320)"
+                :alt="store.featuredBundle.name"
+                class="featured-img"
+              />
+              <div class="featured-img__overlay"></div>
+              <div class="featured-img__meta">
+                <span v-if="store.featuredBundle.badge" class="item-badge">
+                  {{ store.featuredBundle.badge }}
+                </span>
+                <span v-if="store.featuredBundle.expiresAt" class="timer-chip">
                   <svg viewBox="0 0 24 24" class="timer-chip__icon" aria-hidden="true">
                     <path :d="mdiTimerOutline" />
                   </svg>
-                  {{ formatTimeLeft(bundle.expiresAt) }}
+                  {{ formatTimeLeft(store.featuredBundle.expiresAt) }}
                 </span>
               </div>
-              <div class="bundle-card__body">
-                <h3 class="bundle-card__name">{{ bundle.name }}</h3>
-                <div class="bundle-card__items-row">
-                  <img
-                    v-for="id in bundle.itemIds.slice(0, 4)"
-                    :key="id"
-                    :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 28, 28)"
-                    :alt="store.getItemById(id)?.name"
-                    class="bundle-card__item-thumb"
-                    :title="store.getItemById(id)?.name"
-                  />
-                  <span v-if="bundle.itemIds.length > 4" class="bundle-card__more">
-                    +{{ bundle.itemIds.length - 4 }}
-                  </span>
-                </div>
-                <div class="bundle-card__footer">
-                  <div>
-                    <span class="price-original price-original--sm"
-                      >{{ bundle.originalPrice.toLocaleString(locale) }} ◈</span
-                    >
-                    <strong class="bundle-card__price"
-                      >{{ bundle.bundlePrice.toLocaleString(locale) }} ◈</strong
-                    >
-                  </div>
-                  <span class="saving-badge saving-badge--sm">-{{ savingPct(bundle) }}%</span>
-                </div>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <!-- Featured items -->
-        <section class="surface">
-          <div class="surface-header">
-            <div>
-              <h2 class="surface-title">{{ t('shop.section.featured') }}</h2>
-              <p class="surface-subtitle">{{ t('shop.section.featuredSubtitle') }}</p>
             </div>
-            <button type="button" class="btn btn--ghost" @click="activeTab = 'catalogue'">
-              {{ t('shop.seeAll') }}
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiChevronRight" />
-              </svg>
-            </button>
-          </div>
-          <div class="items-grid">
-            <article
-              v-for="item in store.availableItems
-                .filter((i) => i.isFeatured || i.isNew)
-                .slice(0, 6)"
-              :key="item.id"
-              :class="[
-                'item-card',
-                `rarity--${item.rarity}`,
-                store.isOwned(item.id) && 'item-card--owned',
-              ]"
-              @click="!store.isOwned(item.id) && openItemPurchase(item)"
-            >
-              <div :class="['item-card__rarity-bar', `rarity-bar--${item.rarity}`]"></div>
-              <span v-if="item.isNew" class="new-badge">{{ t('shop.new') }}</span>
-              <div class="item-card__img-wrap">
-                <img
-                  :src="picsumUrl(item.imageSeed, 200, 200)"
-                  :alt="item.name"
-                  class="item-card__img"
-                />
-                <div v-if="store.isOwned(item.id)" class="item-owned-overlay">
-                  <svg viewBox="0 0 24 24" class="owned-check owned-check--lg" aria-hidden="true">
-                    <path :d="mdiCheck" />
-                  </svg>
-                </div>
-              </div>
-              <div class="item-card__body">
-                <div class="item-card__top">
-                  <strong class="item-card__name">{{ item.name }}</strong>
-                  <span :class="['rarity-dot', `rarity-dot--${item.rarity}`]"></span>
-                </div>
-                <div class="item-card__bottom">
-                  <span v-if="!store.isOwned(item.id)" class="item-price">
-                    {{ item.price.toLocaleString(locale) }}
-                    <span :class="['cur-sym', `cur-sym--${item.currency}`]">
-                      {{ item.currency === 'soft' ? '◇' : '◈' }}
-                    </span>
-                  </span>
-                  <span v-else class="owned-chip">
-                    <svg viewBox="0 0 24 24" class="owned-chip__icon" aria-hidden="true">
-                      <path :d="mdiCheck" />
-                    </svg>
-                    {{ t('shop.item.owned') }}
-                  </span>
-                  <button
-                    v-if="!store.isOwned(item.id)"
-                    type="button"
-                    :class="['btn-buy', canAfford(item) ? 'btn-buy--ok' : 'btn-buy--broke']"
-                  >
-                    {{ canAfford(item) ? t('shop.item.buy') : t('shop.item.insufficient') }}
-                  </button>
-                </div>
-              </div>
-            </article>
-          </div>
-        </section>
-      </template>
 
-      <!-- ══ TAB BUNDLES ═══════════════════════════════════════════════════ -->
-      <template v-if="activeTab === 'bundles'">
-        <section class="surface">
-          <div class="surface-header">
-            <div>
-              <h2 class="surface-title">{{ t('shop.tabs.bundles') }}</h2>
-              <p class="surface-subtitle">
-                {{ t('shop.section.bundlesSubtitle', { count: store.availableBundles.length }) }}
-              </p>
-            </div>
-          </div>
-          <div class="bundles-full-grid">
-            <article
-              v-for="bundle in store.availableBundles"
-              :key="bundle.id"
-              class="bundle-full-card"
-            >
-              <div class="bundle-full-card__img-wrap">
-                <img
-                  :src="picsumUrl(bundle.imageSeed, 680, 280)"
-                  :alt="bundle.name"
-                  class="bundle-full-card__img"
-                />
-                <div class="bundle-card__img-overlay"></div>
-                <span v-if="bundle.badge" class="item-badge item-badge--abs">{{
-                  bundle.badge
-                }}</span>
-                <span v-if="bundle.expiresAt" class="timer-chip timer-chip--abs">
-                  <svg viewBox="0 0 24 24" class="timer-chip__icon" aria-hidden="true">
-                    <path :d="mdiTimerOutline" />
-                  </svg>
-                  {{ formatTimeLeft(bundle.expiresAt) }}
-                </span>
-                <span class="saving-badge saving-badge--img">-{{ savingPct(bundle) }}%</span>
-              </div>
-              <div class="bundle-full-card__body">
-                <div class="bundle-full-card__head">
-                  <h3 class="surface-title" style="font-size: 1.1rem">{{ bundle.name }}</h3>
-                  <p class="surface-subtitle" style="margin-top: 0.25rem">
-                    {{ bundle.description }}
-                  </p>
-                </div>
-                <div class="bundle-full-items">
+            <div class="featured-body">
+              <div class="featured-body__left">
+                <h2 class="surface-title">{{ store.featuredBundle.name }}</h2>
+                <p class="surface-subtitle">{{ store.featuredBundle.description }}</p>
+                <div class="bundle-items-row">
                   <div
-                    v-for="id in bundle.itemIds"
+                    v-for="id in store.featuredBundle.itemIds"
                     :key="id"
                     :class="[
-                      'bundle-full-item',
+                      'bundle-item-chip',
                       `rarity--${store.getItemById(id)?.rarity}`,
-                      store.isOwned(id) && 'bundle-full-item--owned',
+                      store.isOwned(id) && 'bundle-item-chip--owned',
                     ]"
                   >
                     <img
-                      :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 48, 48)"
+                      :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 40, 40)"
                       :alt="store.getItemById(id)?.name"
-                      class="bundle-full-item__img"
+                      class="bundle-item-chip__img"
                     />
-                    <span class="bundle-full-item__name">{{ store.getItemById(id)?.name }}</span>
-                    <span
-                      :class="['rarity-dot', `rarity-dot--${store.getItemById(id)?.rarity}`]"
-                    ></span>
+                    <span class="bundle-item-chip__name">{{ store.getItemById(id)?.name }}</span>
                     <svg
                       v-if="store.isOwned(id)"
                       viewBox="0 0 24 24"
-                      class="owned-check owned-check--sm"
+                      class="owned-check"
                       aria-hidden="true"
                     >
                       <path :d="mdiCheck" />
                     </svg>
                   </div>
                 </div>
-                <div class="bundle-full-card__footer">
-                  <div class="pricing-block">
-                    <div class="pricing-block__prices">
-                      <span class="price-original"
+              </div>
+
+              <div class="featured-body__right">
+                <div class="pricing-block">
+                  <span class="saving-badge"
+                    >-{{ savingPct(store.featuredBundle) }}% {{ t('shop.bundle.saving') }}</span
+                  >
+                  <div class="pricing-block__prices">
+                    <span class="price-original"
+                      >{{ store.featuredBundle.originalPrice.toLocaleString(locale) }} ◈</span
+                    >
+                    <strong class="price-final"
+                      >{{ store.featuredBundle.bundlePrice.toLocaleString(locale) }}
+                      <span class="price-cur">◈</span></strong
+                    >
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn--primary"
+                  :disabled="!canAffordBundle(store.featuredBundle)"
+                  @click="openBundlePurchase(store.featuredBundle)"
+                >
+                  {{
+                    canAffordBundle(store.featuredBundle)
+                      ? t('shop.bundle.buy')
+                      : t('shop.item.insufficient')
+                  }}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Bundles grid -->
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">{{ t('shop.section.bundles') }}</h2>
+                <p class="surface-subtitle">
+                  {{ t('shop.section.bundlesSubtitle', { count: store.availableBundles.length }) }}
+                </p>
+              </div>
+              <button type="button" class="btn btn--ghost" @click="activeTab = 'bundles'">
+                {{ t('shop.seeAll') }}
+                <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                  <path :d="mdiChevronRight" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="bundles-grid">
+              <article
+                v-for="bundle in store.availableBundles.slice(0, 4)"
+                :key="bundle.id"
+                class="bundle-card"
+                @click="openBundlePurchase(bundle)"
+              >
+                <div class="bundle-card__img-wrap">
+                  <img
+                    :src="picsumUrl(bundle.imageSeed, 400, 200)"
+                    :alt="bundle.name"
+                    class="bundle-card__img"
+                  />
+                  <div class="bundle-card__img-overlay"></div>
+                  <span v-if="bundle.badge" class="item-badge item-badge--abs">{{
+                    bundle.badge
+                  }}</span>
+                  <span v-if="bundle.expiresAt" class="timer-chip timer-chip--abs">
+                    <svg viewBox="0 0 24 24" class="timer-chip__icon" aria-hidden="true">
+                      <path :d="mdiTimerOutline" />
+                    </svg>
+                    {{ formatTimeLeft(bundle.expiresAt) }}
+                  </span>
+                </div>
+                <div class="bundle-card__body">
+                  <h3 class="bundle-card__name">{{ bundle.name }}</h3>
+                  <div class="bundle-card__items-row">
+                    <img
+                      v-for="id in bundle.itemIds.slice(0, 4)"
+                      :key="id"
+                      :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 28, 28)"
+                      :alt="store.getItemById(id)?.name"
+                      class="bundle-card__item-thumb"
+                      :title="store.getItemById(id)?.name"
+                    />
+                    <span v-if="bundle.itemIds.length > 4" class="bundle-card__more">
+                      +{{ bundle.itemIds.length - 4 }}
+                    </span>
+                  </div>
+                  <div class="bundle-card__footer">
+                    <div>
+                      <span class="price-original price-original--sm"
                         >{{ bundle.originalPrice.toLocaleString(locale) }} ◈</span
                       >
-                      <strong class="price-final"
-                        >{{ bundle.bundlePrice.toLocaleString(locale) }}
-                        <span class="price-cur">◈</span></strong
+                      <strong class="bundle-card__price"
+                        >{{ bundle.bundlePrice.toLocaleString(locale) }} ◈</strong
                       >
                     </div>
+                    <span class="saving-badge saving-badge--sm">-{{ savingPct(bundle) }}%</span>
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn--primary"
-                    :disabled="!canAffordBundle(bundle)"
-                    @click="openBundlePurchase(bundle)"
-                  >
-                    {{
-                      canAffordBundle(bundle) ? t('shop.bundle.buy') : t('shop.item.insufficient')
-                    }}
-                  </button>
                 </div>
-              </div>
-            </article>
-          </div>
-        </section>
-      </template>
-
-      <!-- ══ TAB CATALOGUE ═════════════════════════════════════════════════ -->
-      <template v-if="activeTab === 'catalogue'">
-        <section class="surface">
-          <div class="surface-header">
-            <div>
-              <h2 class="surface-title">{{ t('shop.tabs.catalogue') }}</h2>
-              <p class="surface-subtitle">
-                {{ filteredItems.length }} {{ t('shop.stats.itemsCaption') }}
-              </p>
+              </article>
             </div>
-            <Transition name="fade-btn">
-              <button
-                v-if="hasActiveFilters"
-                type="button"
-                class="btn btn--ghost"
-                @click="resetFilters"
-              >
+          </section>
+
+          <!-- Featured items -->
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">{{ t('shop.section.featured') }}</h2>
+                <p class="surface-subtitle">{{ t('shop.section.featuredSubtitle') }}</p>
+              </div>
+              <button type="button" class="btn btn--ghost" @click="activeTab = 'catalogue'">
+                {{ t('shop.seeAll') }}
                 <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                  <path :d="mdiFilterRemove" />
+                  <path :d="mdiChevronRight" />
                 </svg>
-                {{ t('shop.filters.reset') }}
               </button>
-            </Transition>
-          </div>
-
-          <div class="toolbar shop-toolbar">
-            <div class="search-field">
-              <svg viewBox="0 0 24 24" class="search-field__icon" aria-hidden="true">
-                <path :d="mdiMagnify" />
-              </svg>
-              <input
-                v-model="search"
-                type="search"
-                class="field"
-                :placeholder="t('shop.search.placeholder')"
-              />
             </div>
-            <select v-model="selectedCategory" class="select">
-              <option v-for="c in CATEGORIES" :key="c.value" :value="c.value">{{ c.label }}</option>
-            </select>
-            <select v-model="selectedCurrency" class="select">
-              <option v-for="c in CURRENCIES" :key="c.value" :value="c.value">{{ c.label }}</option>
-            </select>
-            <select v-model="selectedRarity" class="select">
-              <option v-for="r in RARITIES" :key="r.value" :value="r.value">{{ r.label }}</option>
-            </select>
-          </div>
-
-          <div v-if="filteredItems.length" class="items-grid items-grid--catalogue">
-            <article
-              v-for="item in filteredItems"
-              :key="item.id"
-              :class="[
-                'item-card',
-                `rarity--${item.rarity}`,
-                store.isOwned(item.id) && 'item-card--owned',
-              ]"
-              @click="!store.isOwned(item.id) && openItemPurchase(item)"
-            >
-              <div :class="['item-card__rarity-bar', `rarity-bar--${item.rarity}`]"></div>
-              <span v-if="item.isNew" class="new-badge">{{ t('shop.new') }}</span>
-              <div class="item-card__img-wrap">
-                <img
-                  :src="picsumUrl(item.imageSeed, 200, 200)"
-                  :alt="item.name"
-                  class="item-card__img"
-                />
-                <div v-if="store.isOwned(item.id)" class="item-owned-overlay">
-                  <svg viewBox="0 0 24 24" class="owned-check owned-check--lg" aria-hidden="true">
-                    <path :d="mdiCheck" />
-                  </svg>
-                </div>
-              </div>
-              <div class="item-card__body">
-                <div class="item-card__top">
-                  <strong class="item-card__name">{{ item.name }}</strong>
-                  <span :class="['rarity-dot', `rarity-dot--${item.rarity}`]"></span>
-                </div>
-                <div class="item-card__bottom">
-                  <span v-if="!store.isOwned(item.id)" class="item-price">
-                    {{ item.price.toLocaleString(locale) }}
-                    <span :class="['cur-sym', `cur-sym--${item.currency}`]">{{
-                      item.currency === 'soft' ? '◇' : '◈'
-                    }}</span>
-                  </span>
-                  <span v-else class="owned-chip">
-                    <svg viewBox="0 0 24 24" class="owned-chip__icon" aria-hidden="true">
+            <div class="items-grid">
+              <article
+                v-for="item in store.items.filter((i) => i.isFeatured || i.isNew).slice(0, 6)"
+                :key="item.id"
+                :class="[
+                  'item-card',
+                  `rarity--${item.rarity}`,
+                  store.isOwned(item.id) && 'item-card--owned',
+                ]"
+                @click="!store.isOwned(item.id) && openItemPurchase(item)"
+              >
+                <div :class="['item-card__rarity-bar', `rarity-bar--${item.rarity}`]"></div>
+                <span v-if="item.isNew" class="new-badge">{{ t('shop.new') }}</span>
+                <div class="item-card__img-wrap">
+                  <img
+                    :src="picsumUrl(item.imageSeed, 200, 200)"
+                    :alt="item.name"
+                    class="item-card__img"
+                  />
+                  <div v-if="store.isOwned(item.id)" class="item-owned-overlay">
+                    <svg viewBox="0 0 24 24" class="owned-check owned-check--lg" aria-hidden="true">
                       <path :d="mdiCheck" />
                     </svg>
-                    {{ t('shop.item.owned') }}
-                  </span>
-                  <button
-                    v-if="!store.isOwned(item.id)"
-                    type="button"
-                    :class="['btn-buy', canAfford(item) ? 'btn-buy--ok' : 'btn-buy--broke']"
-                  >
-                    {{ canAfford(item) ? t('shop.item.buy') : '—' }}
-                  </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          </div>
+                <div class="item-card__body">
+                  <div class="item-card__top">
+                    <strong class="item-card__name">{{ item.name }}</strong>
+                    <span :class="['rarity-dot', `rarity-dot--${item.rarity}`]"></span>
+                  </div>
+                  <div class="item-card__bottom">
+                    <span v-if="!store.isOwned(item.id)" class="item-price">
+                      {{ item.price.toLocaleString(locale) }}
+                      <span :class="['cur-sym', `cur-sym--${item.currency}`]">
+                        {{ item.currency === 'soft' ? '◇' : '◈' }}
+                      </span>
+                    </span>
+                    <span v-else class="owned-chip">
+                      <svg viewBox="0 0 24 24" class="owned-chip__icon" aria-hidden="true">
+                        <path :d="mdiCheck" />
+                      </svg>
+                      {{ t('shop.item.owned') }}
+                    </span>
+                    <button
+                      v-if="!store.isOwned(item.id)"
+                      type="button"
+                      :class="['btn-buy', canAfford(item) ? 'btn-buy--ok' : 'btn-buy--broke']"
+                    >
+                      {{ canAfford(item) ? t('shop.item.buy') : t('shop.item.insufficient') }}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </template>
 
-          <div v-else class="empty-state">
-            <h3 class="empty-state__title">{{ t('shop.empty.title') }}</h3>
-            <p class="empty-state__text">{{ t('shop.empty.text') }}</p>
-          </div>
-        </section>
+        <!-- ══ TAB BUNDLES ═══════════════════════════════════════════════════ -->
+        <template v-if="activeTab === 'bundles'">
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">{{ t('shop.tabs.bundles') }}</h2>
+                <p class="surface-subtitle">
+                  {{ t('shop.section.bundlesSubtitle', { count: store.availableBundles.length }) }}
+                </p>
+              </div>
+            </div>
+            <div class="bundles-full-grid">
+              <article
+                v-for="bundle in store.availableBundles"
+                :key="bundle.id"
+                class="bundle-full-card"
+              >
+                <div class="bundle-full-card__img-wrap">
+                  <img
+                    :src="picsumUrl(bundle.imageSeed, 680, 280)"
+                    :alt="bundle.name"
+                    class="bundle-full-card__img"
+                  />
+                  <div class="bundle-card__img-overlay"></div>
+                  <span v-if="bundle.badge" class="item-badge item-badge--abs">{{
+                    bundle.badge
+                  }}</span>
+                  <span v-if="bundle.expiresAt" class="timer-chip timer-chip--abs">
+                    <svg viewBox="0 0 24 24" class="timer-chip__icon" aria-hidden="true">
+                      <path :d="mdiTimerOutline" />
+                    </svg>
+                    {{ formatTimeLeft(bundle.expiresAt) }}
+                  </span>
+                  <span class="saving-badge saving-badge--img">-{{ savingPct(bundle) }}%</span>
+                </div>
+                <div class="bundle-full-card__body">
+                  <div class="bundle-full-card__head">
+                    <h3 class="surface-title" style="font-size: 1.1rem">{{ bundle.name }}</h3>
+                    <p class="surface-subtitle" style="margin-top: 0.25rem">
+                      {{ bundle.description }}
+                    </p>
+                  </div>
+                  <div class="bundle-full-items">
+                    <div
+                      v-for="id in bundle.itemIds"
+                      :key="id"
+                      :class="[
+                        'bundle-full-item',
+                        `rarity--${store.getItemById(id)?.rarity}`,
+                        store.isOwned(id) && 'bundle-full-item--owned',
+                      ]"
+                    >
+                      <img
+                        :src="picsumUrl(store.getItemById(id)?.imageSeed ?? 'x', 48, 48)"
+                        :alt="store.getItemById(id)?.name"
+                        class="bundle-full-item__img"
+                      />
+                      <span class="bundle-full-item__name">{{ store.getItemById(id)?.name }}</span>
+                      <span
+                        :class="['rarity-dot', `rarity-dot--${store.getItemById(id)?.rarity}`]"
+                      ></span>
+                      <svg
+                        v-if="store.isOwned(id)"
+                        viewBox="0 0 24 24"
+                        class="owned-check owned-check--sm"
+                        aria-hidden="true"
+                      >
+                        <path :d="mdiCheck" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="bundle-full-card__footer">
+                    <div class="pricing-block">
+                      <div class="pricing-block__prices">
+                        <span class="price-original"
+                          >{{ bundle.originalPrice.toLocaleString(locale) }} ◈</span
+                        >
+                        <strong class="price-final"
+                          >{{ bundle.bundlePrice.toLocaleString(locale) }}
+                          <span class="price-cur">◈</span></strong
+                        >
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn--primary"
+                      :disabled="!canAffordBundle(bundle)"
+                      @click="openBundlePurchase(bundle)"
+                    >
+                      {{
+                        canAffordBundle(bundle) ? t('shop.bundle.buy') : t('shop.item.insufficient')
+                      }}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </template>
+
+        <!-- ══ TAB CATALOGUE ═════════════════════════════════════════════════ -->
+        <template v-if="activeTab === 'catalogue'">
+          <section class="surface">
+            <div class="surface-header">
+              <div>
+                <h2 class="surface-title">{{ t('shop.tabs.catalogue') }}</h2>
+                <p class="surface-subtitle">
+                  {{ filteredItems.length }} {{ t('shop.stats.itemsCaption') }}
+                </p>
+              </div>
+              <Transition name="fade-btn">
+                <button
+                  v-if="hasActiveFilters"
+                  type="button"
+                  class="btn btn--ghost"
+                  @click="resetFilters"
+                >
+                  <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                    <path :d="mdiFilterRemove" />
+                  </svg>
+                  {{ t('shop.filters.reset') }}
+                </button>
+              </Transition>
+            </div>
+
+            <div class="toolbar shop-toolbar">
+              <div class="search-field">
+                <svg viewBox="0 0 24 24" class="search-field__icon" aria-hidden="true">
+                  <path :d="mdiMagnify" />
+                </svg>
+                <input
+                  v-model="search"
+                  type="search"
+                  class="field"
+                  :placeholder="t('shop.search.placeholder')"
+                />
+              </div>
+              <select v-model="selectedCategory" class="select">
+                <option v-for="c in CATEGORIES" :key="c.value" :value="c.value">
+                  {{ c.label }}
+                </option>
+              </select>
+              <select v-model="selectedCurrency" class="select">
+                <option v-for="c in CURRENCIES_FILTER" :key="c.value" :value="c.value">
+                  {{ c.label }}
+                </option>
+              </select>
+              <select v-model="selectedRarity" class="select">
+                <option v-for="r in RARITIES" :key="r.value" :value="r.value">{{ r.label }}</option>
+              </select>
+            </div>
+
+            <div v-if="filteredItems.length" class="items-grid items-grid--catalogue">
+              <article
+                v-for="item in filteredItems"
+                :key="item.id"
+                :class="[
+                  'item-card',
+                  `rarity--${item.rarity}`,
+                  store.isOwned(item.id) && 'item-card--owned',
+                ]"
+                @click="!store.isOwned(item.id) && openItemPurchase(item)"
+              >
+                <div :class="['item-card__rarity-bar', `rarity-bar--${item.rarity}`]"></div>
+                <span v-if="item.isNew" class="new-badge">{{ t('shop.new') }}</span>
+                <div class="item-card__img-wrap">
+                  <img
+                    :src="picsumUrl(item.imageSeed, 200, 200)"
+                    :alt="item.name"
+                    class="item-card__img"
+                  />
+                  <div v-if="store.isOwned(item.id)" class="item-owned-overlay">
+                    <svg viewBox="0 0 24 24" class="owned-check owned-check--lg" aria-hidden="true">
+                      <path :d="mdiCheck" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="item-card__body">
+                  <div class="item-card__top">
+                    <strong class="item-card__name">{{ item.name }}</strong>
+                    <span :class="['rarity-dot', `rarity-dot--${item.rarity}`]"></span>
+                  </div>
+                  <div class="item-card__bottom">
+                    <span v-if="!store.isOwned(item.id)" class="item-price">
+                      {{ item.price.toLocaleString(locale) }}
+                      <span :class="['cur-sym', `cur-sym--${item.currency}`]">{{
+                        item.currency === 'soft' ? '◇' : '◈'
+                      }}</span>
+                    </span>
+                    <span v-else class="owned-chip">
+                      <svg viewBox="0 0 24 24" class="owned-chip__icon" aria-hidden="true">
+                        <path :d="mdiCheck" />
+                      </svg>
+                      {{ t('shop.item.owned') }}
+                    </span>
+                    <button
+                      v-if="!store.isOwned(item.id)"
+                      type="button"
+                      :class="['btn-buy', canAfford(item) ? 'btn-buy--ok' : 'btn-buy--broke']"
+                    >
+                      {{ canAfford(item) ? t('shop.item.buy') : '—' }}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div v-else class="empty-state">
+              <h3 class="empty-state__title">{{ t('shop.empty.title') }}</h3>
+              <p class="empty-state__text">{{ t('shop.empty.text') }}</p>
+            </div>
+          </section>
+        </template>
       </template>
     </div>
 
-    <!-- ─── Modal: item ───────────────────────────────────────────────── -->
+    <!-- ─── Modal: item ───────────────────────────────────────────────── -->\
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="purchaseItem" class="modal-backdrop" @click.self="purchaseItem = null">
@@ -728,21 +740,29 @@
                   type="button"
                   :class="[
                     'pack-card',
-                    pack.popular && 'pack-card--popular',
+                    pack.id === 'popular' && 'pack-card--popular',
                     selectedPack?.id === pack.id && 'pack-card--selected',
                   ]"
                   :disabled="topupProcessing"
                   @click="selectedPack = pack"
                 >
-                  <span v-if="pack.popular" class="pack-best">{{ t('shop.topup.bestValue') }}</span>
-                  <strong class="pack-hard"
-                    >{{ (pack.hard + pack.bonus).toLocaleString(locale) }} ◈</strong
-                  >
-                  <span v-if="pack.bonus > 0" class="pack-bonus"
-                    >+{{ pack.bonus }} {{ t('shop.topup.bonus') }}</span
-                  >
-                  <span class="pack-price">{{ pack.price.toFixed(2).replace('.', ',') }} €</span>
-                  <span class="pack-label">{{ pack.label }}</span>
+                  <span v-if="pack.id === 'popular'" class="pack-best">
+                    {{ t('shop.topup.bestValue') }}
+                  </span>
+
+                  <strong class="pack-hard">
+                    {{ (pack.hard + pack.bonus).toLocaleString(locale) }} ◈
+                  </strong>
+
+                  <span v-if="pack.bonus > 0" class="pack-bonus">
+                    +{{ pack.bonus }} {{ t('shop.topup.bonus') }}
+                  </span>
+
+                  <span class="pack-price"> {{ pack.price.toFixed(2).replace('.', ',') }} € </span>
+
+                  <span class="pack-label">
+                    {{ t(pack.labelKey) }}
+                  </span>
                 </button>
               </div>
 
@@ -796,18 +816,22 @@ import { useI18n } from 'vue-i18n'
 
 import {
   type Bundle,
-  picsumUrl,
   type ShopItem,
   TOPUP_PACKS,
   type TopUpPack,
   useShopStore,
-  wait,
 } from '@/stores/shopStore'
+import { picsumUrl, wait } from '@/stores/shopUtils'
 
 const store = useShopStore()
 const { t, locale } = useI18n({ useScope: 'global' })
 
-// Clock
+// ── Chargement initial ─────────────────────────────────────────────────────
+onMounted(() => {
+  if (!store.items.length) store.fetchShopState()
+})
+
+// ── Clock (timer bundles) ──────────────────────────────────────────────────
 const now = ref(Date.now())
 let clockTimer: ReturnType<typeof setInterval>
 onMounted(() => {
@@ -835,7 +859,7 @@ function savingPct(bundle: Bundle): number {
   return Math.round((1 - bundle.bundlePrice / bundle.originalPrice) * 100)
 }
 
-// Tabs
+// ── Tabs ───────────────────────────────────────────────────────────────────
 const activeTab = ref<'boutique' | 'bundles' | 'catalogue'>('boutique')
 const TABS = computed(() => [
   { id: 'boutique' as const, label: t('shop.tabs.boutique') },
@@ -843,7 +867,7 @@ const TABS = computed(() => [
   { id: 'catalogue' as const, label: t('shop.tabs.catalogue') },
 ])
 
-// Filters
+// ── Filtres catalogue ──────────────────────────────────────────────────────
 const search = ref('')
 const selectedCategory = ref('all')
 const selectedCurrency = ref('all')
@@ -856,7 +880,7 @@ const CATEGORIES = computed(() => [
   { value: 'pass', label: t('shop.categories.pass') },
   { value: 'boost', label: t('shop.categories.boost') },
 ])
-const CURRENCIES = computed(() => [
+const CURRENCIES_FILTER = computed(() => [
   { value: 'all', label: t('shop.currencies.all') },
   { value: 'soft', label: t('shop.currencies.soft') },
   { value: 'hard', label: t('shop.currencies.hard') },
@@ -885,7 +909,7 @@ function resetFilters() {
 
 const filteredItems = computed(() => {
   const q = search.value.trim().toLowerCase()
-  return store.availableItems.filter((item) => {
+  return store.items.filter((item) => {
     const matchQ = !q || item.name.toLowerCase().includes(q)
     const matchCat = selectedCategory.value === 'all' || item.category === selectedCategory.value
     const matchCur = selectedCurrency.value === 'all' || item.currency === selectedCurrency.value
@@ -894,7 +918,7 @@ const filteredItems = computed(() => {
   })
 })
 
-// Afford
+// ── Afford helpers ─────────────────────────────────────────────────────────
 function canAfford(item: ShopItem): boolean {
   return (item.currency === 'soft' ? store.wallet.soft : store.wallet.hard) >= item.price
 }
@@ -902,7 +926,7 @@ function canAffordBundle(bundle: Bundle): boolean {
   return (bundle.currency === 'soft' ? store.wallet.soft : store.wallet.hard) >= bundle.bundlePrice
 }
 
-// Item purchase modal
+// ── Modal: item purchase ───────────────────────────────────────────────────
 const purchaseItem = ref<ShopItem | null>(null)
 const purchasing = ref(false)
 const purchaseFeedback = ref<{ type: 'success' | 'error'; message: string } | null>(null)
@@ -912,11 +936,12 @@ function openItemPurchase(item: ShopItem) {
   purchaseItem.value = item
   purchaseFeedback.value = null
 }
+
 async function confirmPurchase() {
   if (!purchaseItem.value) return
   purchasing.value = true
   await wait(280)
-  const res = store.purchase(purchaseItem.value.id)
+  const res = await store.purchase(purchaseItem.value.id)
   purchaseFeedback.value = res.success
     ? { type: 'success', message: t('shop.purchase.success') }
     : {
@@ -929,7 +954,7 @@ async function confirmPurchase() {
   purchasing.value = false
 }
 
-// Bundle purchase modal
+// ── Modal: bundle purchase ─────────────────────────────────────────────────
 const purchaseBundleRef = ref<Bundle | null>(null)
 const bundleFeedback = ref<{ type: 'success' | 'error'; message: string } | null>(null)
 
@@ -937,11 +962,12 @@ function openBundlePurchase(bundle: Bundle) {
   purchaseBundleRef.value = bundle
   bundleFeedback.value = null
 }
+
 async function confirmBundlePurchase() {
   if (!purchaseBundleRef.value) return
   purchasing.value = true
   await wait(350)
-  const res = store.purchaseBundle(purchaseBundleRef.value.id)
+  const res = await store.purchaseBundle(purchaseBundleRef.value.id)
   bundleFeedback.value = res.success
     ? { type: 'success', message: t('shop.bundle.purchaseSuccess') }
     : {
@@ -954,7 +980,7 @@ async function confirmBundlePurchase() {
   purchasing.value = false
 }
 
-// Top-up
+// ── Modal: top-up ──────────────────────────────────────────────────────────
 const showTopUp = ref(false)
 const selectedPack = ref<TopUpPack | null>(null)
 const topupProcessing = ref(false)
@@ -965,6 +991,7 @@ function closeTopUp() {
   selectedPack.value = null
   topupFeedback.value = null
 }
+
 async function doTopUp() {
   if (!selectedPack.value) return
   topupProcessing.value = true
@@ -984,6 +1011,23 @@ async function doTopUp() {
 </script>
 
 <style scoped>
+/* ─── Loading ────────────────────────────────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 1rem;
+  color: rgba(252, 239, 225, 0.55);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.loading-icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
 /* ─── Layout ─────────────────────────────────────────────────────────────── */
 .shop-page {
   min-height: 100vh;
@@ -1230,7 +1274,6 @@ async function doTopUp() {
   transform: translateY(-2px);
   border-color: rgba(242, 139, 91, 0.34);
 }
-
 .stat-card__label {
   display: block;
   color: rgba(252, 239, 225, 0.62);
@@ -1261,7 +1304,6 @@ async function doTopUp() {
   gap: 0;
   border-bottom: 1px solid rgba(252, 239, 225, 0.1);
 }
-
 .section-tab {
   padding: 0.85rem 1.35rem;
   border: none;
@@ -1293,7 +1335,6 @@ async function doTopUp() {
     linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.94)), var(--color-navy);
   box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
 }
-
 .surface-header {
   display: flex;
   align-items: flex-start;
@@ -1301,7 +1342,6 @@ async function doTopUp() {
   gap: 1rem;
   margin-bottom: 1.1rem;
 }
-
 .surface-title {
   margin: 0;
   color: var(--color-cream);
@@ -1310,7 +1350,6 @@ async function doTopUp() {
   font-weight: 900;
   letter-spacing: -0.03em;
 }
-
 .surface-subtitle {
   margin: 0.35rem 0 0;
   color: rgba(252, 239, 225, 0.62);
@@ -1323,7 +1362,6 @@ async function doTopUp() {
   padding: 0;
   overflow: hidden;
 }
-
 .featured-img-wrap {
   position: relative;
   height: 260px;
@@ -1348,16 +1386,14 @@ async function doTopUp() {
   align-items: center;
   gap: 0.5rem;
 }
-
 .featured-body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1.35rem 1.35rem 1.35rem;
+  padding: 1.35rem;
   flex-wrap: wrap;
 }
-
 .featured-body__left {
   flex: 1;
   min-width: 0;
@@ -1369,14 +1405,12 @@ async function doTopUp() {
   gap: 1rem;
   flex-shrink: 0;
 }
-
 .bundle-items-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.85rem;
 }
-
 .bundle-item-chip {
   display: flex;
   align-items: center;
@@ -1385,12 +1419,10 @@ async function doTopUp() {
   border-radius: 10px;
   border: 1px solid rgba(252, 239, 225, 0.1);
   background: rgba(18, 24, 38, 0.4);
-  position: relative;
 }
 .bundle-item-chip--owned {
   opacity: 0.45;
 }
-
 .bundle-item-chip__img {
   width: 28px;
   height: 28px;
@@ -1416,7 +1448,6 @@ async function doTopUp() {
   align-items: baseline;
   gap: 0.65rem;
 }
-
 .price-original {
   color: rgba(252, 239, 225, 0.38);
   text-decoration: line-through;
@@ -1426,7 +1457,6 @@ async function doTopUp() {
 .price-original--sm {
   font-size: 0.8rem;
 }
-
 .price-final {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 2rem;
@@ -1438,7 +1468,6 @@ async function doTopUp() {
   font-size: 1.3rem;
   color: var(--color-primary-strong);
 }
-
 .saving-badge {
   display: inline-flex;
   padding: 0.32rem 0.65rem;
@@ -1478,7 +1507,6 @@ async function doTopUp() {
   top: 1rem;
   left: 1.25rem;
 }
-
 .timer-chip {
   display: inline-flex;
   align-items: center;
@@ -1504,13 +1532,12 @@ async function doTopUp() {
   right: 1.25rem;
 }
 
-/* ─── Bundles grid ───────────────────────────────────────────────────────── */
+/* ─── Bundles ────────────────────────────────────────────────────────────── */
 .bundles-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
 }
-
 .bundle-card {
   border-radius: 20px;
   border: 1px solid rgba(252, 239, 225, 0.1);
@@ -1527,7 +1554,6 @@ async function doTopUp() {
   border-color: rgba(242, 139, 91, 0.34);
   box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.6);
 }
-
 .bundle-card__img-wrap {
   position: relative;
   height: 140px;
@@ -1543,20 +1569,17 @@ async function doTopUp() {
 .bundle-card:hover .bundle-card__img {
   transform: scale(1.04);
 }
-
 .bundle-card__img-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, rgba(14, 17, 28, 0.05) 0%, rgba(14, 17, 28, 0.65) 100%);
 }
-
 .bundle-card__body {
   padding: 0.9rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
 }
-
 .bundle-card__name {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.98rem;
@@ -1565,7 +1588,6 @@ async function doTopUp() {
   margin: 0;
   letter-spacing: -0.02em;
 }
-
 .bundle-card__items-row {
   display: flex;
   align-items: center;
@@ -1583,7 +1605,6 @@ async function doTopUp() {
   font-weight: 900;
   color: rgba(252, 239, 225, 0.5);
 }
-
 .bundle-card__footer {
   display: flex;
   align-items: center;
@@ -1598,14 +1619,11 @@ async function doTopUp() {
   font-weight: 900;
   color: var(--color-cream);
 }
-
-/* ─── Full bundles grid ──────────────────────────────────────────────────── */
 .bundles-full-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.1rem;
 }
-
 .bundle-full-card {
   border-radius: 20px;
   border: 1px solid rgba(252, 239, 225, 0.1);
@@ -1619,7 +1637,6 @@ async function doTopUp() {
   transform: translateY(-2px);
   border-color: rgba(242, 139, 91, 0.3);
 }
-
 .bundle-full-card__img-wrap {
   position: relative;
   height: 200px;
@@ -1631,7 +1648,6 @@ async function doTopUp() {
   object-fit: cover;
   display: block;
 }
-
 .bundle-full-card__body {
   padding: 1.1rem;
   display: flex;
@@ -1643,13 +1659,11 @@ async function doTopUp() {
   flex-direction: column;
   gap: 0.2rem;
 }
-
 .bundle-full-items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 0.5rem;
 }
-
 .bundle-full-item {
   display: flex;
   flex-direction: column;
@@ -1659,7 +1673,6 @@ async function doTopUp() {
   border-radius: 12px;
   border: 1px solid rgba(252, 239, 225, 0.09);
   background: rgba(18, 24, 38, 0.3);
-  position: relative;
   transition: border-color 0.14s;
 }
 .bundle-full-item:hover {
@@ -1668,7 +1681,6 @@ async function doTopUp() {
 .bundle-full-item--owned {
   opacity: 0.4;
 }
-
 .bundle-full-item__img {
   width: 44px;
   height: 44px;
@@ -1686,7 +1698,6 @@ async function doTopUp() {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .bundle-full-card__footer {
   display: flex;
   align-items: center;
@@ -1706,7 +1717,6 @@ async function doTopUp() {
 .items-grid--catalogue {
   grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
 }
-
 .item-card {
   border-radius: 18px;
   border: 1px solid rgba(252, 239, 225, 0.09);
@@ -1739,7 +1749,6 @@ async function doTopUp() {
 .item-card--owned {
   cursor: default;
 }
-
 .item-card__rarity-bar {
   height: 2px;
   flex-shrink: 0;
@@ -1756,7 +1765,6 @@ async function doTopUp() {
 .rarity-bar--legendary {
   background: linear-gradient(90deg, var(--color-primary), var(--color-primary-strong));
 }
-
 .new-badge {
   position: absolute;
   top: 6px;
@@ -1771,7 +1779,6 @@ async function doTopUp() {
   color: var(--color-navy);
   text-transform: uppercase;
 }
-
 .item-card__img-wrap {
   position: relative;
   aspect-ratio: 1;
@@ -1787,7 +1794,6 @@ async function doTopUp() {
 .item-card:hover .item-card__img {
   transform: scale(1.06);
 }
-
 .item-owned-overlay {
   position: absolute;
   inset: 0;
@@ -1801,7 +1807,6 @@ async function doTopUp() {
 .item-card--owned:hover .item-owned-overlay {
   opacity: 1;
 }
-
 .item-card__body {
   padding: 0.65rem 0.75rem;
   border-top: 1px solid rgba(252, 239, 225, 0.06);
@@ -1810,7 +1815,6 @@ async function doTopUp() {
   flex-direction: column;
   gap: 0.4rem;
 }
-
 .item-card__top {
   display: flex;
   align-items: center;
@@ -1826,14 +1830,12 @@ async function doTopUp() {
   text-overflow: ellipsis;
   flex: 1;
 }
-
 .item-card__bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.35rem;
 }
-
 .item-price {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.88rem;
@@ -1843,7 +1845,6 @@ async function doTopUp() {
   align-items: center;
   gap: 0.2rem;
 }
-
 .cur-sym {
   font-size: 0.8rem;
   font-weight: 900;
@@ -1854,7 +1855,6 @@ async function doTopUp() {
 .cur-sym--hard {
   color: #9ab8ff;
 }
-
 .btn-buy {
   padding: 0.28rem 0.6rem;
   border: none;
@@ -1879,7 +1879,6 @@ async function doTopUp() {
   border: 1px solid rgba(200, 80, 80, 0.22);
   cursor: not-allowed;
 }
-
 .owned-chip {
   display: inline-flex;
   align-items: center;
@@ -1897,7 +1896,6 @@ async function doTopUp() {
   height: 11px;
   fill: currentColor;
 }
-
 .owned-check {
   fill: #7ee0ad;
 }
@@ -1933,7 +1931,6 @@ async function doTopUp() {
   background: var(--color-primary);
   box-shadow: 0 0 5px rgba(242, 139, 91, 0.65);
 }
-
 .rarity-pill {
   display: inline-flex;
   padding: 0.2rem 0.5rem;
@@ -1973,7 +1970,6 @@ async function doTopUp() {
 .shop-toolbar {
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(120px, 0.65fr));
 }
-
 .search-field {
   position: relative;
   display: flex;
@@ -1990,7 +1986,6 @@ async function doTopUp() {
 .search-field .field {
   padding-left: 2.6rem;
 }
-
 .field,
 .select {
   width: 100%;
@@ -2063,7 +2058,6 @@ async function doTopUp() {
   justify-content: center;
   padding: 1.5rem;
 }
-
 .modal-box {
   width: 100%;
   max-width: 420px;
@@ -2080,7 +2074,6 @@ async function doTopUp() {
 .modal-box--topup {
   max-width: 620px;
 }
-
 .modal-close {
   position: absolute;
   top: 0.85rem;
@@ -2108,11 +2101,9 @@ async function doTopUp() {
   height: 16px;
   fill: currentColor;
 }
-
 .modal-rarity-bar {
   height: 3px;
 }
-
 .modal-img-wrap {
   position: relative;
   height: 200px;
@@ -2124,7 +2115,6 @@ async function doTopUp() {
   object-fit: cover;
   display: block;
 }
-
 .modal-body {
   padding: 1.25rem 1.5rem 1.5rem;
   display: flex;
@@ -2133,7 +2123,6 @@ async function doTopUp() {
   max-height: 60vh;
   overflow-y: auto;
 }
-
 .modal-title {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.3rem;
@@ -2142,13 +2131,11 @@ async function doTopUp() {
   color: var(--color-cream);
   margin: 0;
 }
-
 .modal-meta {
   margin: 0;
   color: rgba(252, 239, 225, 0.55);
   font-size: 0.88rem;
 }
-
 .modal-price-row {
   display: flex;
   align-items: baseline;
@@ -2163,7 +2150,6 @@ async function doTopUp() {
   font-size: 0.78rem;
   color: rgba(252, 239, 225, 0.4);
 }
-
 .modal-actions {
   display: flex;
   gap: 0.7rem;
@@ -2173,15 +2159,12 @@ async function doTopUp() {
   flex: 1;
   justify-content: center;
 }
-
-/* ─── Bundle modal items ─────────────────────────────────────────────────── */
 .bundle-modal-items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 0.5rem;
   margin: 0.35rem 0;
 }
-
 .bmi {
   display: flex;
   flex-direction: column;
@@ -2191,7 +2174,6 @@ async function doTopUp() {
   border-radius: 10px;
   border: 1px solid rgba(252, 239, 225, 0.09);
   background: rgba(18, 24, 38, 0.3);
-  position: relative;
 }
 .bmi--owned {
   opacity: 0.38;
@@ -2212,7 +2194,6 @@ async function doTopUp() {
   white-space: nowrap;
   max-width: 80px;
 }
-
 .bundle-modal-pricing {
   display: flex;
   align-items: center;
@@ -2223,8 +2204,6 @@ async function doTopUp() {
   border: 1px solid rgba(252, 239, 225, 0.09);
   margin: 0.35rem 0;
 }
-
-/* ─── Feedback ───────────────────────────────────────────────────────────── */
 .feedback-banner {
   padding: 0.8rem 1rem;
   border-radius: 14px;
@@ -2250,7 +2229,6 @@ async function doTopUp() {
   gap: 0.65rem;
   margin: 0.75rem 0;
 }
-
 .pack-card {
   position: relative;
   padding: 0.9rem 0.4rem;
@@ -2279,7 +2257,6 @@ async function doTopUp() {
   background: rgba(242, 139, 91, 0.14);
   box-shadow: 0 0 0 3px rgba(242, 139, 91, 0.18);
 }
-
 .pack-best {
   position: absolute;
   top: -9px;
@@ -2314,7 +2291,6 @@ async function doTopUp() {
   color: rgba(252, 239, 225, 0.42);
   font-weight: 700;
 }
-
 .topup-disclaimer {
   font-size: 0.72rem;
   color: rgba(252, 239, 225, 0.3);
@@ -2331,7 +2307,6 @@ async function doTopUp() {
     transform: rotate(360deg);
   }
 }
-
 .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.2s ease;
@@ -2351,7 +2326,6 @@ async function doTopUp() {
   transform: scale(0.94) translateY(16px);
   opacity: 0;
 }
-
 .fade-btn-enter-active,
 .fade-btn-leave-active {
   transition:

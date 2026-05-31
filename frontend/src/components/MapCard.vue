@@ -100,12 +100,16 @@
       </button>
       <button
         type="button"
-        :class="['map-card__icon-btn', 'map-card__icon-btn--fav', { 'is-active': map.is_favorite }]"
+        :class="[
+          'map-card__icon-btn',
+          'map-card__icon-btn--fav',
+          { 'is-active': map.user_favorite },
+        ]"
         :aria-label="t('maps.card.favorite')"
         @click="onFavorite"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path :d="map.is_favorite ? mdiHeart : mdiHeartOutline" />
+          <path :d="map.user_favorite ? mdiHeart : mdiHeartOutline" />
         </svg>
       </button>
       <button type="button" class="map-card__cta" @click="onView">
@@ -165,7 +169,7 @@ function formatNumber(n: number) {
 }
 
 function onView() {
-  emit('view', props.map.id)
+  emit('view', props.map.id.toString())
 }
 
 function onLike() {

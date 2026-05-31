@@ -1,5 +1,5 @@
 import type { MapFormData } from '@/types/form'
-import type { MapListDTO, MapStatus, ModerationStatus } from '@/types/maps'
+import type { MapItem, MapStatus, ModerationStatus } from '@/types/maps'
 
 export type MapFormErrors = {
   title?: string
@@ -22,7 +22,7 @@ export function initMapFormData(): MapFormData {
 
 export function mapToFormData(
   form: MapFormData,
-  map: Pick<MapListDTO, 'id' | 'creator' | 'title' | 'description' | 'status' | 'moderation_status'>,
+  map: Pick<MapItem, 'id' | 'creator' | 'title' | 'description' | 'status' | 'moderation_status'>,
 ): void {
   form.id = map.id
   form.creator_id = map.creator.id ?? 66
@@ -79,7 +79,14 @@ export function toSavePayload(
   form: MapFormData,
   isEditMode: boolean,
   mapId: number | null,
-): { title: string; description: string | null; creator_id?: number; id?: number; status?: MapStatus; moderation_status?: ModerationStatus } {
+): {
+  title: string
+  description: string | null
+  creator_id?: number
+  id?: number
+  status?: MapStatus
+  moderation_status?: ModerationStatus
+} {
   const payload: ReturnType<typeof toSavePayload> = {
     title: form.title.trim(),
     description: form.description.trim() === '' ? null : form.description.trim(),

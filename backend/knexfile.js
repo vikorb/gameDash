@@ -1,10 +1,12 @@
-require('ts-node/register')
-require('tsconfig-paths/register')
+/* eslint-disable @typescript-eslint/no-require-imports */
 
-const path = require('path')
+require("ts-node/register");
+require("tsconfig-paths/register");
 
-process.chdir(path.join(__dirname, 'src'))
+const path = require("path");
 
-const config = require('./src/knexfile.ts')
+process.chdir(path.join(__dirname, "src"));
 
-module.exports = config.default || config
+const config = require("./src/knexfile.ts");
+
+module.exports = config.default || config;

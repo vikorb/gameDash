@@ -1,253 +1,265 @@
 <template>
   <main class="inv-page">
     <div class="page-shell">
-      <!-- ─── Hero ──────────────────────────────────────────────────────── -->
-      <header class="page-hero">
-        <div>
-          <span class="page-badge">{{ t('inventory.badge') }}</span>
-          <h1 class="page-title">{{ t('inventory.title') }}</h1>
-          <p class="page-subtitle">{{ t('inventory.subtitle') }}</p>
+      <!-- ─── Loading ────────────────────────────────────────────────────── -->
+      <div v-if="store.loading" class="loading-state">
+        <svg viewBox="0 0 24 24" class="loading-icon spinning" aria-hidden="true">
+          <path :d="mdiLoading" />
+        </svg>
+        {{ t('inventory.loading') }}
+      </div>
 
-          <div class="hero-actions">
-            <router-link to="/shop" class="btn btn--primary">
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiStorefrontOutline" />
-              </svg>
-              {{ t('inventory.goToShop') }}
-            </router-link>
-          </div>
-        </div>
-
-        <aside class="hero-side">
+      <template v-else>
+        <!-- ─── Hero ──────────────────────────────────────────────────────── -->
+        <header class="page-hero">
           <div>
-            <div class="hero-side__label">{{ t('inventory.hero.label') }}</div>
-            <div class="hero-side__title">{{ t('inventory.hero.title') }}</div>
-            <p class="hero-side__text">{{ t('inventory.hero.text') }}</p>
-          </div>
-          <div class="hero-side__chips">
-            <span>{{ store.inventory.length }} {{ t('inventory.itemsCount') }}</span>
-            <span>{{ equippedCount }} / {{ SLOTS.length }} {{ t('inventory.equippedCount') }}</span>
-          </div>
-        </aside>
-      </header>
+            <span class="page-badge">{{ t('inventory.badge') }}</span>
+            <h1 class="page-title">{{ t('inventory.title') }}</h1>
+            <p class="page-subtitle">{{ t('inventory.subtitle') }}</p>
 
-      <!-- ─── KPIs ──────────────────────────────────────────────────────── -->
-      <section class="stat-grid inv-stat-grid">
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('inventory.stats.total') }}</span>
-          <span class="stat-card__value">{{ store.inventory.length }}</span>
-          <span class="stat-card__caption">{{ t('inventory.stats.totalCaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('inventory.stats.equipped') }}</span>
-          <span class="stat-card__value">{{ equippedCount }}</span>
-          <span class="stat-card__caption">{{ t('inventory.stats.equippedCaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('inventory.stats.legendaries') }}</span>
-          <span class="stat-card__value">{{ legendaryCount }}</span>
-          <span class="stat-card__caption">{{ t('inventory.stats.legendarycaption') }}</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-card__label">{{ t('inventory.stats.slots') }}</span>
-          <span class="stat-card__value">{{ SLOTS.length - equippedCount }}</span>
-          <span class="stat-card__caption">{{ t('inventory.stats.slotsCaption') }}</span>
-        </article>
-      </section>
-
-      <!-- ─── Equipment slots ───────────────────────────────────────────── -->
-      <section class="surface">
-        <div class="surface-header">
-          <div>
-            <h2 class="surface-title">{{ t('inventory.slots.title') }}</h2>
-            <p class="surface-subtitle">
-              {{ t('inventory.slots.subtitle', { filled: equippedCount, total: SLOTS.length }) }}
-            </p>
-          </div>
-        </div>
-
-        <div class="equip-grid">
-          <div
-            v-for="slot in SLOTS"
-            :key="slot.key"
-            :class="[
-              'equip-slot',
-              equippedItem(slot.key)
-                ? `equip-slot--${equippedItem(slot.key)?.rarity}`
-                : 'equip-slot--empty',
-            ]"
-          >
-            <div
-              v-if="equippedItem(slot.key)"
-              :class="['equip-slot__rarity-bar', `rarity-bar--${equippedItem(slot.key)?.rarity}`]"
-            ></div>
-
-            <div class="equip-slot__label">
-              <svg viewBox="0 0 24 24" class="equip-slot__label-icon" aria-hidden="true">
-                <path :d="slot.icon" />
-              </svg>
-              {{ t(`inventory.slots.${slot.key}`) }}
+            <div class="hero-actions">
+              <router-link to="/shop" class="btn btn--primary">
+                <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                  <path :d="mdiStorefrontOutline" />
+                </svg>
+                {{ t('inventory.goToShop') }}
+              </router-link>
             </div>
+          </div>
 
-            <div class="equip-slot__visual">
-              <template v-if="equippedItem(slot.key)">
-                <img
-                  :src="picsumUrl(equippedItem(slot.key)!.imageSeed, 120, 120)"
-                  :alt="equippedItem(slot.key)!.name"
-                  class="equip-slot__img"
-                />
-              </template>
-              <div v-else class="equip-slot__placeholder">
-                <svg viewBox="0 0 24 24" class="equip-slot__placeholder-icon" aria-hidden="true">
+          <aside class="hero-side">
+            <div>
+              <div class="hero-side__label">{{ t('inventory.hero.label') }}</div>
+              <div class="hero-side__title">{{ t('inventory.hero.title') }}</div>
+              <p class="hero-side__text">{{ t('inventory.hero.text') }}</p>
+            </div>
+            <div class="hero-side__chips">
+              <span>{{ store.inventory.length }} {{ t('inventory.itemsCount') }}</span>
+              <span
+                >{{ equippedCount }} / {{ SLOTS.length }} {{ t('inventory.equippedCount') }}</span
+              >
+            </div>
+          </aside>
+        </header>
+
+        <!-- ─── KPIs ──────────────────────────────────────────────────────── -->
+        <section class="stat-grid inv-stat-grid">
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('inventory.stats.total') }}</span>
+            <span class="stat-card__value">{{ store.inventory.length }}</span>
+            <span class="stat-card__caption">{{ t('inventory.stats.totalCaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('inventory.stats.equipped') }}</span>
+            <span class="stat-card__value">{{ equippedCount }}</span>
+            <span class="stat-card__caption">{{ t('inventory.stats.equippedCaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('inventory.stats.legendaries') }}</span>
+            <span class="stat-card__value">{{ legendaryCount }}</span>
+            <span class="stat-card__caption">{{ t('inventory.stats.legendarycaption') }}</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-card__label">{{ t('inventory.stats.slots') }}</span>
+            <span class="stat-card__value">{{ SLOTS.length - equippedCount }}</span>
+            <span class="stat-card__caption">{{ t('inventory.stats.slotsCaption') }}</span>
+          </article>
+        </section>
+
+        <!-- ─── Equipment slots ───────────────────────────────────────────── -->
+        <section class="surface">
+          <div class="surface-header">
+            <div>
+              <h2 class="surface-title">{{ t('inventory.slots.title') }}</h2>
+              <p class="surface-subtitle">
+                {{ t('inventory.slots.subtitle', { filled: equippedCount, total: SLOTS.length }) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="equip-grid">
+            <div
+              v-for="slot in SLOTS"
+              :key="slot.key"
+              :class="[
+                'equip-slot',
+                equippedItem(slot.key)
+                  ? `equip-slot--${equippedItem(slot.key)?.rarity}`
+                  : 'equip-slot--empty',
+              ]"
+            >
+              <div
+                v-if="equippedItem(slot.key)"
+                :class="['equip-slot__rarity-bar', `rarity-bar--${equippedItem(slot.key)?.rarity}`]"
+              ></div>
+
+              <div class="equip-slot__label">
+                <svg viewBox="0 0 24 24" class="equip-slot__label-icon" aria-hidden="true">
                   <path :d="slot.icon" />
                 </svg>
+                {{ t(`inventory.slots.${slot.key}`) }}
               </div>
-            </div>
 
-            <div class="equip-slot__footer">
-              <template v-if="equippedItem(slot.key)">
-                <strong class="equip-slot__name">{{ equippedItem(slot.key)!.name }}</strong>
-                <span :class="['rarity-pill', `rarity-pill--${equippedItem(slot.key)?.rarity}`]">
-                  {{ t(`shop.rarity.${equippedItem(slot.key)?.rarity}`) }}
-                </span>
-                <button type="button" class="btn-unequip" @click="store.unequip(slot.key)">
-                  <svg viewBox="0 0 24 24" class="btn-unequip__icon" aria-hidden="true">
-                    <path :d="mdiClose" />
+              <div class="equip-slot__visual">
+                <template v-if="equippedItem(slot.key)">
+                  <img
+                    :src="picsumUrl(equippedItem(slot.key)!.imageSeed, 120, 120)"
+                    :alt="equippedItem(slot.key)!.name"
+                    class="equip-slot__img"
+                  />
+                </template>
+                <div v-else class="equip-slot__placeholder">
+                  <svg viewBox="0 0 24 24" class="equip-slot__placeholder-icon" aria-hidden="true">
+                    <path :d="slot.icon" />
                   </svg>
-                  {{ t('inventory.unequip') }}
-                </button>
-              </template>
-              <span v-else class="equip-slot__empty-label">{{ t('inventory.slotEmpty') }}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ─── Inventory items ───────────────────────────────────────────── -->
-      <section class="surface">
-        <div class="surface-header">
-          <div>
-            <h2 class="surface-title">{{ t('inventory.items.title') }}</h2>
-            <p class="surface-subtitle">
-              {{ filteredInventory.length }} {{ t('inventory.itemsCount') }}
-            </p>
-          </div>
-          <Transition name="fade-btn">
-            <button
-              v-if="hasActiveFilters"
-              type="button"
-              class="btn btn--ghost"
-              @click="resetFilters"
-            >
-              <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
-                <path :d="mdiFilterRemove" />
-              </svg>
-              {{ t('shop.filters.reset') }}
-            </button>
-          </Transition>
-        </div>
-
-        <div class="toolbar inv-toolbar">
-          <div class="search-field">
-            <svg viewBox="0 0 24 24" class="search-field__icon" aria-hidden="true">
-              <path :d="mdiMagnify" />
-            </svg>
-            <input
-              v-model="search"
-              type="search"
-              class="field"
-              :placeholder="t('inventory.search')"
-            />
-          </div>
-          <select v-model="selectedFilter" class="select">
-            <option v-for="f in FILTERS" :key="f.value" :value="f.value">{{ f.label }}</option>
-          </select>
-          <select v-model="selectedRarity" class="select">
-            <option v-for="r in RARITIES" :key="r.value" :value="r.value">{{ r.label }}</option>
-          </select>
-        </div>
-
-        <div v-if="filteredInventory.length" class="inv-grid">
-          <article
-            v-for="inv in filteredInventory"
-            :key="inv.itemId"
-            :class="[
-              'inv-card',
-              `rarity--${getItem(inv.itemId)?.rarity}`,
-              store.isEquipped(inv.itemId) && 'inv-card--equipped',
-            ]"
-          >
-            <div
-              :class="['inv-card__rarity-bar', `rarity-bar--${getItem(inv.itemId)?.rarity}`]"
-            ></div>
-
-            <div class="inv-card__img-wrap">
-              <img
-                :src="picsumUrl(getItem(inv.itemId)?.imageSeed ?? 'x', 180, 180)"
-                :alt="getItem(inv.itemId)?.name"
-                class="inv-card__img"
-              />
-              <span v-if="store.isEquipped(inv.itemId)" class="equipped-badge-abs">
-                <svg viewBox="0 0 24 24" class="equipped-badge-abs__icon" aria-hidden="true">
-                  <path :d="mdiCheck" />
-                </svg>
-                {{ t('inventory.equippedLabel') }}
-              </span>
-            </div>
-
-            <div class="inv-card__body">
-              <div class="inv-card__info">
-                <strong class="inv-card__name">{{ getItem(inv.itemId)?.name }}</strong>
-                <div class="inv-card__meta-row">
-                  <span :class="['rarity-pill', `rarity-pill--${getItem(inv.itemId)?.rarity}`]">
-                    {{ t(`shop.rarity.${getItem(inv.itemId)?.rarity}`) }}
-                  </span>
-                  <span class="inv-card__slot-label">
-                    {{
-                      getItem(inv.itemId)?.slot
-                        ? t(`inventory.slots.${getItem(inv.itemId)?.slot}`)
-                        : t(`shop.categories.${getItem(inv.itemId)?.category}`)
-                    }}
-                  </span>
                 </div>
               </div>
 
-              <div class="inv-card__footer">
-                <span class="inv-card__date">{{ formatDate(inv.ownedAt) }}</span>
-                <template v-if="getItem(inv.itemId)?.slot">
-                  <button
-                    v-if="!store.isEquipped(inv.itemId)"
-                    type="button"
-                    class="btn-equip"
-                    @click="doEquip(inv.itemId)"
-                  >
-                    <svg viewBox="0 0 24 24" class="btn-equip__icon" aria-hidden="true">
-                      <path :d="mdiArrowUpCircleOutline" />
-                    </svg>
-                    {{ t('inventory.equip') }}
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    class="btn-unequip"
-                    @click="store.unequip(getItem(inv.itemId)!.slot!)"
-                  >
+              <div class="equip-slot__footer">
+                <template v-if="equippedItem(slot.key)">
+                  <strong class="equip-slot__name">{{ equippedItem(slot.key)!.name }}</strong>
+                  <span :class="['rarity-pill', `rarity-pill--${equippedItem(slot.key)?.rarity}`]">
+                    {{ t(`shop.rarity.${equippedItem(slot.key)?.rarity}`) }}
+                  </span>
+                  <button type="button" class="btn-unequip" @click="store.unequip(slot.key)">
                     <svg viewBox="0 0 24 24" class="btn-unequip__icon" aria-hidden="true">
                       <path :d="mdiClose" />
                     </svg>
                     {{ t('inventory.unequip') }}
                   </button>
                 </template>
+                <span v-else class="equip-slot__empty-label">{{ t('inventory.slotEmpty') }}</span>
               </div>
             </div>
-          </article>
-        </div>
+          </div>
+        </section>
 
-        <div v-else class="empty-state">
-          <h3 class="empty-state__title">{{ t('inventory.empty.title') }}</h3>
-          <p class="empty-state__text">{{ t('inventory.empty.text') }}</p>
-        </div>
-      </section>
+        <!-- ─── Inventory items ───────────────────────────────────────────── -->
+        <section class="surface">
+          <div class="surface-header">
+            <div>
+              <h2 class="surface-title">{{ t('inventory.items.title') }}</h2>
+              <p class="surface-subtitle">
+                {{ filteredInventory.length }} {{ t('inventory.itemsCount') }}
+              </p>
+            </div>
+            <Transition name="fade-btn">
+              <button
+                v-if="hasActiveFilters"
+                type="button"
+                class="btn btn--ghost"
+                @click="resetFilters"
+              >
+                <svg viewBox="0 0 24 24" class="btn-icon" aria-hidden="true">
+                  <path :d="mdiFilterRemove" />
+                </svg>
+                {{ t('shop.filters.reset') }}
+              </button>
+            </Transition>
+          </div>
+
+          <div class="toolbar inv-toolbar">
+            <div class="search-field">
+              <svg viewBox="0 0 24 24" class="search-field__icon" aria-hidden="true">
+                <path :d="mdiMagnify" />
+              </svg>
+              <input
+                v-model="search"
+                type="search"
+                class="field"
+                :placeholder="t('inventory.search')"
+              />
+            </div>
+            <select v-model="selectedFilter" class="select">
+              <option v-for="f in FILTERS" :key="f.value" :value="f.value">{{ f.label }}</option>
+            </select>
+            <select v-model="selectedRarity" class="select">
+              <option v-for="r in RARITIES" :key="r.value" :value="r.value">{{ r.label }}</option>
+            </select>
+          </div>
+
+          <div v-if="filteredInventory.length" class="inv-grid">
+            <article
+              v-for="inv in filteredInventory"
+              :key="inv.itemId"
+              :class="[
+                'inv-card',
+                `rarity--${getItem(inv.itemId)?.rarity}`,
+                store.isEquipped(inv.itemId) && 'inv-card--equipped',
+              ]"
+            >
+              <div
+                :class="['inv-card__rarity-bar', `rarity-bar--${getItem(inv.itemId)?.rarity}`]"
+              ></div>
+
+              <div class="inv-card__img-wrap">
+                <img
+                  :src="picsumUrl(getItem(inv.itemId)?.imageSeed ?? 'x', 180, 180)"
+                  :alt="getItem(inv.itemId)?.name"
+                  class="inv-card__img"
+                />
+                <span v-if="store.isEquipped(inv.itemId)" class="equipped-badge-abs">
+                  <svg viewBox="0 0 24 24" class="equipped-badge-abs__icon" aria-hidden="true">
+                    <path :d="mdiCheck" />
+                  </svg>
+                  {{ t('inventory.equippedLabel') }}
+                </span>
+              </div>
+
+              <div class="inv-card__body">
+                <div class="inv-card__info">
+                  <strong class="inv-card__name">{{ getItem(inv.itemId)?.name }}</strong>
+                  <div class="inv-card__meta-row">
+                    <span :class="['rarity-pill', `rarity-pill--${getItem(inv.itemId)?.rarity}`]">
+                      {{ t(`shop.rarity.${getItem(inv.itemId)?.rarity}`) }}
+                    </span>
+                    <span class="inv-card__slot-label">
+                      {{
+                        getItem(inv.itemId)?.slot
+                          ? t(`inventory.slots.${getItem(inv.itemId)?.slot}`)
+                          : t(`shop.categories.${getItem(inv.itemId)?.category}`)
+                      }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="inv-card__footer">
+                  <span class="inv-card__date">{{ formatDate(inv.ownedAt) }}</span>
+                  <template v-if="getItem(inv.itemId)?.slot">
+                    <button
+                      v-if="!store.isEquipped(inv.itemId)"
+                      type="button"
+                      class="btn-equip"
+                      @click="doEquip(inv.itemId)"
+                    >
+                      <svg viewBox="0 0 24 24" class="btn-equip__icon" aria-hidden="true">
+                        <path :d="mdiArrowUpCircleOutline" />
+                      </svg>
+                      {{ t('inventory.equip') }}
+                    </button>
+                    <button
+                      v-else
+                      type="button"
+                      class="btn-unequip"
+                      @click="store.unequip(getItem(inv.itemId)!.slot!)"
+                    >
+                      <svg viewBox="0 0 24 24" class="btn-unequip__icon" aria-hidden="true">
+                        <path :d="mdiClose" />
+                      </svg>
+                      {{ t('inventory.unequip') }}
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="empty-state">
+            <h3 class="empty-state__title">{{ t('inventory.empty.title') }}</h3>
+            <p class="empty-state__text">{{ t('inventory.empty.text') }}</p>
+          </div>
+        </section>
+      </template>
     </div>
 
     <!-- ─── Toast ─────────────────────────────────────────────────────── -->
@@ -271,18 +283,25 @@ import {
   mdiFilterRemove,
   mdiImageFilterHdr,
   mdiImageFrame,
+  mdiLoading,
   mdiMagnify,
   mdiMotionPlayOutline,
   mdiSpray,
   mdiStorefrontOutline,
 } from '@mdi/js'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { picsumUrl, useShopStore } from '@/stores/shopStore'
+import { useShopStore } from '@/stores/shopStore'
+import { picsumUrl } from '@/stores/shopUtils'
 
 const store = useShopStore()
 const { t, locale } = useI18n({ useScope: 'global' })
+
+// ── Chargement initial (évite un double fetch si ShopView déjà chargé) ─────
+onMounted(() => {
+  if (!store.items.length) store.fetchShopState()
+})
 
 const SLOTS = [
   { key: 'avatar', icon: mdiAccountCircleOutline },
@@ -304,7 +323,7 @@ const legendaryCount = computed(
     store.inventory.filter((inv) => store.getItemById(inv.itemId)?.rarity === 'legendary').length,
 )
 
-// Filters
+// ── Filtres ────────────────────────────────────────────────────────────────
 const search = ref('')
 const selectedFilter = ref('all')
 const selectedRarity = ref('all')
@@ -361,7 +380,7 @@ function formatDate(iso: string) {
   }).format(new Date(iso))
 }
 
-// Equip + toast
+// ── Equip + toast ──────────────────────────────────────────────────────────
 const toast = ref<{ type: 'success' | 'error'; message: string } | null>(null)
 let toastTimer: ReturnType<typeof setTimeout>
 
@@ -379,6 +398,23 @@ function doEquip(itemId: number) {
 </script>
 
 <style scoped>
+/* ─── Loading ────────────────────────────────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 4rem 1rem;
+  color: rgba(252, 239, 225, 0.55);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.loading-icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
 /* ─── Layout ─────────────────────────────────────────────────────────────── */
 .inv-page {
   min-height: 100vh;
@@ -488,7 +524,6 @@ function doEquip(itemId: number) {
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
-
 .hero-side__title {
   margin-top: 0.4rem;
   color: var(--color-cream);
@@ -496,20 +531,17 @@ function doEquip(itemId: number) {
   font-size: 1.2rem;
   font-weight: 900;
 }
-
 .hero-side__text {
   margin: 0.45rem 0 0;
   color: rgba(252, 239, 225, 0.62);
   font-size: 0.88rem;
   line-height: 1.5;
 }
-
 .hero-side__chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
-
 .hero-side__chips span {
   padding: 0.32rem 0.62rem;
   border-radius: 999px;
@@ -542,7 +574,6 @@ function doEquip(itemId: number) {
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
 }
-
 .btn--primary {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
   color: var(--color-navy);
@@ -552,7 +583,6 @@ function doEquip(itemId: number) {
 .btn--primary:hover {
   filter: brightness(1.04);
 }
-
 .btn--ghost {
   background: rgba(18, 24, 38, 0.34);
   color: rgba(252, 239, 225, 0.84);
@@ -563,7 +593,6 @@ function doEquip(itemId: number) {
   background: rgba(242, 139, 91, 0.14);
   border-color: rgba(242, 139, 91, 0.38);
 }
-
 .btn-icon {
   width: 18px;
   height: 18px;
@@ -579,7 +608,6 @@ function doEquip(itemId: number) {
 .inv-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-
 .stat-card {
   padding: 1rem;
   border-radius: 22px;
@@ -628,7 +656,6 @@ function doEquip(itemId: number) {
     linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.94)), var(--color-navy);
   box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
 }
-
 .surface-header {
   display: flex;
   align-items: flex-start;
@@ -636,7 +663,6 @@ function doEquip(itemId: number) {
   gap: 1rem;
   margin-bottom: 1.1rem;
 }
-
 .surface-title {
   margin: 0;
   color: var(--color-cream);
@@ -645,7 +671,6 @@ function doEquip(itemId: number) {
   font-weight: 900;
   letter-spacing: -0.03em;
 }
-
 .surface-subtitle {
   margin: 0.35rem 0 0;
   color: rgba(252, 239, 225, 0.62);
@@ -659,7 +684,6 @@ function doEquip(itemId: number) {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.85rem;
 }
-
 .equip-slot {
   border-radius: 18px;
   border: 1px dashed rgba(252, 239, 225, 0.12);
@@ -671,9 +695,6 @@ function doEquip(itemId: number) {
     border-color 0.18s ease,
     box-shadow 0.18s ease;
   min-height: 200px;
-}
-
-.equip-slot--empty {
 }
 .equip-slot--common {
   border-style: solid;
@@ -694,7 +715,6 @@ function doEquip(itemId: number) {
   border-color: rgba(242, 139, 91, 0.45);
   box-shadow: 0 0 22px rgba(242, 139, 91, 0.18);
 }
-
 .equip-slot__rarity-bar {
   height: 2px;
   flex-shrink: 0;
@@ -711,7 +731,6 @@ function doEquip(itemId: number) {
 .rarity-bar--legendary {
   background: linear-gradient(90deg, var(--color-primary), var(--color-primary-strong));
 }
-
 .equip-slot__label {
   padding: 0.65rem 0.7rem 0;
   font-size: 0.65rem;
@@ -728,7 +747,6 @@ function doEquip(itemId: number) {
   height: 13px;
   fill: currentColor;
 }
-
 .equip-slot__visual {
   flex: 1;
   display: flex;
@@ -744,7 +762,6 @@ function doEquip(itemId: number) {
   border: 1px solid rgba(252, 239, 225, 0.1);
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
 }
-
 .equip-slot__placeholder {
   display: flex;
   align-items: center;
@@ -760,7 +777,6 @@ function doEquip(itemId: number) {
   height: 24px;
   fill: rgba(252, 239, 225, 0.14);
 }
-
 .equip-slot__footer {
   padding: 0.65rem 0.8rem 0.8rem;
   border-top: 1px solid rgba(252, 239, 225, 0.06);
@@ -769,7 +785,6 @@ function doEquip(itemId: number) {
   flex-direction: column;
   gap: 0.35rem;
 }
-
 .equip-slot__name {
   font-size: 0.76rem;
   font-weight: 900;
@@ -778,7 +793,6 @@ function doEquip(itemId: number) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .equip-slot__empty-label {
   font-size: 0.7rem;
   color: rgba(252, 239, 225, 0.22);
@@ -816,27 +830,6 @@ function doEquip(itemId: number) {
   border: 1px solid rgba(242, 139, 91, 0.26);
 }
 
-.rarity-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.rarity-dot--common {
-  background: rgba(255, 255, 255, 0.28);
-}
-.rarity-dot--rare {
-  background: #7aadff;
-}
-.rarity-dot--epic {
-  background: #c8a0ff;
-}
-.rarity-dot--legendary {
-  background: var(--color-primary);
-  box-shadow: 0 0 5px rgba(242, 139, 91, 0.65);
-}
-
 /* ─── Equip / unequip buttons ────────────────────────────────────────────── */
 .btn-equip {
   display: inline-flex;
@@ -861,7 +854,6 @@ function doEquip(itemId: number) {
   height: 13px;
   fill: currentColor;
 }
-
 .btn-unequip {
   display: inline-flex;
   align-items: center;
@@ -896,7 +888,6 @@ function doEquip(itemId: number) {
 .inv-toolbar {
   grid-template-columns: minmax(0, 2fr) repeat(2, minmax(120px, 0.6fr));
 }
-
 .search-field {
   position: relative;
   display: flex;
@@ -913,7 +904,6 @@ function doEquip(itemId: number) {
 .search-field .field {
   padding-left: 2.6rem;
 }
-
 .field,
 .select {
   width: 100%;
@@ -957,7 +947,6 @@ function doEquip(itemId: number) {
   grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
   gap: 0.9rem;
 }
-
 .inv-card {
   border-radius: 18px;
   border: 1px solid rgba(252, 239, 225, 0.09);
@@ -988,12 +977,10 @@ function doEquip(itemId: number) {
 .inv-card--equipped {
   border-color: rgba(61, 191, 125, 0.3);
 }
-
 .inv-card__rarity-bar {
   height: 2px;
   flex-shrink: 0;
 }
-
 .inv-card__img-wrap {
   position: relative;
   aspect-ratio: 1;
@@ -1009,7 +996,6 @@ function doEquip(itemId: number) {
 .inv-card:hover .inv-card__img {
   transform: scale(1.05);
 }
-
 .equipped-badge-abs {
   position: absolute;
   bottom: 0.5rem;
@@ -1031,7 +1017,6 @@ function doEquip(itemId: number) {
   height: 12px;
   fill: currentColor;
 }
-
 .inv-card__body {
   padding: 0.75rem;
   display: flex;
@@ -1039,13 +1024,11 @@ function doEquip(itemId: number) {
   gap: 0.5rem;
   flex: 1;
 }
-
 .inv-card__info {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
-
 .inv-card__name {
   font-size: 0.85rem;
   font-weight: 900;
@@ -1054,20 +1037,17 @@ function doEquip(itemId: number) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .inv-card__meta-row {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   flex-wrap: wrap;
 }
-
 .inv-card__slot-label {
   font-size: 0.7rem;
   color: rgba(252, 239, 225, 0.48);
   font-weight: 700;
 }
-
 .inv-card__footer {
   display: flex;
   align-items: center;
@@ -1077,7 +1057,6 @@ function doEquip(itemId: number) {
   padding-top: 0.5rem;
   border-top: 1px solid rgba(252, 239, 225, 0.07);
 }
-
 .inv-card__date {
   font-size: 0.68rem;
   color: rgba(252, 239, 225, 0.35);
@@ -1132,7 +1111,6 @@ function doEquip(itemId: number) {
   background: rgba(200, 80, 80, 0.18);
   border: 1px solid rgba(200, 80, 80, 0.32);
 }
-
 .toast-enter-active {
   transition: all 0.22s ease;
 }
@@ -1147,7 +1125,6 @@ function doEquip(itemId: number) {
   opacity: 0;
   transform: translateX(-50%) translateY(-8px);
 }
-
 .fade-btn-enter-active,
 .fade-btn-leave-active {
   transition:
@@ -1158,6 +1135,16 @@ function doEquip(itemId: number) {
 .fade-btn-leave-to {
   opacity: 0;
   transform: scale(0.95);
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
