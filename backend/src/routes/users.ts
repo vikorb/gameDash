@@ -125,7 +125,35 @@ router.post(
       })
       .returning("*")) as UserRow[];
 
-    return res.status(201).json({ status: "created", user: createdRows[0] });
+    const newUser = createdRows[0];
+
+    const gameModes = await db("game_modes").select("id");
+
+    if (gameModes.length > 0) {
+      await db("player_mmr")
+        .insert(
+          gameModes.map((gm: { id: number }) => ({
+            user_id: newUser.id,
+            mode_id: gm.id,
+            mmr: 1000,
+          })),
+        )
+        .onConflict(["user_id", "mode_id"])
+        .ignore();
+
+      await db("user_ranks")
+        .insert(
+          gameModes.map((gm: { id: number }) => ({
+            user_id: newUser.id,
+            game_modes_id: gm.id,
+            xp: 0,
+          })),
+        )
+        .onConflict(["user_id", "game_modes_id"])
+        .ignore();
+    }
+
+    return res.status(201).json({ status: "created", user: newUser });
   }),
 );
 
@@ -303,6 +331,24 @@ router.post(
 
     if (Object.keys(updates).length === 0) {
       return res.status(200).json({ status: "no_changes", user });
+    }
+    
+    if (user.pocketbase_user_id && user.email && (email || username)) {
+      const currentPassword = parseString(
+        body.currentPassword,
+        "currentPassword",
+        { min: 1, max: 128 },
+      )!;
+      const { token: userToken } = await authPocketbaseUser(
+        user.email,
+        currentPassword,
+      );
+
+      const pbBody: Record<string, string> = {};
+      if (email) pbBody.email = email;
+      if (username) pbBody.username = username;
+
+      await updatePocketbaseUser(user.pocketbase_user_id, pbBody, userToken);
     }
 
     const updatedRows = (await db<UserRow>("users")

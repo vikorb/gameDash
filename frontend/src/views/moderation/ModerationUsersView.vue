@@ -11,6 +11,8 @@
         </div>
 
         <div class="page-header__actions">
+          <ExportButton entity="users" />
+
           <button
             type="button"
             class="toolbar-btn toolbar-btn--primary"
@@ -370,6 +372,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import ExportButton from '@/components/export/ExportButton.vue'
 import {
   type ModerationSelectedUser,
   type ModerationUserRole,
@@ -411,7 +414,12 @@ const DEFAULT_USER_LIST_FILTERS: UserListFilters = {
 const router = useRouter()
 const { t, locale } = useI18n({ useScope: 'global' })
 const moderationStore = useModerationUsersStore()
-const { users, pagination: usersPagination, summary: usersSummary, loading } = storeToRefs(moderationStore)
+const {
+  users,
+  pagination: usersPagination,
+  summary: usersSummary,
+  loading,
+} = storeToRefs(moderationStore)
 
 const actionLoadingId = ref<number | null>(null)
 const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
@@ -506,7 +514,10 @@ async function loadUsers() {
       sortOrder: filters.sortOrder,
     })
   } catch (err) {
-    setFeedback('error', err instanceof Error ? err.message : 'Impossible de charger les utilisateurs.')
+    setFeedback(
+      'error',
+      err instanceof Error ? err.message : 'Impossible de charger les utilisateurs.',
+    )
   }
 }
 

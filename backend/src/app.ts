@@ -11,6 +11,14 @@ import { errorHandler } from "@/middlewares/errorHandler";
 import db from "@/database";
 import { createModerationRouter } from "@/routes/moderation";
 import { createBackofficeRouter } from "@/routes/backoffice";
+import type { Router } from "express";
+
+import mmrRoutes from "@/routes/mmr";
+import ranksRoutes from "@/routes/ranks";
+import gameModesRoutes from "@/routes/game-modes";
+import matchesRoutes from "@/routes/matches";
+import adminRoutes from "@/routes/admin";
+import auditRoutes from "@/routes/audit";
 
 export const app = express();
 
@@ -65,6 +73,14 @@ app.use("/api/shop", createShopRouter(db));
 app.use("/api/shops", createShopRouter(db));
 app.use("/api/moderation", createModerationRouter(db));
 app.use("/api/backoffice", createBackofficeRouter(db));
+app.use("/api/maps", mapsRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/mmr", mmrRoutes);
+app.use("/api/game-modes", gameModesRoutes);
+app.use("/api/ranks", ranksRoutes);
+app.use("/api/matches", matchesRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/audit", auditRoutes as Router);
 
 app.use(notFound);
 app.use(errorHandler);

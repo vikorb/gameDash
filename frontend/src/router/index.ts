@@ -38,16 +38,20 @@ const router = createRouter({
     { path: '/profil', name: 'profil', component: ProfilView, meta: { requiresAuth: true } },
     {
       path: '/progress',
+      name: 'progress',
+      component: () => import('@/views/ProgressView.vue'),
+      meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
+    },
+    {
+      path: '/home/progress',
       name: 'progress-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'progress' },
+      component: () => import('@/views/ProgressView.vue'),
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {
       path: '/tasks',
       name: 'tasks-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'tasks' },
+      component: () => import('@/views/TasksView.vue'),
       meta: { requiresAuth: true, roles: ['player'] as UserRole[] },
     },
     {

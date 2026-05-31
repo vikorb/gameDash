@@ -24,17 +24,20 @@
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
+    "chart.js": "^4.5.1",
     "pinia": "^3.0.4",
     "pocketbase": "^0.26.8",
     "vue": "^3.5.27",
+    "vue-chartjs": "^5.3.3",
     "vue-i18n": "^11.2.8",
     "vue-router": "^5.0.1"
   },
   "devDependencies": {
+    "@pinia/testing": "^1.0.3",
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^27.0.0",
     "@types/node": "^24.10.9",
-    "@vitejs/plugin-vue": "^6.0.3",
+    "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/eslint-plugin": "^1.6.6",
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/test-utils": "^2.4.6",
@@ -60,7 +63,7 @@
     "vite": "^7.3.1",
     "vite-plugin-checker": "^0.12.0",
     "vite-plugin-vue-devtools": "^8.0.5",
-    "vitest": "^4.0.18",
+    "vitest": "^4.1.2",
     "vue-tsc": "^3.2.4"
   },
   "engines": {

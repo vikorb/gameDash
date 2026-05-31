@@ -205,6 +205,8 @@ export async function seed(knex: Knex): Promise<void> {
     linkedUsers.push({ ...identity, pocketbase_user_id });
   }
 
+  // type RankRow et ranks supprimés (plus utilisés)
+
   const users = buildPostgresRows(linkedUsers);
 
   await knex('users')
@@ -221,4 +223,16 @@ export async function seed(knex: Knex): Promise<void> {
   await knex.raw(`
     SELECT setval(pg_get_serial_sequence('users', 'id'), GREATEST((SELECT COALESCE(max(id), 1) FROM users), 1))
   `);
+  
+  const dbUsers: { id: number }[] = await knex('users').select('id');
+  const gameModes: { id: number }[] = await knex('game_modes').select('id');
+  const userRanks = [];
+  for (const user of dbUsers) {
+    for (const mode of gameModes) {
+      userRanks.push({ user_id: user.id, game_modes_id: mode.id, xp: Math.floor(Math.random() * 10000) });
+    }
+  }
+  if (userRanks.length > 0) {
+    await knex('user_ranks').insert(userRanks);
+  }
 }
