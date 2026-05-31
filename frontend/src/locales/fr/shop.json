@@ -6,6 +6,7 @@
     "goToInventory": "Mon inventaire",
     "seeAll": "Voir tout",
     "new": "NEW",
+    "loading": "Chargement de la boutique…",
     "tabs": {
       "boutique": "Boutique",
       "bundles": "Bundles",
@@ -100,7 +101,15 @@
       "processing": "Traitement en cours…",
       "disclaimer": "Transaction simulée — aucun paiement réel n'est effectué.",
       "success": "{amount} ◈ crédités avec succès !",
-      "fail": "Paiement refusé — veuillez réessayer."
+      "fail": "Paiement refusé — veuillez réessayer.",
+      "packs": {
+        "starter": "Pack de démarrage",
+        "popular": "Pack populaire",
+        "basic": "Pack de base",
+        "standard": "Pack standard",
+        "premium": "Pack premium",
+        "ultimate": "Pack ultime"
+      }
     },
     "empty": {
       "title": "Aucun article trouvé",

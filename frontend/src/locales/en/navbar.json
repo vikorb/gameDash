@@ -9,6 +9,8 @@
     "backoffice": "Back Office",
     "moderation": "Moderation",
     "logout": "Sign out",
+    "login": "Sign in",
+    "register": "Register",
     "lang": {
       "fr": "FR",
       "en": "EN"

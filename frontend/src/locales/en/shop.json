@@ -6,6 +6,7 @@
     "goToInventory": "My inventory",
     "seeAll": "See all",
     "new": "NEW",
+    "loading": "Loading shop…",
     "tabs": {
       "boutique": "Shop",
       "bundles": "Bundles",
@@ -100,7 +101,15 @@
       "processing": "Processing…",
       "disclaimer": "Simulated transaction — no real payment is made.",
       "success": "{amount} ◈ successfully credited!",
-      "fail": "Payment declined — please try again."
+      "fail": "Payment declined — please try again.",
+      "packs": {
+        "starter": "Starter pack",
+        "popular": "Popular pack",
+        "basic": "Basic pack",
+        "standard": "Standard pack",
+        "premium": "Premium pack",
+        "ultimate": "Ultimate pack"
+      }
     },
     "empty": {
       "title": "No items found",

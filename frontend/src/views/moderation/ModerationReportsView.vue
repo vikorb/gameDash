@@ -642,7 +642,6 @@ const moderationStore = useModerationReportsStore()
 const { reports, reportSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
-
 onMounted(() => {
   void moderationStore.fetchReports()
 })
@@ -721,7 +720,11 @@ async function doAssignToMe() {
 }
 async function doAddNote() {
   if (!selected.value || !noteInput.value.trim()) return
-  await moderationStore.addReportInternalNote(selected.value.id, noteInput.value.trim(), 'POC Admin')
+  await moderationStore.addReportInternalNote(
+    selected.value.id,
+    noteInput.value.trim(),
+    'POC Admin',
+  )
   noteInput.value = ''
   sync()
 }
@@ -861,11 +864,22 @@ function getStatusIcon(s: ModerationReportStatus) {
   if (s === 'dismissed') return mdiCloseCircleOutline
   return mdiAlertCircleOutline
 }
-function formatDate(v: string) {
-  return new Intl.DateTimeFormat(locale.value.startsWith('fr') ? 'fr-FR' : 'en-US', {
+function formatDate(v?: string | number | Date | null) {
+  if (!v) return '—'
+
+  const date = v instanceof Date ? v : new Date(v)
+
+  if (Number.isNaN(date.getTime())) {
+    return '—'
+  }
+
+  const currentLocale = String(locale.value ?? 'fr')
+  const formatterLocale = currentLocale.startsWith('fr') ? 'fr-FR' : 'en-US'
+
+  return new Intl.DateTimeFormat(formatterLocale, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(new Date(v))
+  }).format(date)
 }
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`

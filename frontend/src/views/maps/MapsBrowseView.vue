@@ -220,10 +220,11 @@ import {
 } from '@mdi/js'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import ExportButton from '@/components/export/ExportButton.vue'
 import MapCard from '@/components/MapCard.vue'
+import MapReportModal from '@/components/MapReportModal.vue'
 import { buildMapsExportRows } from '@/services/export'
 import { useMapsStore } from '@/stores/mapsStore'
 import { useUserStore } from '@/stores/userStore'
