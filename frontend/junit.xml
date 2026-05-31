@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="55" failures="0" errors="0" time="0.5378395">
+    <testsuite name="tests/src/services/auth.spec.ts" timestamp="2026-05-31T17:53:26.564Z" hostname="TERMIVAVORA" tests="6" failures="0" errors="0" skipped="0" time="0.0037689">
+        <testcase classname="tests/src/services/auth.spec.ts" name="Auth Service &gt; should have authService methods" time="0.0016973">
+        </testcase>
+        <testcase classname="tests/src/services/auth.spec.ts" name="Auth Service &gt; should check authentication status" time="0.0002554">
+        </testcase>
+        <testcase classname="tests/src/services/auth.spec.ts" name="Auth Service &gt; should get user when authenticated" time="0.0001674">
+        </testcase>
+        <testcase classname="tests/src/services/auth.spec.ts" name="Role normalization &gt; maps admin variants to admin" time="0.0001841">
+        </testcase>
+        <testcase classname="tests/src/services/auth.spec.ts" name="Role normalization &gt; maps moderator variants to moderator" time="0.0001501">
+        </testcase>
+        <testcase classname="tests/src/services/auth.spec.ts" name="Role normalization &gt; falls back to player for unknown values" time="0.0001251">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/services/export.test.ts" timestamp="2026-05-31T17:53:26.566Z" hostname="TERMIVAVORA" tests="3" failures="0" errors="0" skipped="0" time="0.0075827">
+        <testcase classname="tests/src/services/export.test.ts" name="export service &gt; escapes values for CSV safely" time="0.0026464">
+        </testcase>
+        <testcase classname="tests/src/services/export.test.ts" name="export service &gt; serializes rows to CSV with headers" time="0.0006123">
+        </testcase>
+        <testcase classname="tests/src/services/export.test.ts" name="export service &gt; builds flattened map export rows" time="0.0023631">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/services/matches.spec.ts" timestamp="2026-05-31T17:53:26.567Z" hostname="TERMIVAVORA" tests="7" failures="0" errors="0" skipped="0" time="0.0088932">
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; calls /matches with userId, limit and offset" time="0.0040868">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; includes modeId in params when provided" time="0.000472">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; includes result in params when provided" time="0.000359">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; includes dateFrom and dateTo when provided" time="0.0002988">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; includes custom limit and offset" time="0.0003273">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; returns the response data" time="0.0010051">
+        </testcase>
+        <testcase classname="tests/src/services/matches.spec.ts" name="fetchMatchHistory &gt; includes all filters combined" time="0.0003249">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/services/progress.spec.ts" timestamp="2026-05-31T17:53:26.568Z" hostname="TERMIVAVORA" tests="3" failures="0" errors="0" skipped="0" time="0.0347875">
+        <testcase classname="tests/src/services/progress.spec.ts" name="CardMMR &gt; affiche le MMR" time="0.0253711">
+        </testcase>
+        <testcase classname="tests/src/services/progress.spec.ts" name="CardMMR &gt; affiche la mediane calculee depuis l historique" time="0.0053832">
+        </testcase>
+        <testcase classname="tests/src/services/progress.spec.ts" name="CardMMR &gt; émet update:selectedModeId quand le mode change" time="0.0022873">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/services/rank.spec.ts" timestamp="2026-05-31T17:53:26.569Z" hostname="TERMIVAVORA" tests="3" failures="0" errors="0" skipped="0" time="0.1144319">
+        <testcase classname="tests/src/services/rank.spec.ts" name="CardRank &gt; affiche le titre &quot;Rang actuel&quot;" time="0.1036169">
+        </testcase>
+        <testcase classname="tests/src/services/rank.spec.ts" name="CardRank &gt; affiche le rang et la division après chargement" time="0.0059393">
+        </testcase>
+        <testcase classname="tests/src/services/rank.spec.ts" name="CardRank &gt; affiche l&apos;état Unranked si le rang est Unranked" time="0.003578">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/integration/matchHistoric.integration.spec.ts" timestamp="2026-05-31T17:53:26.570Z" hostname="TERMIVAVORA" tests="13" failures="0" errors="0" skipped="0" time="0.0193765">
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; fetches and stores match history" time="0.0078518">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; sets loading to false after fetch" time="0.0008166">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; filters by mode via setMode and resets offset" time="0.0008467">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; filters by result via setResult and resets offset" time="0.0007252">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; filters by date range via setDateRange and resets offset" time="0.0006987">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; navigates to next page" time="0.0011957">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; does not go to next page if no next page" time="0.0004941">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; navigates to prev page" time="0.0006262">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; does not go to prev page if already at first page" time="0.000505">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; reset clears all state" time="0.00087">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; resets matchHistoric state between store instances" time="0.0011764">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; computes currentPage correctly" time="0.0005493">
+        </testcase>
+        <testcase classname="tests/src/integration/matchHistoric.integration.spec.ts" name="MatchHistoric Integration &gt; computes totalPages correctly" time="0.0005885">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/integration/mmr.integration.spec.ts" timestamp="2026-05-31T17:53:26.572Z" hostname="TERMIVAVORA" tests="1" failures="0" errors="0" skipped="0" time="0.0079591">
+        <testcase classname="tests/src/integration/mmr.integration.spec.ts" name="MMR Progression Integration &gt; fetches and updates MMR for user and mode" time="0.0056825">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/integration/rank.integration.spec.ts" timestamp="2026-05-31T17:53:26.573Z" hostname="TERMIVAVORA" tests="4" failures="0" errors="0" skipped="0" time="0.0918962">
+        <testcase classname="tests/src/integration/rank.integration.spec.ts" name="Rank Progression Integration &gt; fetches and updates rank for user and mode" time="0.0878008">
+        </testcase>
+        <testcase classname="tests/src/integration/rank.integration.spec.ts" name="Rank Progression Integration &gt; fetches rank without modeId" time="0.001173">
+        </testcase>
+        <testcase classname="tests/src/integration/rank.integration.spec.ts" name="Rank Progression Integration &gt; sets loading to false after fetch" time="0.0006623">
+        </testcase>
+        <testcase classname="tests/src/integration/rank.integration.spec.ts" name="Rank Progression Integration &gt; resets rankData between store instances" time="0.0007684">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/integration/rate.integration.spec.ts" timestamp="2026-05-31T17:53:26.574Z" hostname="TERMIVAVORA" tests="3" failures="0" errors="0" skipped="0" time="0.0097092">
+        <testcase classname="tests/src/integration/rate.integration.spec.ts" name="Rate Integration &gt; fetches totals, wins and computes winrate + kill rate" time="0.0064849">
+        </testcase>
+        <testcase classname="tests/src/integration/rate.integration.spec.ts" name="Rate Integration &gt; returns null rates when there is no match" time="0.0007716">
+        </testcase>
+        <testcase classname="tests/src/integration/rate.integration.spec.ts" name="Rate Integration &gt; resets state correctly" time="0.0005078">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/views/RateCard.spec.ts" timestamp="2026-05-31T17:53:26.574Z" hostname="TERMIVAVORA" tests="2" failures="0" errors="0" skipped="0" time="0.0362185">
+        <testcase classname="tests/src/views/RateCard.spec.ts" name="RateCard &gt; displays winrate and kill rate values" time="0.030715">
+        </testcase>
+        <testcase classname="tests/src/views/RateCard.spec.ts" name="RateCard &gt; fetches rates on mount with props" time="0.003917">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/views/TestHomeView.spec.ts" timestamp="2026-05-31T17:53:26.575Z" hostname="TERMIVAVORA" tests="4" failures="0" errors="0" skipped="0" time="0.0522416">
+        <testcase classname="tests/src/views/TestHomeView.spec.ts" name="HomeView &gt; render HomeHeaderSection avec les props dérivées de auth et role" time="0.0373075">
+        </testcase>
+        <testcase classname="tests/src/views/TestHomeView.spec.ts" name="HomeView &gt; affiche le dashboard uniquement pour les players" time="0.0033439">
+        </testcase>
+        <testcase classname="tests/src/views/TestHomeView.spec.ts" name="HomeView &gt; masque le dashboard pour admin/moderator" time="0.0031718">
+        </testcase>
+        <testcase classname="tests/src/views/TestHomeView.spec.ts" name="HomeView &gt; se met à jour quand le role change" time="0.0070754">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/views/TestProgressView.spec.ts" timestamp="2026-05-31T17:53:26.576Z" hostname="TERMIVAVORA" tests="2" failures="0" errors="0" skipped="0" time="0.0508737">
+        <testcase classname="tests/src/views/TestProgressView.spec.ts" name="ProgressView &gt; renders the progress view" time="0.0388976">
+        </testcase>
+        <testcase classname="tests/src/views/TestProgressView.spec.ts" name="ProgressView &gt; affiche la card MMR" time="0.0102621">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/components/export/ExportButton.integration.test.ts" timestamp="2026-05-31T17:53:26.577Z" hostname="TERMIVAVORA" tests="2" failures="0" errors="0" skipped="0" time="0.0396514">
+        <testcase classname="tests/src/components/export/ExportButton.integration.test.ts" name="ExportButton integration &gt; exports client rows without calling backend API" time="0.0334167">
+        </testcase>
+        <testcase classname="tests/src/components/export/ExportButton.integration.test.ts" name="ExportButton integration &gt; falls back to backend export when no client rows are provided" time="0.0050012">
+        </testcase>
+    </testsuite>
+    <testsuite name="tests/src/views/maps/MapsBrowseView.integration.test.ts" timestamp="2026-05-31T17:53:26.577Z" hostname="TERMIVAVORA" tests="2" failures="0" errors="0" skipped="0" time="0.0604491">
+        <testcase classname="tests/src/views/maps/MapsBrowseView.integration.test.ts" name="MapsBrowseView integration &gt; passes flattened filtered maps to export button when user is admin" time="0.0450968">
+        </testcase>
+        <testcase classname="tests/src/views/maps/MapsBrowseView.integration.test.ts" name="MapsBrowseView integration &gt; hides export button for non-admin users" time="0.0109731">
+        </testcase>
+    </testsuite>
+</testsuites>
