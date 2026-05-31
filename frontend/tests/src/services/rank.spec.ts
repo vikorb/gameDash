@@ -2,12 +2,30 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import api from '@/api'
-import CardRank from '@/views/progress/CardRank.vue'
+const apiMock = vi.hoisted(() => ({
+  get: vi.fn(),
+  post: vi.fn(),
+  put: vi.fn(),
+  patch: vi.fn(),
+  delete: vi.fn(),
+  interceptors: {
+    request: { use: vi.fn(), eject: vi.fn() },
+    response: { use: vi.fn(), eject: vi.fn() },
+  },
+}))
 
 vi.mock('@/api', () => ({
+  default: apiMock,
+}))
+
+vi.mock('../../../src/api', () => ({
+  default: apiMock,
+}))
+
+vi.mock('axios', () => ({
   default: {
-    get: vi.fn(),
+    create: vi.fn(() => apiMock),
+    isAxiosError: vi.fn(() => false),
   },
 }))
 
@@ -52,13 +70,9 @@ const unrankedData = {
   divisionMaxXp: null,
 }
 
-function mockRankResponse(data: typeof rankedData | typeof unrankedData) {
-  vi.mocked(api.get).mockResolvedValueOnce({
-    data,
-  })
-}
+async function mountCardRank() {
+  const { default: CardRank } = await import('@/views/progress/CardRank.vue')
 
-function mountCardRank() {
   return mount(CardRank, {
     props: {
       userId: 1,
@@ -75,9 +89,9 @@ describe('CardRank', () => {
   })
 
   it('affiche le titre "Rang actuel"', async () => {
-    mockRankResponse(rankedData)
+    apiMock.get.mockResolvedValueOnce({ data: rankedData })
 
-    const wrapper = mountCardRank()
+    const wrapper = await mountCardRank()
 
     await flushPromises()
 
@@ -85,21 +99,21 @@ describe('CardRank', () => {
   })
 
   it('affiche le rang et la division après chargement', async () => {
-    mockRankResponse(rankedData)
+    apiMock.get.mockResolvedValueOnce({ data: rankedData })
 
-    const wrapper = mountCardRank()
+    const wrapper = await mountCardRank()
 
     await flushPromises()
 
-    expect(api.get).toHaveBeenCalledWith('/ranks/1/rank?modeId=1')
+    expect(apiMock.get).toHaveBeenCalledWith('/ranks/1/rank?modeId=1')
     expect(wrapper.text()).toContain('Gold')
     expect(wrapper.text()).toContain('I')
   })
 
   it("affiche l'état Unranked si le rang est Unranked", async () => {
-    mockRankResponse(unrankedData)
+    apiMock.get.mockResolvedValueOnce({ data: unrankedData })
 
-    const wrapper = mountCardRank()
+    const wrapper = await mountCardRank()
 
     await flushPromises()
 

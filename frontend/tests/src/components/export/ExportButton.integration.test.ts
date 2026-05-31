@@ -90,7 +90,6 @@ describe('ExportButton integration', () => {
     expect(apiGet).toHaveBeenCalledWith('/admin/export/users', {
       responseType: 'blob',
     })
-
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
   })
 })

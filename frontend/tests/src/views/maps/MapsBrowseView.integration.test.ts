@@ -1,4 +1,4 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -6,6 +6,18 @@ import { useMapsStore } from '@/stores/mapsStore'
 import { useUserStore } from '@/stores/userStore'
 import type { MapItem } from '@/types/maps'
 import MapsBrowseView from '@/views/maps/MapsBrowseView.vue'
+
+const apiGet = vi.hoisted(() => vi.fn())
+
+vi.mock('@/api', () => ({
+  default: {
+    get: apiGet,
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}))
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -86,7 +98,7 @@ const sampleMap: MapItem = {
 }
 
 function mountView() {
-  return mount(MapsBrowseView, {
+  return shallowMount(MapsBrowseView, {
     global: {
       stubs: {
         RouterLink: {
@@ -113,6 +125,8 @@ describe('MapsBrowseView integration', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
 
+    apiGet.mockResolvedValue({ data: [] })
+
     Object.defineProperty(window, 'scrollTo', {
       value: vi.fn(),
       writable: true,
@@ -122,6 +136,7 @@ describe('MapsBrowseView integration', () => {
 
   it('passes flattened filtered maps to export button when user is admin', async () => {
     const userStore = useUserStore()
+
     userStore.profile = {
       id: 1,
       pocketbase_user_id: 'pb_1',
@@ -140,11 +155,11 @@ describe('MapsBrowseView integration', () => {
 
     const mapsStore = useMapsStore()
 
-    mapsStore.maps = [sampleMap]
-
     vi.spyOn(mapsStore, 'loadMaps').mockImplementation(async () => {
       mapsStore.maps = [sampleMap]
     })
+
+    mapsStore.maps = [sampleMap]
 
     const wrapper = mountView()
 
@@ -169,6 +184,7 @@ describe('MapsBrowseView integration', () => {
 
   it('hides export button for non-admin users', async () => {
     const userStore = useUserStore()
+
     userStore.profile = {
       id: 2,
       pocketbase_user_id: 'pb_2',
@@ -187,11 +203,11 @@ describe('MapsBrowseView integration', () => {
 
     const mapsStore = useMapsStore()
 
-    mapsStore.maps = [sampleMap]
-
     vi.spyOn(mapsStore, 'loadMaps').mockImplementation(async () => {
       mapsStore.maps = [sampleMap]
     })
+
+    mapsStore.maps = [sampleMap]
 
     const wrapper = mountView()
 
