@@ -6,7 +6,7 @@ export class Player {
     name: string;
     region: string;
     language: string;
-    matchmaking_pref: any;
+    matchmaking_pref: Record<string, unknown>;
     
     mmr: number;
     rank: string;
@@ -23,7 +23,7 @@ export class Player {
         name: string,
         region: string,
         language: string,
-        matchmaking_pref: any,
+        matchmaking_pref: Record<string, unknown>,
         mmr: number,
         rank: string,
         division: number,

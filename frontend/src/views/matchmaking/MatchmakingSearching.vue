@@ -26,9 +26,23 @@ import { useUserStore } from '@/stores/userStore'
 import { socket } from '@/services/socket'
 import BaseCard from '@/components/ui/BaseCard.vue'
 
+type BackendPlayer = {
+  id: number | string
+  pocketbase_user_id?: string
+  name: string
+  mmr?: number
+  rank?: string
+  division?: number
+}
+
+type MatchFoundEmit = {
+  myTeam: { id: number | string; name: string; mmr: number; rank: string; division: number; isMe?: boolean }[]
+  opponentTeam: { id: number | string; name: string; mmr: number; rank: string; division: number; isMe?: boolean }[]
+}
+
 const emit = defineEmits<{
   (e: 'cancel'): void
-  (e: 'match-found', data: any): void
+  (e: 'match-found', data: MatchFoundEmit): void
 }>()
 
 const timeElapsed = ref(0)
@@ -62,29 +76,29 @@ onMounted(() => {
     console.error("No Pocketbase User ID available to join queue.")
   }
 
-  socket.on('simulation_started', (data: any) => {
+  socket.on('simulation_started', (data: { message?: string }) => {
     console.log('Simulation Event:', data.message)
   })
 
-  socket.on('simulation_delayed_players', (data: any) => {
+  socket.on('simulation_delayed_players', (data: { message?: string }) => {
     console.log('Simulation Event:', data.message)
   })
 
-  socket.on('match_found', (data: any) => {
+  socket.on('match_found', (data: { game?: { teams?: BackendPlayer[][] } }) => {
     if (intervalId) clearInterval(intervalId)
     
     // Parse players from both teams according to our backend Player model
-    const teams = data.game.teams || [];
+    const teams = data.game?.teams || [];
     
     // Identify which team "I" am on
     let myTeamIndex = 0;
-    teams.forEach((team: any[], index: number) => {
+    teams.forEach((team: BackendPlayer[], index: number) => {
       if (team.some(p => p.pocketbase_user_id === pocketbaseUserId)) {
         myTeamIndex = index;
       }
     });
 
-    const myTeam = teams[myTeamIndex]?.map((p: any) => ({
+    const myTeam = teams[myTeamIndex]?.map((p: BackendPlayer) => ({
       id: p.id,
       name: p.name,
       mmr: Math.round(p.mmr || 0),
@@ -94,7 +108,7 @@ onMounted(() => {
     })) || [];
 
     const opponentTeamIndex = myTeamIndex === 0 ? 1 : 0;
-    const opponentTeam = teams[opponentTeamIndex] ? teams[opponentTeamIndex].map((p: any) => ({
+    const opponentTeam = teams[opponentTeamIndex] ? teams[opponentTeamIndex].map((p: BackendPlayer) => ({
       id: p.id,
       name: p.name,
       mmr: Math.round(p.mmr || 0),
@@ -109,7 +123,7 @@ onMounted(() => {
     })
   })
 
-  socket.on('queue_error', (error: any) => {
+  socket.on('queue_error', (error: { message?: string }) => {
     console.error('Queue error:', error)
   })
 

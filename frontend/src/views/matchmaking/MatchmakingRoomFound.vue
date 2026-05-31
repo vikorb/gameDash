@@ -45,8 +45,8 @@
 
 <script setup lang="ts">
 defineProps<{
-  myTeam: any[]
-  opponentTeam: any[]
+  myTeam: { id: number | string; name: string; mmr: number; rank: string; division: number; isMe?: boolean }[]
+  opponentTeam: { id: number | string; name: string; mmr: number; rank: string; division: number; isMe?: boolean }[]
 }>()
 </script>
 

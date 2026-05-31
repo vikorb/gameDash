@@ -22,9 +22,9 @@ export function initSocket(server: HttpServer) {
     io.on('connection', (socket: Socket) => {
         console.log(`[Socket] New connection: ${socket.id}`);
 
-        socket.on('join_queue', async (data: any) => {
+        socket.on('join_queue', async (data: { pocketbaseUserId?: string; modeId?: number }) => {
             // Data expects { pocketbaseUserId: string, modeId: number }
-            const { pocketbaseUserId, modeId } = data;
+            const { pocketbaseUserId, modeId } = data || {};
             
             if (!pocketbaseUserId || !modeId) {
                 return socket.emit('queue_error', { message: 'Missing pocketbaseUserId or modeId' });
@@ -55,7 +55,7 @@ export function initSocket(server: HttpServer) {
             socket.emit('queue_left', { message: 'Successfully left queue' });
         });
 
-        socket.on('simulate_matchmaking', async (data: any) => {
+        socket.on('simulate_matchmaking', async (data: { pocketbaseUserId?: string; modeId?: number } | undefined) => {
             console.log(`[Socket] Simulating matchmaking for: ${socket.id}`);
             const { pocketbaseUserId, modeId } = data || {};
             

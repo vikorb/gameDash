@@ -21,7 +21,7 @@ vi.mock('../services/playerService', () => {
     // Generate simple sequential or random player ids to avoid collision
     let counter = 1;
     return {
-        getPlayerForQueue: vi.fn(async (userId, modeId, socketId) => {
+        getPlayerForQueue: vi.fn(async (userId: number, modeId: number, socketId?: string) => {
             const playerId = counter++;
             const player = new Player(
                 `user_${playerId}`,
@@ -42,10 +42,10 @@ vi.mock('../services/playerService', () => {
 });
 
 describe('Socket and Matchmaking Integration', () => {
-    let io: any;
-    let serverSocket: any;
+    let io: import('socket.io').Server;
+    let serverSocket: import('socket.io').Socket | undefined;
     let clientSocket: ClientSocket;
-    let httpServer: any;
+    let httpServer: import('http').Server;
     const port = 4000;
 
     beforeAll(async () => {

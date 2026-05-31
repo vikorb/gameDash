@@ -23,15 +23,16 @@ const router = useRouter()
 const state = ref<'searching' | 'found'>('searching')
 
 // We will use a web socket later. For now, simulate.
-const myTeam = ref<any[]>([])
-const opponentTeam = ref<any[]>([])
+type PlayerSummary = { id: number | string; name: string; mmr: number; rank: string; division: number; isMe?: boolean }
+const myTeam = ref<PlayerSummary[]>([])
+const opponentTeam = ref<PlayerSummary[]>([])
 
 const cancelSearch = () => {
   // Navigation back to home, depending on your auth/home route
   router.push('/home')
 }
 
-const onMatchFound = (data: any) => {
+const onMatchFound = (data: { myTeam: PlayerSummary[]; opponentTeam: PlayerSummary[] }) => {
   state.value = 'found'
   myTeam.value = data.myTeam
   opponentTeam.value = data.opponentTeam
