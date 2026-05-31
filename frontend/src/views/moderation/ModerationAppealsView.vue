@@ -514,7 +514,7 @@ import {
   mdiTimerOffOutline,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -542,6 +542,10 @@ const moderationStore = useModerationAppealsStore()
 const { appeals, appealSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
+onMounted(() => {
+  void moderationStore.fetchAppeals()
+})
+
 // ─── Modal state ──────────────────────────────────────────────────────────────
 const selected = ref<ModerationAppeal | null>(null)
 const decisionNoteInput = ref('')
@@ -565,21 +569,21 @@ function sync() {
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
-function doRequestInfo() {
+async function doRequestInfo() {
   if (!selected.value) return
-  moderationStore.requestAppealInfo(selected.value.id, 'POC Admin')
+  await moderationStore.requestAppealInfo(selected.value.id, 'POC Admin', decisionNoteInput.value.trim() || undefined)
   sync()
 }
 
-function doReject() {
+async function doReject() {
   if (!selected.value) return
-  moderationStore.rejectAppeal(selected.value.id, 'POC Admin')
+  await moderationStore.rejectAppeal(selected.value.id, 'POC Admin', decisionNoteInput.value.trim() || undefined)
   sync()
 }
 
-function doAccept() {
+async function doAccept() {
   if (!selected.value) return
-  moderationStore.acceptAppeal(selected.value.id, 'POC Admin')
+  await moderationStore.acceptAppeal(selected.value.id, 'POC Admin', decisionNoteInput.value.trim() || undefined)
   sync()
 }
 

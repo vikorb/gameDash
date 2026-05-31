@@ -220,19 +220,36 @@ import {
   mdiTrendingUp,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import {
+  type BackofficeActivityType,
+  type BackofficePeriodValue,
+  type BackofficeRankKey,
+  useBackofficeDashboardStore,
+} from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
 
-type PeriodValue = '7d' | '30d' | '90d'
-type RankKey = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'master'
-type ActivityType = 'match' | 'transaction' | 'map' | 'sanction'
+type PeriodValue = BackofficePeriodValue
+type RankKey = BackofficeRankKey
+type ActivityType = BackofficeActivityType
+
+type ActivityEvent = {
+  id: number
+  type: ActivityType
+  actor: string
+  target?: string | null
+  timestamp: string
+}
 
 const router = useRouter()
 const userStore = useUserStore()
+const dashboardStore = useBackofficeDashboardStore()
 const { profile } = storeToRefs(userStore)
+const { snapshot, trends, rankDistribution, topMaps, topCreators, recentActivity } =
+  storeToRefs(dashboardStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const selectedPeriod = ref<PeriodValue>('7d')
@@ -248,77 +265,9 @@ const periodLabel = computed(() => {
   return found?.label ?? ''
 })
 
-// --- Mock data POC ----------------------------------------------------------
-
-type PeriodSnapshot = {
-  activeUsers: number
-  matchesPerDay: number
-  transactionsPerDay: number
-  mapsPublished: number
-  virtualRevenue: number
-  pendingReports: number
-}
-
-const snapshots: Record<PeriodValue, PeriodSnapshot> = {
-  '7d': {
-    activeUsers: 1842,
-    matchesPerDay: 3120,
-    transactionsPerDay: 412,
-    mapsPublished: 87,
-    virtualRevenue: 18430,
-    pendingReports: 23,
-  },
-  '30d': {
-    activeUsers: 5294,
-    matchesPerDay: 2890,
-    transactionsPerDay: 387,
-    mapsPublished: 342,
-    virtualRevenue: 72180,
-    pendingReports: 41,
-  },
-  '90d': {
-    activeUsers: 12480,
-    matchesPerDay: 2715,
-    transactionsPerDay: 365,
-    mapsPublished: 1024,
-    virtualRevenue: 218400,
-    pendingReports: 58,
-  },
-}
-
-const trends: Record<
-  PeriodValue,
-  Record<keyof PeriodSnapshot, { value: string; direction: 'up' | 'down' }>
-> = {
-  '7d': {
-    activeUsers: { value: '+12.4%', direction: 'up' },
-    matchesPerDay: { value: '+5.8%', direction: 'up' },
-    transactionsPerDay: { value: '+3.1%', direction: 'up' },
-    mapsPublished: { value: '+8.0%', direction: 'up' },
-    virtualRevenue: { value: '+9.7%', direction: 'up' },
-    pendingReports: { value: '-2.5%', direction: 'down' },
-  },
-  '30d': {
-    activeUsers: { value: '+7.2%', direction: 'up' },
-    matchesPerDay: { value: '+2.4%', direction: 'up' },
-    transactionsPerDay: { value: '-1.2%', direction: 'down' },
-    mapsPublished: { value: '+14.5%', direction: 'up' },
-    virtualRevenue: { value: '+6.1%', direction: 'up' },
-    pendingReports: { value: '+8.4%', direction: 'up' },
-  },
-  '90d': {
-    activeUsers: { value: '+18.9%', direction: 'up' },
-    matchesPerDay: { value: '+1.5%', direction: 'up' },
-    transactionsPerDay: { value: '+0.8%', direction: 'up' },
-    mapsPublished: { value: '+22.1%', direction: 'up' },
-    virtualRevenue: { value: '+12.8%', direction: 'up' },
-    pendingReports: { value: '+15.2%', direction: 'up' },
-  },
-}
-
 const kpiCards = computed(() => {
-  const snap = snapshots[selectedPeriod.value]
-  const trend = trends[selectedPeriod.value]
+  const snap = snapshot.value
+  const trend = trends.value
 
   return [
     {
@@ -378,83 +327,13 @@ const kpiCards = computed(() => {
   ]
 })
 
-const rankDistribution = computed<Array<{ key: RankKey; count: number; percentage: number }>>(
-  () => {
-    const base: Array<{ key: RankKey; count: number }> = [
-      { key: 'bronze', count: 4820 },
-      { key: 'silver', count: 3210 },
-      { key: 'gold', count: 2150 },
-      { key: 'platinum', count: 1080 },
-      { key: 'diamond', count: 480 },
-      { key: 'master', count: 120 },
-    ]
-
-    const multiplier =
-      selectedPeriod.value === '7d' ? 1 : selectedPeriod.value === '30d' ? 1.2 : 1.45
-
-    const scaled = base.map((item) => ({ ...item, count: Math.round(item.count * multiplier) }))
-    const total = scaled.reduce((sum, item) => sum + item.count, 0)
-
-    return scaled.map((item) => ({
-      ...item,
-      percentage: total === 0 ? 0 : (item.count / total) * 100,
-    }))
-  },
-)
-
 const totalRankedPlayers = computed(() =>
   rankDistribution.value.reduce((sum, item) => sum + item.count, 0),
 )
 
-const topMaps = ref([
-  { id: 1, title: 'Neon Crucible', author: 'pixelqueen', tests: 12480, rating: 4.8 },
-  { id: 2, title: 'Forgotten Outpost', author: 'shadowfox', tests: 9820, rating: 4.6 },
-  { id: 3, title: 'Skybreaker', author: 'neo_runner', tests: 8190, rating: 4.5 },
-  { id: 4, title: 'Ember Run', author: 'helios', tests: 7240, rating: 4.4 },
-  { id: 5, title: 'Hollow Frontier', author: 'raven', tests: 6510, rating: 4.3 },
-])
-
-const topCreators = ref([
-  { id: 1, name: 'pixelqueen', mapsPublished: 24, totalTests: 38200 },
-  { id: 2, name: 'shadowfox', mapsPublished: 18, totalTests: 29150 },
-  { id: 3, name: 'neo_runner', mapsPublished: 15, totalTests: 22480 },
-  { id: 4, name: 'mira', mapsPublished: 11, totalTests: 15920 },
-])
-
-type ActivityEvent = {
-  id: number
-  type: ActivityType
-  actor: string
-  target?: string
-  timestamp: string
-}
-
-const recentActivity = ref<ActivityEvent[]>([
-  { id: 1, type: 'sanction', actor: 'alice', target: 'shadowfox', timestamp: minutesAgo(4) },
-  {
-    id: 2,
-    type: 'map',
-    actor: 'pixelqueen',
-    target: 'Neon Crucible v3',
-    timestamp: minutesAgo(11),
-  },
-  {
-    id: 3,
-    type: 'transaction',
-    actor: 'luna',
-    target: '500 hard currency',
-    timestamp: minutesAgo(18),
-  },
-  { id: 4, type: 'match', actor: 'neo_runner', target: 'Ranked 5v5', timestamp: minutesAgo(27) },
-  { id: 5, type: 'map', actor: 'helios', target: 'Ember Run v2', timestamp: minutesAgo(42) },
-  { id: 6, type: 'sanction', actor: 'enzo', target: 'thorium', timestamp: minutesAgo(58) },
-])
-
-function minutesAgo(minutes: number) {
-  return new Date(Date.now() - minutes * 60 * 1000).toISOString()
-}
-
-// --- Helpers ----------------------------------------------------------------
+watch(selectedPeriod, (period) => {
+  void dashboardStore.fetchDashboard(period)
+})
 
 function goBackToBackoffice() {
   router.push('/backoffice')
@@ -509,7 +388,10 @@ onMounted(() => {
 
   if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  void dashboardStore.fetchDashboard(selectedPeriod.value)
 })
 </script>
 

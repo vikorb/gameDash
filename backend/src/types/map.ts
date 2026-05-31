@@ -1,7 +1,7 @@
 // ── Statuts ──────────────────────────────────────────────────────────────────
 
 export type MapStatus = "draft" | "beta" | "stable";
-export type ModerationStatus = "visible" | "hidden" | "removed";
+export type ModerationStatus = "visible" | "hidden" | "removed" | "review";
 export type VoteValue = "like" | "dislike";
 
 // ── Rows bruts (structure exacte des tables) ─────────────────────────────────

@@ -492,7 +492,7 @@ import {
   mdiTimerOffOutline,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -512,6 +512,10 @@ const router = useRouter()
 const moderationStore = useModerationSanctionsStore()
 const { sanctions, sanctionSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
+
+onMounted(() => {
+  void moderationStore.fetchSanctions()
+})
 
 // ─── Modal state ──────────────────────────────────────────────────────────────
 const selected = ref<ModerationSanction | null>(null)
@@ -541,15 +545,15 @@ function sync() {
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
-function doActivate() {
+async function doActivate() {
   if (!selected.value) return
-  moderationStore.activateSanction(selected.value.id, 'POC Admin')
+  await moderationStore.activateSanction(selected.value.id, 'POC Admin')
   sync()
 }
 
-function doRevoke() {
+async function doRevoke() {
   if (!selected.value) return
-  moderationStore.revokeSanction(selected.value.id, 'POC Admin')
+  await moderationStore.revokeSanction(selected.value.id, 'POC Admin')
   sync()
 }
 
@@ -565,20 +569,10 @@ function cancelEditNote() {
   noteInput.value = ''
 }
 
-function doSaveNote() {
+async function doSaveNote() {
   if (!selected.value) return
-  const store = moderationStore as unknown as Record<string, unknown>
-  if (typeof store['updateSanctionNote'] === 'function') {
-    ;(store['updateSanctionNote'] as (id: string, note: string, actor: string) => void)(
-      selected.value.id,
-      noteInput.value.trim(),
-      'POC Admin',
-    )
-    sync()
-  } else {
-    // POC fallback: mutate locally
-    selected.value = { ...selected.value, note: noteInput.value.trim() }
-  }
+  await moderationStore.updateSanctionNote(selected.value.id, noteInput.value.trim(), 'POC Admin')
+  sync()
   editingNote.value = false
   noteSaved.value = true
   setTimeout(() => {

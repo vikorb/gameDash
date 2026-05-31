@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { apiRequest } from '../apiClient'
 import { useModerationAuditStore } from './audit'
-import { createModerationId, generateReports, MODERATION_MOCK_COUNTS, nowIso } from './mock'
 import type {
   ModerationReport,
   ModerationReportActivity,
@@ -10,249 +10,193 @@ import type {
   ModerationReportStatus,
 } from './types'
 
-function ensureReportCollections(report: ModerationReport) {
-  if (!report.evidence) {
-    report.evidence = []
-  }
+type ReportsListResponse = {
+  data: Array<Partial<ModerationReport> & { id: string | number }>
+}
 
-  if (!report.replies) {
-    report.replies = []
-  }
+type ReportResponse = {
+  data: Partial<ModerationReport> & { id: string | number }
+}
 
-  if (!report.internalNotes) {
-    report.internalNotes = []
-  }
-
-  if (!report.activity) {
-    report.activity = []
-  }
-
-  if (!report.attachments) {
-    report.attachments = []
-  }
+function normalizeReport(report: Partial<ModerationReport> & { id: string | number }) {
+  return {
+    id: String(report.id),
+    subject: report.subject ?? 'Signalement',
+    targetName: report.targetName ?? '—',
+    targetType: report.targetType ?? 'user',
+    reporterName: report.reporterName ?? '—',
+    reason: report.reason ?? '—',
+    summary: report.summary ?? '',
+    createdAt: report.createdAt ?? new Date().toISOString(),
+    updatedAt: report.updatedAt ?? report.createdAt ?? new Date().toISOString(),
+    status: report.status ?? 'new',
+    severity: report.severity ?? 'medium',
+    assignedTo: report.assignedTo ?? null,
+    evidence: Array.isArray(report.evidence) ? report.evidence : [],
+    replies: Array.isArray(report.replies) ? report.replies : [],
+    internalNotes: Array.isArray(report.internalNotes) ? report.internalNotes : [],
+    activity: Array.isArray(report.activity) ? report.activity : [],
+    attachments: Array.isArray(report.attachments) ? report.attachments : [],
+  } satisfies ModerationReport
 }
 
 export const useModerationReportsStore = defineStore('moderation-reports', () => {
   const auditStore = useModerationAuditStore()
-  const reports = ref<ModerationReport[]>(generateReports(MODERATION_MOCK_COUNTS.reports))
+  const reports = ref<ModerationReport[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  function pushReportActivity(
-    report: ModerationReport,
-    entry: Omit<ModerationReportActivity, 'id' | 'createdAt'>,
-  ) {
-    ensureReportCollections(report)
+  function replaceReport(report: ModerationReport) {
+    const index = reports.value.findIndex((item) => item.id === report.id)
 
-    report.activity.unshift({
-      id: createModerationId('activity'),
-      createdAt: nowIso(),
-      ...entry,
-    })
+    if (index === -1) {
+      reports.value.unshift(report)
+      return
+    }
 
-    report.updatedAt = nowIso()
+    reports.value[index] = report
+  }
+
+  async function fetchReports() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await apiRequest<ReportsListResponse>('/moderation/reports')
+      reports.value = response.data.map(normalizeReport)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Impossible de charger les signalements.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function refreshAudit() {
+    try {
+      await auditStore.fetchAuditEntries()
+    } catch {
+      // Le journal ne doit pas bloquer l'action principale.
+    }
   }
 
   function getReportById(reportId: string | number) {
     return reports.value.find((report) => String(report.id) === String(reportId)) ?? null
   }
 
-  function assignReport(reportId: string | number, actorName = 'Administration') {
-    const report = getReportById(reportId)
+  async function assignReport(reportId: string | number, actorName = 'Administration') {
+    const assignedTo = actorName.trim()
+    if (!assignedTo) return
 
-    if (!report) {
-      return
-    }
-
-    const trimmedActor = actorName.trim()
-    if (!trimmedActor) {
-      return
-    }
-
-    const previousAssignee = report.assignedTo
-    const sameAssignee = previousAssignee === trimmedActor
-
-    if (sameAssignee && report.status !== 'new') {
-      return
-    }
-
-    report.assignedTo = trimmedActor
-    report.updatedAt = nowIso()
-
-    if (report.status === 'new') {
-      report.status = 'investigating'
-    }
-
-    pushReportActivity(report, {
-      actor: trimmedActor,
-      message:
-        previousAssignee && previousAssignee !== trimmedActor
-          ? `Assignment changed from ${previousAssignee} to ${trimmedActor}`
-          : `Report assigned to ${trimmedActor}`,
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/assign`, {
+      method: 'POST',
+      body: JSON.stringify({ assignedTo, actor: assignedTo }),
     })
 
-    auditStore.pushAudit({
-      actorName: trimmedActor,
-      actionKey: 'report_assigned',
-      resourceType: 'report',
-      resourceLabel: report.subject,
-      metadata: [report.id, trimmedActor],
-    })
+    replaceReport(normalizeReport(response.data))
+    await refreshAudit()
   }
 
-  function setReportStatus(
+  async function setReportStatus(
     reportId: string | number,
     status: ModerationReportStatus,
     actorName = 'Administration',
     note?: string,
   ) {
-    const report = getReportById(reportId)
-
-    if (!report) {
-      return
-    }
-
-    const trimmedActor = actorName.trim()
-    const trimmedNote = note?.trim() ?? ''
-    const sameStatus = report.status === status
-
-    if (sameStatus && !trimmedNote) {
-      return
-    }
-
-    report.status = status
-    report.updatedAt = nowIso()
-
-    if (!report.assignedTo && trimmedActor) {
-      report.assignedTo = trimmedActor
-    }
-
-    pushReportActivity(report, {
-      actor: trimmedActor || 'Administration',
-      message: trimmedNote
-        ? `Status changed to ${status}: ${trimmedNote}`
-        : `Status changed to ${status}`,
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, actor: actorName, note }),
     })
+
+    replaceReport(normalizeReport(response.data))
+    await refreshAudit()
   }
 
-  function resolveReport(reportId: string | number, actorName = 'Administration', note?: string) {
-    const report = getReportById(reportId)
-
-    if (!report) {
-      return
-    }
-
-    setReportStatus(reportId, 'resolved', actorName, note)
-
-    auditStore.pushAudit({
-      actorName,
-      actionKey: 'report_resolved',
-      resourceType: 'report',
-      resourceLabel: report.subject,
-      metadata: [report.id, 'resolved'],
+  async function resolveReport(reportId: string | number, actorName = 'Administration', note?: string) {
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ actor: actorName, note }),
     })
+
+    replaceReport(normalizeReport(response.data))
+    await refreshAudit()
   }
 
-  function dismissReport(reportId: string | number, actorName = 'Administration', note?: string) {
-    setReportStatus(reportId, 'dismissed', actorName, note)
+  async function dismissReport(reportId: string | number, actorName = 'Administration', note?: string) {
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/dismiss`, {
+      method: 'POST',
+      body: JSON.stringify({ actor: actorName, note }),
+    })
+
+    replaceReport(normalizeReport(response.data))
+    await refreshAudit()
   }
 
-  function addReportInternalNote(
+  async function addReportInternalNote(
     reportId: string | number,
     message: string,
     author = 'Administration',
   ) {
-    const report = getReportById(reportId)
     const trimmedMessage = message.trim()
+    if (!trimmedMessage) return
 
-    if (!report || !trimmedMessage) {
-      return
-    }
-
-    ensureReportCollections(report)
-
-    report.internalNotes.unshift({
-      id: createModerationId('note'),
-      author,
-      message: trimmedMessage,
-      createdAt: nowIso(),
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ message: trimmedMessage, actor: author }),
     })
 
-    pushReportActivity(report, {
-      actor: author,
-      message: 'Internal note added',
-    })
+    replaceReport(normalizeReport(response.data))
   }
 
-  function replyToReport(reportId: string | number, message: string, author = 'Administration') {
-    const report = getReportById(reportId)
+  async function replyToReport(reportId: string | number, message: string, author = 'Administration') {
     const trimmedMessage = message.trim()
+    if (!trimmedMessage) return
 
-    if (!report || !trimmedMessage) {
-      return
-    }
-
-    ensureReportCollections(report)
-
-    report.replies.unshift({
-      id: createModerationId('reply'),
-      author,
-      message: trimmedMessage,
-      createdAt: nowIso(),
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/replies`, {
+      method: 'POST',
+      body: JSON.stringify({ message: trimmedMessage, actor: author }),
     })
 
-    pushReportActivity(report, {
-      actor: author,
-      message: 'Reply sent on report thread',
-    })
+    replaceReport(normalizeReport(response.data))
   }
 
-  function addReportAttachment(
+  async function addReportAttachment(
     reportId: string | number,
     payload: Omit<ModerationReportAttachment, 'id' | 'addedAt' | 'addedBy'>,
     actorName = 'Administration',
   ) {
-    const report = getReportById(reportId)
-
-    if (!report) {
-      return
-    }
-
-    ensureReportCollections(report)
-
-    report.attachments.unshift({
-      id: createModerationId('attachment'),
-      addedAt: nowIso(),
-      addedBy: actorName,
-      ...payload,
+    const response = await apiRequest<ReportResponse>(`/moderation/reports/${reportId}/attachments`, {
+      method: 'POST',
+      body: JSON.stringify({ ...payload, actor: actorName }),
     })
 
-    pushReportActivity(report, {
-      actor: actorName,
-      message: `Attachment added: ${payload.name}`,
-    })
+    replaceReport(normalizeReport(response.data))
   }
 
-  function removeReportAttachment(
+  async function removeReportAttachment(
     reportId: string | number,
     attachmentId: string,
     actorName = 'Administration',
   ) {
-    const report = getReportById(reportId)
+    const response = await apiRequest<ReportResponse>(
+      `/moderation/reports/${reportId}/attachments/${attachmentId}`,
+      {
+        method: 'DELETE',
+        body: JSON.stringify({ actor: actorName }),
+      },
+    )
 
-    if (!report) {
-      return
-    }
+    replaceReport(normalizeReport(response.data))
+  }
 
-    const attachment = report.attachments.find((item) => item.id === attachmentId)
-    if (!attachment) {
-      return
-    }
-
-    report.attachments = report.attachments.filter((item) => item.id !== attachmentId)
-    report.updatedAt = nowIso()
-
-    pushReportActivity(report, {
-      actor: actorName,
-      message: `Attachment removed: ${attachment.name}`,
+  function pushReportActivity(
+    report: ModerationReport,
+    entry: Omit<ModerationReportActivity, 'id' | 'createdAt'>,
+  ) {
+    report.activity.unshift({
+      id: `local-activity-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      ...entry,
     })
   }
 
@@ -266,7 +210,10 @@ export const useModerationReportsStore = defineStore('moderation-reports', () =>
 
   return {
     reports,
+    loading,
+    error,
     reportSummary,
+    fetchReports,
     getReportById,
     assignReport,
     setReportStatus,
@@ -276,5 +223,6 @@ export const useModerationReportsStore = defineStore('moderation-reports', () =>
     replyToReport,
     addReportAttachment,
     removeReportAttachment,
+    pushReportActivity,
   }
 })

@@ -64,7 +64,13 @@
             <!-- Map grids (favorites / liked / disliked / tested) -->
             <template v-if="activeTab !== 'commented'">
               <div v-if="displayedMaps.length > 0" class="maps-grid">
-                <MapCard v-for="map in displayedMaps" :key="map.id" :map="map" @view="onView" />
+                <div v-for="map in displayedMaps" :key="map.id" class="map-card-report-wrap">
+                  <MapCard :map="map" @view="onView" />
+                  <button type="button" class="map-card-report-btn" @click.stop="openMapReport(map)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+                    Signaler
+                  </button>
+                </div>
               </div>
               <div v-else class="empty-state activity-empty">
                 <div class="activity-empty__icon">
@@ -110,16 +116,26 @@
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
-                    @click="handleCommentLike(comment.id)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
-                    </svg>
-                    {{ comment.likes_count }}
-                  </button>
+                  <div class="chi-actions">
+                    <button
+                      type="button"
+                      :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
+                      @click="handleCommentLike(comment.id)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
+                      </svg>
+                      {{ comment.likes_count }}
+                    </button>
+                    <button
+                      type="button"
+                      class="chi-report-btn"
+                      @click="openCommentReport(comment)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+                      Signaler
+                    </button>
+                  </div>
                 </article>
               </div>
 
@@ -145,12 +161,37 @@
         </Transition>
       </section>
     </div>
+
+    <MapReportModal
+      v-if="reportTarget"
+      :open="reportModalOpen"
+      :target-type="reportTarget.targetType"
+      :target-id="reportTarget.targetId"
+      :target-name="reportTarget.targetName"
+      :map-id="reportTarget.mapId"
+      :map-title="reportTarget.mapTitle"
+      :author-name="reportTarget.authorName"
+      :source-url="reportTarget.sourceUrl"
+      @close="closeReportModal"
+      @submitted="handleReportSubmitted"
+    />
+
+    <Transition name="toast">
+      <div v-if="toast" :class="['toast', `toast--${toast.type}`]">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path :d="toast.type === 'success' ? mdiCheck : mdiAlert" />
+        </svg>
+        {{ toast.message }}
+      </div>
+    </Transition>
   </main>
 </template>
 
 <script setup lang="ts">
 import {
+  mdiAlert,
   mdiArrowLeft,
+  mdiCheck,
   mdiCommentText,
   mdiCompass,
   mdiHeart,
@@ -164,7 +205,9 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import MapCard from '@/components/MapCard.vue'
+import MapReportModal from '@/components/MapReportModal.vue'
 import { useMapsStore } from '@/stores/mapsStore'
+import type { MapItem } from '@/types/maps'
 
 const store = useMapsStore()
 const router = useRouter()
@@ -224,6 +267,65 @@ const TABS: Tab[] = [
   },
 ]
 
+type ReportTarget = {
+  targetType: 'map' | 'comment'
+  targetId: string | number
+  targetName: string
+  mapId: string | number
+  mapTitle: string
+  authorName?: string
+  sourceUrl: string
+}
+
+const reportModalOpen = ref(false)
+const reportTarget = ref<ReportTarget | null>(null)
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { message, type }
+  toastTimer = setTimeout(() => {
+    toast.value = null
+  }, 3200)
+}
+
+function openMapReport(map: MapItem) {
+  reportTarget.value = {
+    targetType: 'map',
+    targetId: map.id,
+    targetName: map.title,
+    mapId: map.id,
+    mapTitle: map.title,
+    authorName: map.creator.username,
+    sourceUrl: `${window.location.origin}/maps/${map.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function openCommentReport(comment: { id: string | number; mapId: string | number; content: string }) {
+  const title = getMapTitle(comment.mapId)
+
+  reportTarget.value = {
+    targetType: 'comment',
+    targetId: comment.id,
+    targetName: comment.content.slice(0, 80),
+    mapId: comment.mapId,
+    mapTitle: title,
+    authorName: 'Vous',
+    sourceUrl: `${window.location.origin}/maps/${comment.mapId}#comment-${comment.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function closeReportModal() {
+  reportModalOpen.value = false
+}
+
+function handleReportSubmitted() {
+  showToast('Signalement envoyé à la modération.', 'success')
+}
+
 const activeTab = ref<TabKey>('favorites')
 const currentTab = computed(() => TABS.find((tab) => tab.key === activeTab.value) ?? TABS[0]!)
 const displayedMaps = computed(() => {
@@ -279,10 +381,10 @@ function onView(id: string | number) {
 }
 
 /* Comment history helpers */
-function getMapTitle(mapId: number) {
+function getMapTitle(mapId: string | number) {
   return store.getMap(mapId)?.title ?? String(mapId)
 }
-function getMapThumb(mapId: number) {
+function getMapThumb(mapId: string | number) {
   return store.getMap(mapId)?.screenshots[0]?.url ?? ''
 }
 
@@ -892,6 +994,143 @@ onMounted(async () => {
   border-color: rgba(225, 91, 91, 0.38);
 }
 
+
+.map-card-report-wrap {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+.map-card-report-wrap :deep(.map-card) {
+  height: 100%;
+}
+
+.map-card-report-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-height: 34px;
+  padding: 0.45rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  background: rgba(18, 24, 38, 0.68);
+  color: rgba(252, 239, 225, 0.74);
+  font-size: 0.76rem;
+  font-weight: 950;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.8);
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.map-card-report-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.map-card-report-btn:hover {
+  transform: translateY(-1px);
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.42);
+  background: rgba(242, 139, 91, 0.16);
+}
+
+.chi-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-self: center;
+}
+
+.chi-report-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 54px;
+  padding: 0.52rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.24);
+  color: rgba(252, 239, 225, 0.5);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease;
+}
+
+.chi-report-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.chi-report-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 139, 91, 0.35);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.1);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 1300;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  transform: translateX(-50%);
+  padding: 0.78rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  color: var(--color-cream);
+  font-weight: 900;
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.9);
+}
+
+.toast svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.toast--success {
+  background: linear-gradient(135deg, #2d6a4f, #1b4332);
+  border-color: rgba(61, 191, 125, 0.35);
+}
+
+.toast--error {
+  background: linear-gradient(135deg, #8a4040, #5e2020);
+  border-color: rgba(225, 91, 91, 0.35);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 1300px) {
   .page-hero {
@@ -964,7 +1203,12 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
 
-  .chi-like-btn {
+  .chi-like-btn,
+  .chi-report-btn {
+    width: 100%;
+  }
+
+  .chi-actions {
     width: 100%;
   }
 
@@ -972,4 +1216,20 @@ onMounted(async () => {
     width: 100%;
   }
 }
+@media (max-width: 560px) {
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: translateY(10px);
+  }
+}
+
 </style>

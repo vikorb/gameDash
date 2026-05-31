@@ -9,10 +9,34 @@ import { asyncHandler } from "@/middlewares/asyncHandler";
 import { notFound } from "@/middlewares/notFound";
 import { errorHandler } from "@/middlewares/errorHandler";
 import db from "@/database";
+import { createModerationRouter } from "@/routes/moderation";
+import { createBackofficeRouter } from "@/routes/backoffice";
 
 export const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.FRONTEND_URL ?? "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-User-Id", "x-user-id"],
+  }),
+);
+
 app.use(express.json({ limit: "10mb" }));
 
 app.use((req, _res, next) => {
@@ -37,10 +61,10 @@ app.get(
 
 app.use("/api/maps", mapsRoutes(db));
 app.use("/api/users", usersRoutes);
-
 app.use("/api/shop", createShopRouter(db));
-
 app.use("/api/shops", createShopRouter(db));
+app.use("/api/moderation", createModerationRouter(db));
+app.use("/api/backoffice", createBackofficeRouter(db));
 
 app.use(notFound);
 app.use(errorHandler);

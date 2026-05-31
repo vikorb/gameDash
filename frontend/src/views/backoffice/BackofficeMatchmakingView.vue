@@ -302,82 +302,27 @@ import {
   mdiSwordCross,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import {
+  type BackofficeMatchmakingModeKey,
+  useBackofficeMatchmakingStore,
+} from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
 
-type ModeKey = 'ranked' | 'casual' | 'fun'
+type ModeKey = BackofficeMatchmakingModeKey
 type FeedbackType = 'success' | 'warning' | 'error'
-
-type MatchmakingMode = {
-  id: number
-  key: ModeKey
-  enabled: boolean
-  maxWaitTimeSec: number
-  mmrWindow: number
-  teamSize: number
-  playersInQueue: number
-  matchesLastHour: number
-  lastUpdatedAt: string
-  lastUpdatedBy: string
-}
-
-type AuditEntry = {
-  id: number
-  modeKey: ModeKey
-  actor: string
-  changes: string[]
-  timestamp: string
-}
-
 const router = useRouter()
 const userStore = useUserStore()
+const matchmakingStore = useBackofficeMatchmakingStore()
 const { profile } = storeToRefs(userStore)
+const { modes, auditTrail, summary } = storeToRefs(matchmakingStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
 const savingId = ref<number | null>(null)
-
-const modes = ref<MatchmakingMode[]>([
-  {
-    id: 1,
-    key: 'ranked',
-    enabled: true,
-    maxWaitTimeSec: 180,
-    mmrWindow: 150,
-    teamSize: 5,
-    playersInQueue: 84,
-    matchesLastHour: 142,
-    lastUpdatedAt: hoursAgo(6),
-    lastUpdatedBy: 'enzo',
-  },
-  {
-    id: 2,
-    key: 'casual',
-    enabled: true,
-    maxWaitTimeSec: 90,
-    mmrWindow: 400,
-    teamSize: 5,
-    playersInQueue: 156,
-    matchesLastHour: 218,
-    lastUpdatedAt: hoursAgo(28),
-    lastUpdatedBy: 'alice',
-  },
-  {
-    id: 3,
-    key: 'fun',
-    enabled: true,
-    maxWaitTimeSec: 60,
-    mmrWindow: 800,
-    teamSize: 3,
-    playersInQueue: 42,
-    matchesLastHour: 76,
-    lastUpdatedAt: hoursAgo(72),
-    lastUpdatedBy: 'enzo',
-  },
-])
 
 const pending = reactive<
   Record<
@@ -391,38 +336,22 @@ const pending = reactive<
   >
 >({})
 
-modes.value.forEach((mode) => {
-  pending[mode.id] = {
-    enabled: mode.enabled,
-    maxWaitTimeSec: mode.maxWaitTimeSec,
-    mmrWindow: mode.mmrWindow,
-    teamSize: mode.teamSize,
-  }
-})
-
-const auditTrail = ref<AuditEntry[]>([
-  {
-    id: 1,
-    modeKey: 'ranked',
-    actor: 'enzo',
-    changes: ['maxWaitTimeSec: 240 → 180', 'mmrWindow: 200 → 150'],
-    timestamp: hoursAgo(6),
+watch(
+  modes,
+  (value) => {
+    value.forEach((mode) => {
+      if (!pending[mode.id]) {
+        pending[mode.id] = {
+          enabled: mode.enabled,
+          maxWaitTimeSec: mode.maxWaitTimeSec,
+          mmrWindow: mode.mmrWindow,
+          teamSize: mode.teamSize,
+        }
+      }
+    })
   },
-  {
-    id: 2,
-    modeKey: 'casual',
-    actor: 'alice',
-    changes: ['mmrWindow: 350 → 400'],
-    timestamp: hoursAgo(28),
-  },
-  {
-    id: 3,
-    modeKey: 'fun',
-    actor: 'enzo',
-    changes: ['enabled: false → true', 'teamSize: 5 → 3'],
-    timestamp: hoursAgo(72),
-  },
-])
+  { immediate: true },
+)
 
 const dirtyModes = computed(() => {
   const dirty = new Set<number>()
@@ -444,32 +373,10 @@ const dirtyModes = computed(() => {
   return dirty
 })
 
-const totalInQueue = computed(() =>
-  modes.value.reduce((sum, mode) => sum + (mode.enabled ? mode.playersInQueue : 0), 0),
-)
-
-const avgWaitSeconds = computed(() => {
-  const enabledModes = modes.value.filter((m) => m.enabled)
-  if (enabledModes.length === 0) return 0
-  const sum = enabledModes.reduce((acc, mode) => acc + mode.maxWaitTimeSec, 0)
-  return Math.round(sum / enabledModes.length)
-})
-
-const lastUpdateAt = computed(() => {
-  const sorted = [...modes.value].sort(
-    (a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime(),
-  )
-  return sorted[0]?.lastUpdatedAt ?? new Date().toISOString()
-})
-
-const lastUpdateActor = computed(() => {
-  const sorted = [...modes.value].sort(
-    (a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime(),
-  )
-  return sorted[0]?.lastUpdatedBy ?? '—'
-})
-
-// --- Actions ---------------------------------------------------------------
+const totalInQueue = computed(() => summary.value.totalInQueue)
+const avgWaitSeconds = computed(() => summary.value.avgWaitSeconds)
+const lastUpdateAt = computed(() => summary.value.lastUpdateAt)
+const lastUpdateActor = computed(() => summary.value.lastUpdateActor)
 
 function goBackToBackoffice() {
   router.push('/backoffice')
@@ -501,62 +408,37 @@ async function saveMode(modeId: number) {
 
   savingId.value = modeId
 
-  // Build change list for audit
-  const changes: string[] = []
-  if (p.enabled !== mode.enabled) {
-    changes.push(`enabled: ${mode.enabled} → ${p.enabled}`)
-  }
-  if (p.maxWaitTimeSec !== mode.maxWaitTimeSec) {
-    changes.push(`maxWaitTimeSec: ${mode.maxWaitTimeSec} → ${p.maxWaitTimeSec}`)
-  }
-  if (p.mmrWindow !== mode.mmrWindow) {
-    changes.push(`mmrWindow: ${mode.mmrWindow} → ${p.mmrWindow}`)
-  }
-  if (p.teamSize !== mode.teamSize) {
-    changes.push(`teamSize: ${mode.teamSize} → ${p.teamSize}`)
-  }
+  try {
+    const actor = profile.value?.username || profile.value?.email || 'POC Admin'
 
-  await wait(280)
-
-  const actor = profile.value?.username || profile.value?.email || 'POC Admin'
-  const now = new Date().toISOString()
-
-  modes.value = modes.value.map((m) =>
-    m.id === modeId
-      ? {
-          ...m,
-          enabled: p.enabled,
-          maxWaitTimeSec: p.maxWaitTimeSec,
-          mmrWindow: p.mmrWindow,
-          teamSize: p.teamSize,
-          lastUpdatedAt: now,
-          lastUpdatedBy: actor,
-        }
-      : m,
-  )
-
-  auditTrail.value = [
-    {
-      id: Date.now(),
-      modeKey: mode.key,
+    await matchmakingStore.updateMatchmakingMode(
+      modeId,
+      {
+        enabled: p.enabled,
+        maxWaitTimeSec: p.maxWaitTimeSec,
+        mmrWindow: p.mmrWindow,
+        teamSize: p.teamSize,
+      },
       actor,
-      changes,
-      timestamp: now,
-    },
-    ...auditTrail.value,
-  ]
+    )
 
-  feedback.value = {
-    type: 'success',
-    message: t('backoffice.matchmaking.feedback.saved', {
-      mode: getModeLabel(mode.key),
-    }),
+    resetMode(modeId)
+
+    feedback.value = {
+      type: 'success',
+      message: t('backoffice.matchmaking.feedback.saved', {
+        mode: getModeLabel(mode.key),
+      }),
+    }
+  } catch (err) {
+    feedback.value = {
+      type: 'error',
+      message: err instanceof Error ? err.message : 'Impossible de sauvegarder le mode.',
+    }
+  } finally {
+    savingId.value = null
   }
-
-  savingId.value = null
 }
-
-// --- Helpers ---------------------------------------------------------------
 
 function getModeLabel(key: ModeKey) {
   return t(`backoffice.matchmaking.modes.${key}.label`)
@@ -570,10 +452,6 @@ function getModeIcon(key: ModeKey) {
   if (key === 'ranked') return mdiShieldCrownOutline
   if (key === 'fun') return mdiPartyPopper
   return mdiSwordCross
-}
-
-function hoursAgo(hours: number) {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
 function formatDate(value: string) {
@@ -597,16 +475,15 @@ function formatRelativeTime(value: string) {
   return t('backoffice.common.time.daysAgo', { count: diffDays })
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
 onMounted(() => {
   const role = profile.value?.role ?? ''
 
   if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  void matchmakingStore.fetchMatchmaking()
 })
 </script>
 

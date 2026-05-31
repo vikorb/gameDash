@@ -417,7 +417,7 @@ import {
   mdiShieldSearch,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -440,6 +440,10 @@ const moderationStore = useModerationContentStore()
 const { contentItems, contentSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
+onMounted(() => {
+  void moderationStore.fetchContentItems()
+})
+
 // ─── Modal state ────────────────────────────────────────────────────────────
 const selected = ref<ModerationContentItem | null>(null)
 
@@ -460,18 +464,18 @@ function syncSelectedFromStore() {
   }
 }
 
-function doReview() {
+async function doReview() {
   if (!selected.value) return
-  moderationStore.markContentForReview(selected.value.id, 'POC Admin')
+  await moderationStore.markContentForReview(selected.value.id, 'POC Admin')
   syncSelectedFromStore()
 }
 
-function doVisibility() {
+async function doVisibility() {
   if (!selected.value) return
   if (isHiddenOrRestricted(selected.value)) {
-    moderationStore.restoreContent(selected.value.id, 'POC Admin')
+    await moderationStore.restoreContent(selected.value.id, 'POC Admin')
   } else {
-    moderationStore.hideContent(selected.value.id, 'POC Admin')
+    await moderationStore.hideContent(selected.value.id, 'POC Admin')
   }
   syncSelectedFromStore()
 }

@@ -365,35 +365,26 @@ import {
   mdiMagnify,
   mdiRefresh,
 } from '@mdi/js'
+import { storeToRefs } from 'pinia'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import { useModerationUsersStore } from '@/stores/moderation'
+import {
+  type ModerationSelectedUser,
+  type ModerationUserRole,
+  type ModerationUserStatus,
+  useModerationUsersStore,
+} from '@/stores/moderation'
 
-type UserRole = 'player' | 'admin' | 'moderator'
-type UserStatus = 0 | 1 | 2 | 3
+type UserRole = ModerationUserRole
+type UserStatus = ModerationUserStatus
 type UserDeletedFilter = 'all' | 'active' | 'deleted'
 type UserSortBy = 'updated_at' | 'created_at' | 'username' | 'email' | 'role' | 'status'
 type UserSortOrder = 'asc' | 'desc'
 type UiStatusFilter = 'all' | '0' | '1' | '2' | '3'
 type FeedbackType = 'success' | 'warning' | 'error'
-
-type UserProfile = {
-  id: number
-  pocketbase_user_id: string | null
-  username: string | null
-  email: string | null
-  role: UserRole
-  status: UserStatus
-  region: string | null
-  bio: string | null
-  language: string | null
-  matchmaking_pref: unknown
-  created_at: string | null
-  updated_at: string | null
-  deleted_at: string | null
-}
+type UserProfile = ModerationSelectedUser
 
 type UserListFilters = {
   search: string
@@ -419,10 +410,11 @@ const DEFAULT_USER_LIST_FILTERS: UserListFilters = {
 
 const router = useRouter()
 const { t, locale } = useI18n({ useScope: 'global' })
+const moderationStore = useModerationUsersStore()
+const { users, pagination: usersPagination, summary: usersSummary, loading } = storeToRefs(moderationStore)
 
 const actionLoadingId = ref<number | null>(null)
 const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
-const loading = ref(false)
 const pendingRoles = ref<Record<number, UserRole>>({})
 
 const filters = reactive<{
@@ -445,253 +437,6 @@ const filters = reactive<{
   sortOrder: DEFAULT_USER_LIST_FILTERS.sortOrder,
 })
 
-function buildIso(date: string) {
-  return new Date(date).toISOString()
-}
-
-const allUsers = ref<UserProfile[]>([
-  {
-    id: 1,
-    pocketbase_user_id: 'pb_001',
-    username: 'enzo',
-    email: 'enzo@gamedash.test',
-    role: 'admin',
-    status: 1,
-    region: 'Île-de-France',
-    bio: 'Admin principal',
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-01T10:00:00'),
-    updated_at: buildIso('2026-04-06T11:15:00'),
-    deleted_at: null,
-  },
-  {
-    id: 2,
-    pocketbase_user_id: 'pb_002',
-    username: 'alice',
-    email: 'alice@gamedash.test',
-    role: 'moderator',
-    status: 1,
-    region: 'Lyon',
-    bio: 'Modération communauté',
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-02T14:00:00'),
-    updated_at: buildIso('2026-04-06T09:40:00'),
-    deleted_at: null,
-  },
-  {
-    id: 3,
-    pocketbase_user_id: 'pb_003',
-    username: 'neo_runner',
-    email: 'neo.runner@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: 'Marseille',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-04T09:30:00'),
-    updated_at: buildIso('2026-04-05T18:20:00'),
-    deleted_at: null,
-  },
-  {
-    id: 4,
-    pocketbase_user_id: 'pb_004',
-    username: 'shadowfox',
-    email: 'shadowfox@gamedash.test',
-    role: 'player',
-    status: 3,
-    region: 'Lille',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-05T12:10:00'),
-    updated_at: buildIso('2026-04-06T07:15:00'),
-    deleted_at: null,
-  },
-  {
-    id: 5,
-    pocketbase_user_id: 'pb_005',
-    username: 'luna',
-    email: 'luna@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Bordeaux',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-06T16:00:00'),
-    updated_at: buildIso('2026-04-04T20:10:00'),
-    deleted_at: null,
-  },
-  {
-    id: 6,
-    pocketbase_user_id: 'pb_006',
-    username: 'atlas',
-    email: 'atlas@gamedash.test',
-    role: 'moderator',
-    status: 2,
-    region: 'Toulouse',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-07T08:00:00'),
-    updated_at: buildIso('2026-04-02T13:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 7,
-    pocketbase_user_id: 'pb_007',
-    username: 'nova',
-    email: 'nova@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Nantes',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-08T11:00:00'),
-    updated_at: buildIso('2026-04-05T10:30:00'),
-    deleted_at: null,
-  },
-  {
-    id: 8,
-    pocketbase_user_id: 'pb_008',
-    username: 'blitz',
-    email: 'blitz@gamedash.test',
-    role: 'player',
-    status: 0,
-    region: 'Paris',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-09T09:00:00'),
-    updated_at: buildIso('2026-04-01T15:40:00'),
-    deleted_at: buildIso('2026-04-01T15:40:00'),
-  },
-  {
-    id: 9,
-    pocketbase_user_id: 'pb_009',
-    username: 'raven',
-    email: 'raven@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: 'Nice',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-10T13:20:00'),
-    updated_at: buildIso('2026-04-03T14:10:00'),
-    deleted_at: null,
-  },
-  {
-    id: 10,
-    pocketbase_user_id: 'pb_010',
-    username: 'pixelqueen',
-    email: 'pixelqueen@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Strasbourg',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-11T18:30:00'),
-    updated_at: buildIso('2026-04-06T08:55:00'),
-    deleted_at: null,
-  },
-  {
-    id: 11,
-    pocketbase_user_id: 'pb_011',
-    username: 'thorium',
-    email: 'thorium@gamedash.test',
-    role: 'player',
-    status: 3,
-    region: 'Rennes',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-12T07:10:00'),
-    updated_at: buildIso('2026-04-05T17:45:00'),
-    deleted_at: null,
-  },
-  {
-    id: 12,
-    pocketbase_user_id: 'pb_012',
-    username: 'mira',
-    email: 'mira@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Montpellier',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-13T10:45:00'),
-    updated_at: buildIso('2026-04-06T06:25:00'),
-    deleted_at: null,
-  },
-  {
-    id: 13,
-    pocketbase_user_id: 'pb_013',
-    username: 'helios',
-    email: 'helios@gamedash.test',
-    role: 'moderator',
-    status: 1,
-    region: 'Grenoble',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-14T12:00:00'),
-    updated_at: buildIso('2026-04-04T19:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 14,
-    pocketbase_user_id: 'pb_014',
-    username: 'ivy',
-    email: 'ivy@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: null,
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-15T09:40:00'),
-    updated_at: buildIso('2026-04-03T21:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 15,
-    pocketbase_user_id: 'pb_015',
-    username: 'zenit',
-    email: 'zenit@gamedash.test',
-    role: 'player',
-    status: 0,
-    region: 'Paris',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-16T15:15:00'),
-    updated_at: buildIso('2026-04-02T10:25:00'),
-    deleted_at: buildIso('2026-04-02T10:25:00'),
-  },
-  {
-    id: 16,
-    pocketbase_user_id: 'pb_016',
-    username: 'ember',
-    email: 'ember@gamedash.test',
-    role: 'admin',
-    status: 2,
-    region: 'Bruxelles',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-17T11:20:00'),
-    updated_at: buildIso('2026-04-06T05:45:00'),
-    deleted_at: null,
-  },
-])
-
 const statusQuickFilters = computed(() => [
   { value: 'all' as const, label: t('moderationUsers.statuses.all') },
   { value: '1' as const, label: t('moderationUsers.statuses.online') },
@@ -699,74 +444,6 @@ const statusQuickFilters = computed(() => [
   { value: '3' as const, label: t('moderationUsers.statuses.banned') },
   { value: '0' as const, label: t('moderationUsers.statuses.deleted') },
 ])
-
-const filteredUsers = computed(() => {
-  let result = [...allUsers.value]
-
-  const search = filters.search.trim().toLowerCase()
-  if (search) {
-    result = result.filter((user) => {
-      const haystack = [user.username, user.email, user.region, user.role, user.language]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(search)
-    })
-  }
-
-  if (filters.role !== 'all') {
-    result = result.filter((user) => user.role === filters.role)
-  }
-
-  if (filters.status !== 'all') {
-    const status = Number(filters.status) as UserStatus
-    result = result.filter((user) => user.status === status)
-  }
-
-  if (filters.deleted === 'active') {
-    result = result.filter((user) => !user.deleted_at)
-  }
-
-  if (filters.deleted === 'deleted') {
-    result = result.filter((user) => !!user.deleted_at)
-  }
-
-  result.sort((left, right) => {
-    const leftValue = getSortableValue(left, filters.sortBy)
-    const rightValue = getSortableValue(right, filters.sortBy)
-
-    if (leftValue < rightValue) {
-      return filters.sortOrder === 'asc' ? -1 : 1
-    }
-
-    if (leftValue > rightValue) {
-      return filters.sortOrder === 'asc' ? 1 : -1
-    }
-
-    return 0
-  })
-
-  return result
-})
-
-const usersPagination = computed(() => {
-  const total = filteredUsers.value.length
-  const totalPages = total === 0 ? 0 : Math.ceil(total / filters.limit)
-  const safePage = totalPages === 0 ? 1 : Math.min(filters.page, totalPages)
-
-  return {
-    page: safePage,
-    limit: filters.limit,
-    total,
-    totalPages,
-  }
-})
-
-const users = computed(() => {
-  const offset = (usersPagination.value.page - 1) * usersPagination.value.limit
-  return filteredUsers.value.slice(offset, offset + usersPagination.value.limit)
-})
 
 const activeFilterCount = computed(() => {
   let count = 0
@@ -782,12 +459,9 @@ const activeFilterCount = computed(() => {
   return count
 })
 
-const bannedCount = computed(() => filteredUsers.value.filter((user) => user.status === 3).length)
-const deletedCount = computed(() => filteredUsers.value.filter((user) => !!user.deleted_at).length)
-const adminsAndModeratorsCount = computed(
-  () =>
-    filteredUsers.value.filter((user) => user.role === 'admin' || user.role === 'moderator').length,
-)
+const bannedCount = computed(() => usersSummary.value.bannedCount)
+const deletedCount = computed(() => usersSummary.value.deletedCount)
+const adminsAndModeratorsCount = computed(() => usersSummary.value.adminsAndModeratorsCount)
 
 watch(
   users,
@@ -803,22 +477,6 @@ watch(
   { immediate: true },
 )
 
-watch(
-  () => [filteredUsers.value.length, filters.limit],
-  () => {
-    const totalPages = usersPagination.value.totalPages
-
-    if (totalPages === 0) {
-      filters.page = 1
-      return
-    }
-
-    if (filters.page > totalPages) {
-      filters.page = totalPages
-    }
-  },
-)
-
 onMounted(() => {
   void initPage()
 })
@@ -831,23 +489,25 @@ function goBackToModeration() {
   router.push('/moderation')
 }
 
-function getSortableValue(user: UserProfile, sortBy: UserSortBy) {
-  if (sortBy === 'username') return (user.username ?? '').toLowerCase()
-  if (sortBy === 'email') return (user.email ?? '').toLowerCase()
-  if (sortBy === 'role') return user.role
-  if (sortBy === 'status') return user.status
-  if (sortBy === 'created_at') return user.created_at ?? ''
-  return user.updated_at ?? ''
-}
-
 function setFeedback(type: FeedbackType, message: string) {
   feedback.value = { type, message }
 }
 
 async function loadUsers() {
-  loading.value = true
-  await wait(180)
-  loading.value = false
+  try {
+    await moderationStore.fetchUsers({
+      search: filters.search,
+      role: filters.role,
+      status: filters.status,
+      deleted: filters.deleted,
+      page: filters.page,
+      limit: filters.limit,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    })
+  } catch (err) {
+    setFeedback('error', err instanceof Error ? err.message : 'Impossible de charger les utilisateurs.')
+  }
 }
 
 async function submitFilters() {
@@ -875,6 +535,8 @@ function clearSearch() {
 
 function setQuickStatus(value: UiStatusFilter) {
   filters.status = value
+  filters.page = 1
+  void loadUsers()
 }
 
 async function goToPage(page: number) {
@@ -926,74 +588,48 @@ function formatDate(value: string | null) {
   }).format(date)
 }
 
-function patchLocalUser(userId: number, payload: Partial<UserProfile>) {
-  const updatedAt = new Date().toISOString()
-
-  allUsers.value = allUsers.value.map((user) =>
-    user.id === userId
-      ? {
-          ...user,
-          ...payload,
-          updated_at: updatedAt,
-        }
-      : user,
-  )
-
-  if (moderationStore.selectedUser?.id === userId) {
-    moderationStore.patchSelectedUser({
-      ...payload,
-      updated_at: updatedAt,
-    })
-  }
-}
-
-async function runLocalAction(
-  user: UserProfile,
-  payload: Partial<Pick<UserProfile, 'role' | 'status'>>,
-  message: string,
-  feedbackType: FeedbackType = 'success',
-) {
-  actionLoadingId.value = user.id
-
-  await wait(160)
-
-  patchLocalUser(user.id, payload)
-  setFeedback(feedbackType, message)
-
-  actionLoadingId.value = null
-}
-
 async function changeRoleFromSelect(user: UserProfile) {
   const nextRole = pendingRoles.value[user.id] ?? user.role
 
-  if (nextRole === user.role) {
-    return
-  }
+  if (nextRole === user.role) return
 
-  await runLocalAction(
-    user,
-    { role: nextRole },
-    t('moderationUsers.messages.roleSimulated', {
-      user: getDisplayName(user),
-      role: getRoleLabel(nextRole),
-    }),
-  )
+  actionLoadingId.value = user.id
+
+  try {
+    await moderationStore.updateUserRole(user.id, nextRole, 'POC Admin')
+    setFeedback(
+      'success',
+      t('moderationUsers.messages.roleSimulated', {
+        user: getDisplayName(user),
+        role: getRoleLabel(nextRole),
+      }),
+    )
+  } catch (err) {
+    pendingRoles.value[user.id] = user.role
+    setFeedback('error', err instanceof Error ? err.message : 'Action impossible côté API.')
+  } finally {
+    actionLoadingId.value = null
+  }
 }
 
 async function toggleBan(user: UserProfile) {
   const nextStatus: UserStatus = user.status === 3 ? 2 : 3
+  actionLoadingId.value = user.id
 
-  await runLocalAction(
-    user,
-    { status: nextStatus },
-    user.status === 3
-      ? t('moderationUsers.messages.userUnbannedSimulated', { user: getDisplayName(user) })
-      : t('moderationUsers.messages.userBannedSimulated', { user: getDisplayName(user) }),
-    'warning',
-  )
+  try {
+    await moderationStore.updateUserStatus(user.id, nextStatus, 'POC Admin')
+    setFeedback(
+      'warning',
+      user.status === 3
+        ? t('moderationUsers.messages.userUnbannedSimulated', { user: getDisplayName(user) })
+        : t('moderationUsers.messages.userBannedSimulated', { user: getDisplayName(user) }),
+    )
+  } catch (err) {
+    setFeedback('error', err instanceof Error ? err.message : 'Action impossible côté API.')
+  } finally {
+    actionLoadingId.value = null
+  }
 }
-
-const moderationStore = useModerationUsersStore()
 
 function viewUser(user: UserProfile) {
   moderationStore.setSelectedUser(user)
@@ -1001,12 +637,6 @@ function viewUser(user: UserProfile) {
   router.push({
     name: 'moderation-user-detail',
     params: { id: user.id },
-  })
-}
-
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
   })
 }
 </script>

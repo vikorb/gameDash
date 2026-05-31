@@ -109,6 +109,16 @@
           </div>
         </div>
         <div class="detail-actions-bar__right">
+          <button
+            type="button"
+            class="btn btn--ghost maps-btn action-report"
+            @click="openMapReport"
+          >
+            <svg viewBox="0 0 24 24" class="maps-btn__icon" aria-hidden="true">
+              <path :d="mdiAlert" />
+            </svg>
+            Signaler
+          </button>
           <RouterLink
             v-if="store.isMyMap(map.id)"
             :to="`/maps/${map.id}/edit`"
@@ -284,6 +294,14 @@
                       </svg>
                       {{ comment.likes_count }}
                     </button>
+                    <button
+                      type="button"
+                      class="comment-report-btn"
+                      @click="openCommentReport(comment)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+                      Signaler
+                    </button>
                   </div>
                 </div>
               </article>
@@ -426,6 +444,20 @@
       </div>
     </div>
 
+    <MapReportModal
+      v-if="reportTarget"
+      :open="reportModalOpen"
+      :target-type="reportTarget.targetType"
+      :target-id="reportTarget.targetId"
+      :target-name="reportTarget.targetName"
+      :map-id="reportTarget.mapId"
+      :map-title="reportTarget.mapTitle"
+      :author-name="reportTarget.authorName"
+      :source-url="reportTarget.sourceUrl"
+      @close="closeReportModal"
+      @submitted="handleReportSubmitted"
+    />
+
     <Transition name="toast">
       <div v-if="toast" :class="['toast', `toast--${toast.type}`]">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -476,6 +508,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import MapCard from '@/components/MapCard.vue'
+import MapReportModal from '@/components/MapReportModal.vue'
 import { useMapsStore } from '@/stores/mapsStore'
 import type { MapTag } from '@/types/maps'
 
@@ -504,6 +537,61 @@ const creatorMaps = computed(() => {
     .sort((a, b) => b.stats.score - a.stats.score)
     .slice(0, 3)
 })
+
+type ReportTarget = {
+  targetType: 'map' | 'comment'
+  targetId: string | number
+  targetName: string
+  mapId: string | number
+  mapTitle: string
+  authorName?: string
+  sourceUrl: string
+}
+
+const reportModalOpen = ref(false)
+const reportTarget = ref<ReportTarget | null>(null)
+
+function openMapReport() {
+  if (!map.value) return
+
+  reportTarget.value = {
+    targetType: 'map',
+    targetId: map.value.id,
+    targetName: map.value.title,
+    mapId: map.value.id,
+    mapTitle: map.value.title,
+    authorName: map.value.creator.username,
+    sourceUrl: window.location.href,
+  }
+  reportModalOpen.value = true
+}
+
+function openCommentReport(comment: {
+  id: string | number
+  content: string
+  author: { username: string }
+}) {
+  if (!map.value) return
+
+  reportTarget.value = {
+    targetType: 'comment',
+    targetId: comment.id,
+    targetName: comment.content.slice(0, 80),
+    mapId: map.value.id,
+    mapTitle: map.value.title,
+    authorName: comment.author.username,
+    sourceUrl: `${window.location.href}#comment-${comment.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function closeReportModal() {
+  reportModalOpen.value = false
+}
+
+function handleReportSubmitted() {
+  showToast('Signalement envoyé à la modération.', 'success')
+}
 
 async function loadDetail() {
   await store.loadMaps()
@@ -1109,7 +1197,8 @@ watch(() => props.id, loadDetail)
 
 .action-vote,
 .action-fav,
-.action-share {
+.action-share,
+.action-report {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1132,7 +1221,8 @@ watch(() => props.id, loadDetail)
 
 .action-vote svg,
 .action-fav svg,
-.action-share svg {
+.action-share svg,
+.action-report svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
@@ -1140,7 +1230,8 @@ watch(() => props.id, loadDetail)
 
 .action-vote:hover,
 .action-fav:hover,
-.action-share:hover {
+.action-share:hover,
+.action-report:hover {
   transform: translateY(-1px);
   color: var(--color-cream);
   background: rgba(242, 139, 91, 0.14);
@@ -1576,6 +1667,10 @@ watch(() => props.id, loadDetail)
 }
 
 .comment-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
   margin-top: 0.55rem;
 }
 
@@ -1615,6 +1710,38 @@ watch(() => props.id, loadDetail)
   background: rgba(225, 91, 91, 0.16);
   color: #ff9a9a;
   border-color: rgba(225, 91, 91, 0.38);
+}
+
+.comment-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.62rem;
+  border-radius: 10px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.24);
+  color: rgba(252, 239, 225, 0.5);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease;
+}
+
+.comment-report-btn svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+}
+
+.comment-report-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 139, 91, 0.35);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.1);
 }
 
 .comments-empty {

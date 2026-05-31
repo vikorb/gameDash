@@ -345,7 +345,10 @@ onMounted(() => {
 
   if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  void moderationStore.fetchAuditEntries()
 })
 
 function goBackToModeration() {

@@ -623,7 +623,7 @@ import {
   mdiUpload,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -641,6 +641,11 @@ const router = useRouter()
 const moderationStore = useModerationReportsStore()
 const { reports, reportSummary } = storeToRefs(moderationStore)
 const { t, locale } = useI18n({ useScope: 'global' })
+
+
+onMounted(() => {
+  void moderationStore.fetchReports()
+})
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 const selected = ref<ModerationReport | null>(null)
@@ -682,53 +687,53 @@ function sync() {
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
-function doStartReview() {
+async function doStartReview() {
   if (!selected.value) return
-  moderationStore.setReportStatus(selected.value.id, 'investigating', 'POC Admin')
+  await moderationStore.setReportStatus(selected.value.id, 'investigating', 'POC Admin')
   sync()
 }
-function doResolve() {
+async function doResolve() {
   if (!selected.value) return
-  moderationStore.resolveReport(selected.value.id, 'POC Admin')
+  await moderationStore.resolveReport(selected.value.id, 'POC Admin')
   sync()
 }
-function doDismiss() {
+async function doDismiss() {
   if (!selected.value) return
-  moderationStore.dismissReport(selected.value.id, 'POC Admin')
+  await moderationStore.dismissReport(selected.value.id, 'POC Admin')
   sync()
 }
-function doReopen() {
+async function doReopen() {
   if (!selected.value) return
-  moderationStore.setReportStatus(selected.value.id, 'investigating', 'POC Admin')
+  await moderationStore.setReportStatus(selected.value.id, 'investigating', 'POC Admin')
   sync()
 }
-function doAssign() {
+async function doAssign() {
   if (!selected.value || !assignInput.value.trim()) return
-  moderationStore.assignReport(selected.value.id, assignInput.value.trim())
+  await moderationStore.assignReport(selected.value.id, assignInput.value.trim())
   assignInput.value = ''
   sync()
 }
-function doAssignToMe() {
+async function doAssignToMe() {
   if (!selected.value) return
-  moderationStore.assignReport(selected.value.id, 'POC Admin')
+  await moderationStore.assignReport(selected.value.id, 'POC Admin')
   assignInput.value = ''
   sync()
 }
-function doAddNote() {
+async function doAddNote() {
   if (!selected.value || !noteInput.value.trim()) return
-  moderationStore.addReportInternalNote(selected.value.id, noteInput.value.trim(), 'POC Admin')
+  await moderationStore.addReportInternalNote(selected.value.id, noteInput.value.trim(), 'POC Admin')
   noteInput.value = ''
   sync()
 }
-function doReply() {
+async function doReply() {
   if (!selected.value || !replyInput.value.trim()) return
-  moderationStore.replyToReport(selected.value.id, replyInput.value.trim(), 'POC Admin')
+  await moderationStore.replyToReport(selected.value.id, replyInput.value.trim(), 'POC Admin')
   replyInput.value = ''
   sync()
 }
-function doRemoveAttachment(attachmentId: string) {
+async function doRemoveAttachment(attachmentId: string) {
   if (!selected.value) return
-  moderationStore.removeReportAttachment(selected.value.id, attachmentId, 'POC Admin')
+  await moderationStore.removeReportAttachment(selected.value.id, attachmentId, 'POC Admin')
   sync()
 }
 
@@ -763,10 +768,10 @@ function cancelUpload() {
   uploadDescription.value = ''
   isDragOver.value = false
 }
-function confirmUpload() {
+async function confirmUpload() {
   if (!selected.value || !stagedFile.value) return
   const file = stagedFile.value
-  moderationStore.addReportAttachment(
+  await moderationStore.addReportAttachment(
     selected.value.id,
     {
       name: file.name,

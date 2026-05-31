@@ -1,116 +1,131 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { apiRequest } from '../apiClient'
 import { useModerationAuditStore } from './audit'
-import { generateContentItems, MODERATION_MOCK_COUNTS, nowIso } from './mock'
 import type { ModerationContentItem, ModerationContentStatus } from './types'
 
-function cloneContentItems(items: ModerationContentItem[]): ModerationContentItem[] {
-  return items.map((item) => ({
-    ...item,
-    tags: [...item.tags],
-  }))
+type ContentListResponse = {
+  data: Array<Partial<ModerationContentItem> & { id: string | number }>
 }
 
-const initialContentItems = cloneContentItems(
-  generateContentItems(MODERATION_MOCK_COUNTS.contentItems),
-)
+type ContentResponse = {
+  data: Partial<ModerationContentItem> & { id: string | number }
+}
 
-function resolveAuditActionKey(
-  previousStatus: ModerationContentStatus,
-  nextStatus: ModerationContentStatus,
-) {
-  if (nextStatus === 'review') {
-    return 'content_review_requested' as const
-  }
+function normalizeContentItem(item: Partial<ModerationContentItem> & { id: string | number }) {
+  return {
+    id: String(item.id),
+    title: item.title ?? 'Contenu modéré',
+    authorName: item.authorName ?? '—',
+    type: item.type ?? 'map',
+    status: item.status ?? 'visible',
+    category: item.category ?? '—',
+    flagCount: Number(item.flagCount ?? 0),
+    reportsCount: Number(item.reportsCount ?? 0),
+    severity: item.severity ?? 'low',
+    origin: item.origin ?? 'community',
+    createdAt: item.createdAt ?? new Date().toISOString(),
+    updatedAt: item.updatedAt ?? item.createdAt ?? new Date().toISOString(),
+    preview: item.preview ?? '',
+    tags: Array.isArray(item.tags) ? item.tags.map(String) : [],
+    lastActionAt: item.lastActionAt ?? null,
+    lastActionBy: item.lastActionBy ?? null,
+    moderationNote: item.moderationNote ?? '',
+  } satisfies ModerationContentItem
+}
 
-  if (nextStatus === 'visible' && previousStatus !== 'visible') {
-    return 'content_restored' as const
-  }
-
-  return 'content_hidden' as const
+function endpointForStatus(status: ModerationContentStatus) {
+  if (status === 'visible') return 'restore'
+  if (status === 'review') return 'review'
+  return 'hide'
 }
 
 export const useModerationContentStore = defineStore('moderation-content', () => {
   const auditStore = useModerationAuditStore()
-  const contentItems = ref<ModerationContentItem[]>(cloneContentItems(initialContentItems))
+  const contentItems = ref<ModerationContentItem[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  function setContentStatus(
+  function replaceContentItem(item: ModerationContentItem) {
+    const index = contentItems.value.findIndex((current) => current.id === item.id)
+
+    if (index === -1) {
+      contentItems.value.unshift(item)
+      return
+    }
+
+    contentItems.value[index] = item
+  }
+
+  async function fetchContentItems() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await apiRequest<ContentListResponse>('/moderation/content')
+      contentItems.value = response.data.map(normalizeContentItem)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Impossible de charger les contenus.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function refreshAudit() {
+    try {
+      await auditStore.fetchAuditEntries()
+    } catch {
+      // Non bloquant.
+    }
+  }
+
+  async function setContentStatus(
     contentId: string,
     nextStatus: ModerationContentStatus,
     actorName = 'Administration',
     moderationNote?: string,
   ) {
-    const content = contentItems.value.find((item) => item.id === contentId)
-
-    if (!content) {
-      return
-    }
-
-    const previousStatus = content.status
-    const trimmedNote = moderationNote?.trim()
-
-    if (previousStatus === nextStatus && !trimmedNote) {
-      return
-    }
-
-    const actionAt = nowIso()
-
-    content.status = nextStatus
-    content.updatedAt = actionAt
-    content.lastActionAt = actionAt
-    content.lastActionBy = actorName
-
-    if (trimmedNote) {
-      content.moderationNote = trimmedNote
-    }
-
-    auditStore.pushAudit({
-      actorName,
-      actionKey: resolveAuditActionKey(previousStatus, nextStatus),
-      resourceType: 'content',
-      resourceLabel: content.title,
-      metadata: [content.id, previousStatus, nextStatus],
+    const action = endpointForStatus(nextStatus)
+    const response = await apiRequest<ContentResponse>(`/moderation/content/${contentId}/${action}`, {
+      method: 'POST',
+      body: JSON.stringify({ actor: actorName, moderationNote }),
     })
+
+    const normalized = normalizeContentItem(response.data)
+    if (moderationNote?.trim()) normalized.moderationNote = moderationNote.trim()
+    replaceContentItem(normalized)
+    await refreshAudit()
   }
 
   function hideContent(contentId: string, actorName = 'Administration', moderationNote?: string) {
-    setContentStatus(contentId, 'hidden', actorName, moderationNote)
+    return setContentStatus(contentId, 'hidden', actorName, moderationNote)
   }
 
-  function restoreContent(
-    contentId: string,
-    actorName = 'Administration',
-    moderationNote?: string,
-  ) {
-    setContentStatus(contentId, 'visible', actorName, moderationNote)
+  function restoreContent(contentId: string, actorName = 'Administration', moderationNote?: string) {
+    return setContentStatus(contentId, 'visible', actorName, moderationNote)
   }
 
-  function toggleContentVisibility(contentId: string, actorName = 'Administration') {
+  async function toggleContentVisibility(contentId: string, actorName = 'Administration') {
     const content = contentItems.value.find((item) => item.id === contentId)
 
-    if (!content) {
-      return
-    }
+    if (!content) return
 
     if (content.status === 'hidden' || content.status === 'restricted') {
-      restoreContent(contentId, actorName)
+      await restoreContent(contentId, actorName)
       return
     }
 
-    hideContent(contentId, actorName)
+    await hideContent(contentId, actorName)
   }
 
-  function markContentForReview(
-    contentId: string,
-    actorName = 'Administration',
-    moderationNote?: string,
-  ) {
-    setContentStatus(contentId, 'review', actorName, moderationNote)
+  function markContentForReview(contentId: string, actorName = 'Administration', moderationNote?: string) {
+    return setContentStatus(contentId, 'review', actorName, moderationNote)
   }
 
-  function resetContentItems() {
-    contentItems.value = cloneContentItems(initialContentItems)
+  async function resetContentItems() {
+    await fetchContentItems()
   }
 
   const contentSummary = computed(() => ({
@@ -127,7 +142,10 @@ export const useModerationContentStore = defineStore('moderation-content', () =>
 
   return {
     contentItems,
+    loading,
+    error,
     contentSummary,
+    fetchContentItems,
     setContentStatus,
     hideContent,
     restoreContent,

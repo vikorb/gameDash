@@ -1,7 +1,7 @@
 export type IdLike = string | number
 
 export type MapStatus = 'draft' | 'beta' | 'stable'
-export type ModerationStatus = 'visible' | 'hidden' | 'removed'
+export type ModerationStatus = 'visible' | 'hidden' | 'removed' | 'review'
 export type MapVote = 'like' | 'dislike'
 export type SortKey = 'popular' | 'recent' | 'top' | 'mostTested'
 export type BlockType = 'empty' | 'wall' | 'floor' | 'spawn' | 'objective'
