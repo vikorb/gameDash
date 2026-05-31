@@ -1,11 +1,13 @@
 import { vi } from 'vitest'
 
+// 1. Mock de window.scrollTo
 Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
   writable: true,
   configurable: true,
 })
 
+// 2. Mock du contexte Canvas pour Chart.js
 Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   value: vi.fn(() => ({
     canvas: document.createElement('canvas'),
@@ -38,9 +40,11 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   configurable: true,
 })
 
+// 3. Intercepteur XMLHttpRequest sécurisé
 const OriginalXMLHttpRequest = window.XMLHttpRequest
 
 class TestXMLHttpRequest extends OriginalXMLHttpRequest {
+  // Déclaration explicite des paramètres optionnels pour respecter les signatures DOM
   open(
     method: string,
     url: string | URL,
@@ -50,6 +54,7 @@ class TestXMLHttpRequest extends OriginalXMLHttpRequest {
   ) {
     const normalizedUrl = String(url)
 
+    // Blocage des appels non mockés
     if (
       normalizedUrl.startsWith('/api') ||
       normalizedUrl.startsWith('/ranks') ||
@@ -62,7 +67,12 @@ class TestXMLHttpRequest extends OriginalXMLHttpRequest {
       )
     }
 
-    return super.open(method, url, async ?? true, username ?? undefined, password ?? undefined)
+    // Gestion propre de l'appel parent (super.open) selon les arguments fournis
+    if (async !== undefined) {
+      return super.open(method, url, async, username, password)
+    }
+
+    return super.open(method, url)
   }
 }
 
