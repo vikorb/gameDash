@@ -30,7 +30,6 @@
           <div class="hero-side__chips">
             <span>{{ t('backoffice.matchmaking.side.chips.live') }}</span>
             <span>{{ t('backoffice.matchmaking.side.chips.audit') }}</span>
-            <span>{{ t('backoffice.matchmaking.side.chips.poc') }}</span>
           </div>
         </aside>
       </header>
@@ -303,82 +302,27 @@ import {
   mdiSwordCross,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import {
+  type BackofficeMatchmakingModeKey,
+  useBackofficeMatchmakingStore,
+} from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
 
-type ModeKey = 'ranked' | 'casual' | 'fun'
+type ModeKey = BackofficeMatchmakingModeKey
 type FeedbackType = 'success' | 'warning' | 'error'
-
-type MatchmakingMode = {
-  id: number
-  key: ModeKey
-  enabled: boolean
-  maxWaitTimeSec: number
-  mmrWindow: number
-  teamSize: number
-  playersInQueue: number
-  matchesLastHour: number
-  lastUpdatedAt: string
-  lastUpdatedBy: string
-}
-
-type AuditEntry = {
-  id: number
-  modeKey: ModeKey
-  actor: string
-  changes: string[]
-  timestamp: string
-}
-
 const router = useRouter()
 const userStore = useUserStore()
+const matchmakingStore = useBackofficeMatchmakingStore()
 const { profile } = storeToRefs(userStore)
+const { modes, auditTrail, summary } = storeToRefs(matchmakingStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
 const savingId = ref<number | null>(null)
-
-const modes = ref<MatchmakingMode[]>([
-  {
-    id: 1,
-    key: 'ranked',
-    enabled: true,
-    maxWaitTimeSec: 180,
-    mmrWindow: 150,
-    teamSize: 5,
-    playersInQueue: 84,
-    matchesLastHour: 142,
-    lastUpdatedAt: hoursAgo(6),
-    lastUpdatedBy: 'enzo',
-  },
-  {
-    id: 2,
-    key: 'casual',
-    enabled: true,
-    maxWaitTimeSec: 90,
-    mmrWindow: 400,
-    teamSize: 5,
-    playersInQueue: 156,
-    matchesLastHour: 218,
-    lastUpdatedAt: hoursAgo(28),
-    lastUpdatedBy: 'alice',
-  },
-  {
-    id: 3,
-    key: 'fun',
-    enabled: true,
-    maxWaitTimeSec: 60,
-    mmrWindow: 800,
-    teamSize: 3,
-    playersInQueue: 42,
-    matchesLastHour: 76,
-    lastUpdatedAt: hoursAgo(72),
-    lastUpdatedBy: 'enzo',
-  },
-])
 
 const pending = reactive<
   Record<
@@ -392,38 +336,22 @@ const pending = reactive<
   >
 >({})
 
-modes.value.forEach((mode) => {
-  pending[mode.id] = {
-    enabled: mode.enabled,
-    maxWaitTimeSec: mode.maxWaitTimeSec,
-    mmrWindow: mode.mmrWindow,
-    teamSize: mode.teamSize,
-  }
-})
-
-const auditTrail = ref<AuditEntry[]>([
-  {
-    id: 1,
-    modeKey: 'ranked',
-    actor: 'enzo',
-    changes: ['maxWaitTimeSec: 240 → 180', 'mmrWindow: 200 → 150'],
-    timestamp: hoursAgo(6),
+watch(
+  modes,
+  (value) => {
+    value.forEach((mode) => {
+      if (!pending[mode.id]) {
+        pending[mode.id] = {
+          enabled: mode.enabled,
+          maxWaitTimeSec: mode.maxWaitTimeSec,
+          mmrWindow: mode.mmrWindow,
+          teamSize: mode.teamSize,
+        }
+      }
+    })
   },
-  {
-    id: 2,
-    modeKey: 'casual',
-    actor: 'alice',
-    changes: ['mmrWindow: 350 → 400'],
-    timestamp: hoursAgo(28),
-  },
-  {
-    id: 3,
-    modeKey: 'fun',
-    actor: 'enzo',
-    changes: ['enabled: false → true', 'teamSize: 5 → 3'],
-    timestamp: hoursAgo(72),
-  },
-])
+  { immediate: true },
+)
 
 const dirtyModes = computed(() => {
   const dirty = new Set<number>()
@@ -445,32 +373,10 @@ const dirtyModes = computed(() => {
   return dirty
 })
 
-const totalInQueue = computed(() =>
-  modes.value.reduce((sum, mode) => sum + (mode.enabled ? mode.playersInQueue : 0), 0),
-)
-
-const avgWaitSeconds = computed(() => {
-  const enabledModes = modes.value.filter((m) => m.enabled)
-  if (enabledModes.length === 0) return 0
-  const sum = enabledModes.reduce((acc, mode) => acc + mode.maxWaitTimeSec, 0)
-  return Math.round(sum / enabledModes.length)
-})
-
-const lastUpdateAt = computed(() => {
-  const sorted = [...modes.value].sort(
-    (a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime(),
-  )
-  return sorted[0]?.lastUpdatedAt ?? new Date().toISOString()
-})
-
-const lastUpdateActor = computed(() => {
-  const sorted = [...modes.value].sort(
-    (a, b) => new Date(b.lastUpdatedAt).getTime() - new Date(a.lastUpdatedAt).getTime(),
-  )
-  return sorted[0]?.lastUpdatedBy ?? '—'
-})
-
-// --- Actions ---------------------------------------------------------------
+const totalInQueue = computed(() => summary.value.totalInQueue)
+const avgWaitSeconds = computed(() => summary.value.avgWaitSeconds)
+const lastUpdateAt = computed(() => summary.value.lastUpdateAt)
+const lastUpdateActor = computed(() => summary.value.lastUpdateActor)
 
 function goBackToBackoffice() {
   router.push('/backoffice')
@@ -502,62 +408,37 @@ async function saveMode(modeId: number) {
 
   savingId.value = modeId
 
-  // Build change list for audit
-  const changes: string[] = []
-  if (p.enabled !== mode.enabled) {
-    changes.push(`enabled: ${mode.enabled} → ${p.enabled}`)
-  }
-  if (p.maxWaitTimeSec !== mode.maxWaitTimeSec) {
-    changes.push(`maxWaitTimeSec: ${mode.maxWaitTimeSec} → ${p.maxWaitTimeSec}`)
-  }
-  if (p.mmrWindow !== mode.mmrWindow) {
-    changes.push(`mmrWindow: ${mode.mmrWindow} → ${p.mmrWindow}`)
-  }
-  if (p.teamSize !== mode.teamSize) {
-    changes.push(`teamSize: ${mode.teamSize} → ${p.teamSize}`)
-  }
+  try {
+    const actor = profile.value?.username || profile.value?.email || 'POC Admin'
 
-  await wait(280)
-
-  const actor = profile.value?.username || profile.value?.email || 'POC Admin'
-  const now = new Date().toISOString()
-
-  modes.value = modes.value.map((m) =>
-    m.id === modeId
-      ? {
-          ...m,
-          enabled: p.enabled,
-          maxWaitTimeSec: p.maxWaitTimeSec,
-          mmrWindow: p.mmrWindow,
-          teamSize: p.teamSize,
-          lastUpdatedAt: now,
-          lastUpdatedBy: actor,
-        }
-      : m,
-  )
-
-  auditTrail.value = [
-    {
-      id: Date.now(),
-      modeKey: mode.key,
+    await matchmakingStore.updateMatchmakingMode(
+      modeId,
+      {
+        enabled: p.enabled,
+        maxWaitTimeSec: p.maxWaitTimeSec,
+        mmrWindow: p.mmrWindow,
+        teamSize: p.teamSize,
+      },
       actor,
-      changes,
-      timestamp: now,
-    },
-    ...auditTrail.value,
-  ]
+    )
 
-  feedback.value = {
-    type: 'success',
-    message: t('backoffice.matchmaking.feedback.saved', {
-      mode: getModeLabel(mode.key),
-    }),
+    resetMode(modeId)
+
+    feedback.value = {
+      type: 'success',
+      message: t('backoffice.matchmaking.feedback.saved', {
+        mode: getModeLabel(mode.key),
+      }),
+    }
+  } catch (err) {
+    feedback.value = {
+      type: 'error',
+      message: err instanceof Error ? err.message : 'Impossible de sauvegarder le mode.',
+    }
+  } finally {
+    savingId.value = null
   }
-
-  savingId.value = null
 }
-
-// --- Helpers ---------------------------------------------------------------
 
 function getModeLabel(key: ModeKey) {
   return t(`backoffice.matchmaking.modes.${key}.label`)
@@ -571,10 +452,6 @@ function getModeIcon(key: ModeKey) {
   if (key === 'ranked') return mdiShieldCrownOutline
   if (key === 'fun') return mdiPartyPopper
   return mdiSwordCross
-}
-
-function hoursAgo(hours: number) {
-  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 }
 
 function formatDate(value: string) {
@@ -598,16 +475,15 @@ function formatRelativeTime(value: string) {
   return t('backoffice.common.time.daysAgo', { count: diffDays })
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
 onMounted(() => {
   const role = profile.value?.role ?? ''
 
   if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  void matchmakingStore.fetchMatchmaking()
 })
 </script>
 
@@ -615,6 +491,7 @@ onMounted(() => {
 .backoffice-page {
   min-height: calc(100vh - var(--footer-height));
   padding: 2rem;
+  color: var(--color-cream);
 }
 
 .page-shell {
@@ -628,9 +505,27 @@ onMounted(() => {
   gap: 1.5rem;
   padding: 1.75rem;
   border-radius: 28px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
+  pointer-events: none;
+}
+
+.page-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-hero__content {
@@ -646,52 +541,107 @@ onMounted(() => {
 
 .page-badge {
   display: inline-flex;
+  width: fit-content;
   padding: 0.38rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border: 1px solid rgba(242, 139, 91, 0.36);
+  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .page-title {
   margin: 0.9rem 0 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(1.8rem, 2.6vw, 2.6rem);
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
 .page-subtitle {
   margin: 0.55rem 0 0;
   max-width: 720px;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.68);
+  line-height: 1.6;
+}
+
+.btn,
+.btn-inline {
+  border-radius: 14px;
+  border: 1px solid transparent;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    filter 0.18s ease;
 }
 
 .btn {
-  border: none;
-  border-radius: 14px;
+  min-height: 42px;
   padding: 0.85rem 1.1rem;
-  font-weight: 700;
   font-size: 0.9rem;
-  cursor: pointer;
-  transition: transform 0.18s ease;
 }
 
-.btn--primary {
+.btn-inline {
+  min-height: 38px;
+  padding: 0.58rem 0.9rem;
+  font-size: 0.84rem;
+}
+
+.btn:hover:not(:disabled),
+.btn-inline:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:disabled,
+.btn-inline:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary,
+.btn-inline--primary {
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border-color: rgba(242, 139, 91, 0.42);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+}
+
+.btn--primary:hover:not(:disabled),
+.btn-inline--primary:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
+.btn--ghost,
+.btn-inline--ghost {
+  color: rgba(252, 239, 225, 0.84);
+  background: rgba(18, 24, 38, 0.34);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.btn--ghost:hover:not(:disabled),
+.btn-inline--ghost:hover:not(:disabled) {
   color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-}
-
-.btn--ghost {
-  color: var(--color-ink);
-  background: rgba(81, 96, 121, 0.08);
-  border: 1px solid rgba(81, 96, 121, 0.15);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
 }
 
 .hero-side {
   padding: 1.25rem;
   border-radius: 22px;
-  background: linear-gradient(145deg, rgba(46, 50, 68, 0.97), rgba(81, 96, 121, 0.95));
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(242, 139, 91, 0.2), transparent 38%),
+    rgba(18, 24, 38, 0.38);
   color: var(--color-cream);
   display: flex;
   flex-direction: column;
@@ -699,23 +649,24 @@ onMounted(() => {
 }
 
 .hero-side__label {
-  font-size: 0.78rem;
-  font-weight: 700;
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.78;
+  letter-spacing: 0.08em;
 }
 
 .hero-side__title {
   margin-top: 0.35rem;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .hero-side__text {
   margin-top: 0.4rem;
-  color: rgba(252, 239, 225, 0.82);
+  color: rgba(252, 239, 225, 0.68);
   font-size: 0.92rem;
+  line-height: 1.55;
 }
 
 .hero-side__chips {
@@ -728,32 +679,31 @@ onMounted(() => {
   display: inline-flex;
   padding: 0.32rem 0.6rem;
   border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
   font-size: 0.74rem;
-  font-weight: 700;
-  background: rgba(252, 239, 225, 0.14);
-  color: var(--color-cream);
+  font-weight: 800;
+  background: rgba(18, 24, 38, 0.36);
+  color: rgba(252, 239, 225, 0.78);
 }
 
 .feedback-banner {
   margin-top: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 0.9rem 1rem;
   border-radius: 16px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--color-ink);
-  font-weight: 600;
+  font-weight: 900;
+  line-height: 1.45;
 }
 
 .feedback-banner--success {
-  border-color: rgba(61, 191, 125, 0.4);
-}
-
-.feedback-banner--warning {
-  border-color: rgba(242, 139, 91, 0.4);
+  color: #7ee0ad;
+  background: rgba(61, 191, 125, 0.14);
+  border: 1px solid rgba(61, 191, 125, 0.32);
 }
 
 .feedback-banner--error {
-  border-color: rgba(225, 91, 91, 0.4);
+  color: #ffb3b3;
+  background: rgba(225, 91, 91, 0.14);
+  border: 1px solid rgba(225, 91, 91, 0.35);
 }
 
 .stat-grid {
@@ -764,75 +714,102 @@ onMounted(() => {
 }
 
 .stat-card {
-  padding: 1.15rem 1.25rem;
+  padding: 1.15rem;
   border-radius: 22px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.9)), var(--color-navy);
+  box-shadow: 0 18px 42px -30px rgba(0, 0, 0, 0.8);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.82), rgba(46, 50, 68, 0.98)), var(--color-navy);
 }
 
 .stat-card__label {
   display: block;
-  font-size: 0.82rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
+  color: rgba(252, 239, 225, 0.58);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .stat-card__value {
   display: block;
-  margin-top: 0.3rem;
+  margin-top: 0.45rem;
+  color: var(--color-cream);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.75rem;
-  color: var(--color-ink);
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .stat-card__caption {
-  margin-top: 0.3rem;
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
+  display: block;
+  margin-top: 0.4rem;
+  color: rgba(252, 239, 225, 0.52);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .modes-grid {
   margin-top: 1.5rem;
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .mode-card {
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: 24px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.94)), var(--color-navy);
+  box-shadow: 0 18px 42px -30px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1.15rem;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  box-shadow: 0 22px 44px -32px rgba(0, 0, 0, 0.9);
 }
 
 .mode-card--dirty {
-  border-color: rgba(242, 139, 91, 0.5);
-  box-shadow: 0 18px 38px -26px rgba(242, 139, 91, 0.6);
+  border-color: rgba(242, 139, 91, 0.48);
+  box-shadow: 0 20px 44px -34px rgba(242, 139, 91, 0.8);
 }
 
 .mode-card__header {
   display: flex;
   align-items: flex-start;
-  gap: 0.85rem;
+  gap: 0.9rem;
 }
 
 .mode-card__icon {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(81, 96, 121, 0.09);
-  color: var(--color-ink);
+  background: rgba(242, 139, 91, 0.14);
+  color: var(--color-primary-strong);
+  border: 1px solid rgba(242, 139, 91, 0.24);
   flex-shrink: 0;
 }
 
@@ -849,98 +826,83 @@ onMounted(() => {
 
 .mode-card__title {
   margin: 0;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-size: 1rem;
+  font-weight: 900;
 }
 
 .mode-card__description {
-  margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  margin: 0.35rem 0 0;
+  color: rgba(252, 239, 225, 0.58);
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .mode-card__status {
-  display: inline-flex;
-  padding: 0.35rem 0.7rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .mode-card__status.is-on {
-  color: #146c43;
-  background: rgba(61, 191, 125, 0.16);
+  color: #7ee0ad;
+  background: rgba(61, 191, 125, 0.14);
+  border: 1px solid rgba(61, 191, 125, 0.28);
 }
 
 .mode-card__status.is-off {
-  color: #5d677a;
-  background: rgba(106, 114, 136, 0.14);
+  color: #ff9a9a;
+  background: rgba(225, 91, 91, 0.14);
+  border: 1px solid rgba(225, 91, 91, 0.28);
 }
 
 .mode-card__queue {
   display: flex;
-  gap: 0.6rem;
   flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .queue-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.85rem;
-  border-radius: 14px;
-  background: rgba(61, 191, 125, 0.12);
-  color: #146c43;
-  font-size: 0.85rem;
-}
-
-.queue-pill strong {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
+  gap: 0.35rem;
+  padding: 0.32rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.3);
+  color: rgba(252, 239, 225, 0.76);
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
 .queue-pill__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #1f9c5e;
-  animation: pulse 1.6s ease-in-out infinite;
+  background: var(--color-primary-strong);
 }
 
 .queue-pill--muted {
-  background: rgba(81, 96, 121, 0.1);
-  color: var(--color-ink);
-}
-
-.queue-pill--muted .queue-pill__dot {
-  background: var(--color-text-muted);
-  animation: none;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.2);
-  }
+  color: rgba(252, 239, 225, 0.5);
 }
 
 .mode-card__form {
   display: grid;
-  gap: 0.85rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .form-field--toggle {
@@ -948,83 +910,126 @@ onMounted(() => {
 }
 
 .form-field__label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(242, 139, 91, 0.1);
+  border: 1px solid rgba(242, 139, 91, 0.22);
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .form-field__control {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-}
-
-.form-field__unit {
-  font-size: 0.82rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-
-.form-field__hint {
-  font-size: 0.76rem;
-  color: var(--color-text-muted);
-}
-
-.form-field__inline-label {
-  font-size: 0.85rem;
-  color: var(--color-ink);
-  font-weight: 600;
 }
 
 .input,
 .select {
   width: 100%;
-  min-height: 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(81, 96, 121, 0.18);
-  background: rgba(255, 255, 255, 0.84);
-  padding: 0.5rem 0.75rem;
-  color: var(--color-ink);
+  min-height: 46px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: linear-gradient(180deg, rgba(24, 30, 45, 0.96), rgba(35, 43, 62, 0.96));
+  color: var(--color-cream);
+  padding: 0.85rem 0.95rem;
   font: inherit;
+  font-weight: 800;
   outline: none;
-  transition: border-color 0.18s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.03),
+    0 10px 24px -18px rgba(0, 0, 0, 0.85);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.input:hover,
+.select:hover {
+  border-color: rgba(252, 239, 225, 0.16);
+  background: linear-gradient(180deg, rgba(28, 35, 51, 0.98), rgba(39, 47, 67, 0.98));
 }
 
 .input:focus,
 .select:focus {
-  border-color: var(--color-primary);
+  border-color: rgba(242, 139, 91, 0.62);
+  background: linear-gradient(180deg, rgba(30, 37, 54, 1), rgba(42, 50, 71, 1));
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.04),
+    0 0 0 4px rgba(242, 139, 91, 0.12),
+    0 16px 30px -20px rgba(242, 139, 91, 0.35);
+  transform: translateY(-1px);
+}
+
+.select option {
+  background: var(--color-navy);
+  color: var(--color-cream);
+}
+
+.form-field__unit {
+  position: absolute;
+  right: 0.8rem;
+  color: rgba(252, 239, 225, 0.46);
+  font-size: 0.78rem;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.form-field__control .input {
+  padding-right: 3rem;
+}
+
+.form-field__hint {
+  color: rgba(252, 239, 225, 0.5);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.form-field__inline-label {
+  color: rgba(252, 239, 225, 0.72);
+  font-weight: 800;
+  font-size: 0.86rem;
+  margin-left: 0.6rem;
 }
 
 .toggle {
-  width: 46px;
-  height: 26px;
-  border: none;
+  width: 48px;
+  height: 28px;
   border-radius: 999px;
-  background: rgba(81, 96, 121, 0.25);
-  position: relative;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.52);
+  padding: 3px;
   cursor: pointer;
-  transition: background 0.2s ease;
-  padding: 0;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .toggle__knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  background: rgba(252, 239, 225, 0.72);
+  transition: transform 0.18s ease;
 }
 
 .toggle--on {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border-color: rgba(242, 139, 91, 0.42);
 }
 
 .toggle--on .toggle__knob {
   transform: translateX(20px);
+  background: var(--color-navy);
 }
 
 .mode-card__audit {
@@ -1032,7 +1037,7 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px dashed rgba(81, 96, 121, 0.15);
+  border-top: 1px dashed rgba(252, 239, 225, 0.14);
 }
 
 .meta-item {
@@ -1040,24 +1045,27 @@ onMounted(() => {
   align-items: center;
   padding: 0.32rem 0.6rem;
   border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
   font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  background: rgba(81, 96, 121, 0.08);
+  font-weight: 800;
+  color: rgba(252, 239, 225, 0.72);
+  background: rgba(18, 24, 38, 0.3);
 }
 
 .meta-item--audit {
-  background: rgba(49, 89, 140, 0.1);
-  color: #31598c;
+  background: rgba(80, 120, 238, 0.14);
+  color: #9ab8ff;
+  border-color: rgba(80, 120, 238, 0.28);
 }
 
 .meta-item--warning {
-  background: rgba(242, 139, 91, 0.18);
-  color: #8a5c1d;
+  background: rgba(242, 139, 91, 0.14);
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.28);
 }
 
 .meta-item--subtle {
-  background: rgba(81, 96, 121, 0.06);
+  color: rgba(252, 239, 225, 0.56);
 }
 
 .mode-card__actions {
@@ -1066,45 +1074,14 @@ onMounted(() => {
   gap: 0.6rem;
 }
 
-.btn-inline {
-  border: none;
-  border-radius: 12px;
-  padding: 0.65rem 1rem;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.btn-inline:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.btn-inline:not(:disabled):hover {
-  transform: translateY(-1px);
-}
-
-.btn-inline--primary {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-}
-
-.btn-inline--ghost {
-  color: var(--color-ink);
-  background: rgba(81, 96, 121, 0.08);
-  border: 1px solid rgba(81, 96, 121, 0.15);
-}
-
 .surface {
   margin-top: 1.5rem;
   padding: 1.5rem;
   border-radius: 24px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
 }
 
 .surface-header {
@@ -1119,12 +1096,13 @@ onMounted(() => {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.2rem;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
 .surface-subtitle {
   margin: 0.3rem 0 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   font-size: 0.88rem;
 }
 
@@ -1140,7 +1118,8 @@ onMounted(() => {
   gap: 0.85rem;
   padding: 0.9rem;
   border-radius: 16px;
-  background: rgba(81, 96, 121, 0.05);
+  border: 1px solid rgba(252, 239, 225, 0.08);
+  background: rgba(18, 24, 38, 0.26);
 }
 
 .history-item__icon {
@@ -1151,7 +1130,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   background: rgba(242, 139, 91, 0.14);
-  color: #8a5c1d;
+  color: var(--color-primary-strong);
+  border: 1px solid rgba(242, 139, 91, 0.24);
   flex-shrink: 0;
 }
 
@@ -1168,8 +1148,9 @@ onMounted(() => {
 
 .history-item__title {
   display: block;
-  color: var(--color-ink);
+  color: var(--color-cream);
   font-size: 0.92rem;
+  font-weight: 900;
 }
 
 .history-item__changes {
@@ -1186,17 +1167,19 @@ onMounted(() => {
 
 .empty-state__title {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--color-cream);
   font-family: 'Space Grotesk', sans-serif;
+  font-weight: 900;
 }
 
 .empty-state__text {
   margin: 0.5rem 0 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
 }
 
 @media (max-width: 1100px) {
-  .stat-grid {
+  .stat-grid,
+  .modes-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1205,10 +1188,21 @@ onMounted(() => {
   .page-hero {
     grid-template-columns: 1fr;
   }
+
+  .modes-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
   .backoffice-page {
+    padding: 1rem;
+  }
+
+  .page-hero,
+  .surface,
+  .mode-card {
+    border-radius: 22px;
     padding: 1rem;
   }
 
@@ -1224,8 +1218,18 @@ onMounted(() => {
     grid-column: span 1;
   }
 
-  .modes-grid {
-    grid-template-columns: 1fr;
+  .mode-card__actions,
+  .page-hero__actions {
+    flex-direction: column;
+  }
+
+  .btn,
+  .btn-inline {
+    width: 100%;
+  }
+
+  .history-item {
+    align-items: flex-start;
   }
 }
 </style>

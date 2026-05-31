@@ -1,11 +1,11 @@
 {
   "moderation": {
     "hero": {
-      "badge": "Admin only",
-      "title": "Moderation center",
-      "subtitle": "Manage users, prepare future moderation areas, and centralize sensitive actions from a single interface.",
+      "badge": "Administration",
+      "title": "Moderation Center",
+      "subtitle": "Manage users, centralize sensitive actions, and oversee moderation areas from a single interface.",
       "primaryAction": "Manage users",
-      "secondaryAction": "Activity log coming soon"
+      "secondaryAction": "Activity log"
     },
     "highlight": {
       "label": "Priority section",
@@ -23,8 +23,8 @@
       }
     },
     "sections": {
-      "title": "Moderation spaces",
-      "subtitle": "An organization inspired by modern moderation consoles, with a clear entry point by domain."
+      "title": "Moderation areas",
+      "subtitle": "A clear and modern organization designed to quickly access each moderation domain."
     },
     "badges": {
       "available": "Available",
@@ -37,7 +37,7 @@
     "cards": {
       "users": {
         "title": "Users",
-        "description": "Manage accounts, review profiles, track statuses, and trigger moderation actions.",
+        "description": "Manage accounts, view profiles, track statuses, and trigger moderation actions.",
         "items": {
           "profiles": "Profiles",
           "statuses": "Statuses",
@@ -46,7 +46,7 @@
       },
       "reports": {
         "title": "Reports",
-        "description": "Group community-submitted reports for priority handling.",
+        "description": "Centralize reports submitted by the community and make them easier to process.",
         "items": {
           "reports": "Reports",
           "priorities": "Priorities",
@@ -55,7 +55,7 @@
       },
       "content": {
         "title": "Content",
-        "description": "Moderate content created or published on the platform.",
+        "description": "Supervise content published on the platform and quickly take the required decisions.",
         "items": {
           "maps": "Maps",
           "activities": "Activities",
@@ -64,7 +64,7 @@
       },
       "sanctions": {
         "title": "Sanctions",
-        "description": "Apply and track warnings, suspensions, and bans.",
+        "description": "Apply, track, and keep a history of warnings, suspensions, and bans.",
         "items": {
           "warn": "Warn",
           "suspend": "Suspend",
@@ -73,7 +73,7 @@
       },
       "appeals": {
         "title": "Appeals",
-        "description": "Review disputes and moderation decisions.",
+        "description": "Process disputes and track moderation decisions.",
         "items": {
           "claims": "Claims",
           "decisions": "Decisions",
@@ -81,114 +81,676 @@
         }
       },
       "audit": {
-        "title": "Audit logs",
-        "description": "Track all sensitive actions performed by administrators.",
+        "badge": "Audit",
+        "title": "Activity log",
+        "subtitle": "Track sensitive actions, moderation decisions, and recent events from a clear and centralized view.",
+        "description": "Complete history of moderation actions: sanctions, reports, content changes.",
+        "side": {
+          "label": "Traceability",
+          "title": "Action history",
+          "text": "Quickly review important operations performed across moderation areas."
+        },
+        "stats": {
+          "total": "Total",
+          "today": "Last 24h",
+          "sanctions": "Sanctions",
+          "content": "Content"
+        },
+        "actions": {
+          "backToModeration": "Back to moderation",
+          "resetFilters": "Reset filters"
+        },
+        "filters": {
+          "title": "Filters",
+          "subtitle": "Refine the log display by resource, action type, or free search.",
+          "search": "Search for an actor, resource, or metadata",
+          "allActions": "All actions"
+        },
+        "list": {
+          "title": "Activity history",
+          "subtitle": "A readable timeline to track the latest operations performed."
+        },
+        "card": {
+          "resource": "Resource:"
+        },
         "items": {
-          "traceability": "Traceability",
-          "history": "History",
-          "security": "Security"
-        }
+          "traceability": "Complete traceability",
+          "history": "Action history",
+          "security": "Security & compliance"
+        },
+        "emptyText": "No entry matches the selected filters."
       }
     },
-    "roadmap": {
-      "title": "Recommended structure for later",
-      "subtitle": "These sections are commonly found in complete moderation interfaces.",
-      "cards": {
-        "reports": {
-          "title": "Reports",
-          "description": "Centralize user reports, content reports, and suspicious behavior."
-        },
-        "sanctions": {
-          "title": "Sanctions",
-          "description": "History of warnings, temporary bans, and permanent bans."
-        },
-        "content": {
-          "title": "Content",
-          "description": "Review or remove published items, maps, activities, or shared assets."
-        },
-        "appeals": {
-          "title": "Appeals",
-          "description": "Handle disputes when a user requests a review of a sanction."
-        },
-        "audit": {
-          "title": "Audit logs",
-          "description": "Track admin actions to secure moderation and simplify reviews."
-        },
-        "automation": {
-          "title": "Automatic rules",
-          "description": "Simple detection of accounts to monitor, suspicious content, or abnormal behavior."
-        }
-      }
+    "statuses": {
+      "new": "New",
+      "investigating": "In progress",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
     },
-    "content": {
-      "badge": "Content",
-      "title": "Content moderation",
-      "subtitle": "Review flagged maps, comments and assets. Click a card to see full details and take action.",
-      "side": {
-        "label": "Moderation",
-        "title": "Content under review",
-        "text": "Each item can be opened in a detail panel with direct access to moderation actions.",
-        "chips": {
-          "visibility": "Visibility",
-          "review": "Review",
-          "quickActions": "Quick actions"
+    "severities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "contentStatuses": {
+      "visible": "Visible",
+      "hidden": "Hidden",
+      "review": "Under review",
+      "restricted": "Restricted"
+    },
+    "contentTypes": {
+      "map": "Map",
+      "hunt": "Hunt",
+      "comment": "Comment",
+      "asset": "Asset"
+    },
+    "sanctionTypes": {
+      "warning": "Warning",
+      "temporaryBan": "Temporary ban",
+      "permanentBan": "Permanent ban",
+      "mute": "Mute"
+    },
+    "sanctionStatuses": {
+      "draft": "Draft",
+      "active": "Active",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "appealStatuses": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "needsInfo": "Information requested"
+    },
+    "resourceTypes": {
+      "report": "Report",
+      "content": "Content",
+      "sanction": "Sanction",
+      "appeal": "Appeal",
+      "user": "User"
+    },
+    "auditActions": {
+      "report_assigned": "Report assigned",
+      "report_resolved": "Report resolved",
+      "content_hidden": "Content hidden",
+      "content_restored": "Content restored",
+      "content_review_requested": "Content sent for review",
+      "sanction_activated": "Sanction activated",
+      "sanction_revoked": "Sanction revoked",
+      "appeal_accepted": "Appeal accepted",
+      "appeal_rejected": "Appeal rejected",
+      "appeal_info_requested": "Additional information requested"
+    },
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "contentOrigins": {
+      "community": "Community",
+      "automated": "Automated",
+      "internal": "Internal"
+    },
+    "sanctionScopes": {
+      "account": "Account",
+      "chat": "Chat",
+      "ugc": "UGC",
+      "profile": "Profile",
+      "matchmaking": "Matchmaking"
+    },
+    "pages": {
+      "common": {
+        "results": "results",
+        "emptyTitle": "No item found",
+        "unassigned": "Unassigned",
+        "noEndDate": "No end date",
+        "filters": {
+          "allStatuses": "All statuses",
+          "allSeverities": "All priorities",
+          "allTypes": "All types",
+          "allResources": "All resources"
+        },
+        "actions": {
+          "reset": "Reset"
         }
       },
-      "stats": {
-        "total": "Total",
-        "totalCaption": "Items loaded in the queue",
-        "actionable": "Actionable",
-        "actionableCaption": "Require a decision",
-        "review": "In review",
-        "reviewCaption": "Currently being examined",
-        "hidden": "Hidden",
-        "hiddenCaption": "Removed from public view",
-        "highPriority": "High priority",
-        "highPriorityCaption": "High or critical severity"
+      "reports": {
+        "badge": "Reports",
+        "title": "Reports Center",
+        "subtitle": "A clear view to prioritize, assign, and close reports in just a few clicks.",
+        "side": {
+          "label": "Control",
+          "title": "Centralized management",
+          "text": "Find all reports in a clear interface designed to speed up processing.",
+          "chips": {
+            "fastReview": "Quick review",
+            "assignment": "Assignment",
+            "priority": "Priorities"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Reports currently in the queue",
+          "pending": "New",
+          "pendingCaption": "To process quickly",
+          "inProgress": "In progress",
+          "inProgressCaption": "Already handled by moderation",
+          "resolved": "Resolved",
+          "resolvedCaption": "Processed and closed reports"
+        },
+        "list": {
+          "title": "Report list",
+          "subtitle": "Filter by status, priority, or free search."
+        },
+        "filters": {
+          "search": "Search for a subject, target, reporter, or reason"
+        },
+        "card": {
+          "target": "Target:",
+          "reporter": "Reporter:",
+          "reason": "Reason:",
+          "assignedTo": "Assigned to:"
+        },
+        "actions": {
+          "assign": "Assign to me",
+          "resolve": "Mark as resolved",
+          "open": "Open",
+          "startReview": "Start review",
+          "assignPlaceholder": "Moderator name…",
+          "dismiss": "Dismiss",
+          "reopen": "Reopen"
+        },
+        "modal": {
+          "actionsHint": "Actions are tracked in the audit log.",
+          "sections": {
+            "info": "Information"
+          },
+          "assign": {
+            "title": "Assignment",
+            "me": "Assign to me"
+          },
+          "notes": {
+            "title": "Internal notes",
+            "placeholder": "Add an internal note…",
+            "add": "Add",
+            "empty": "No internal note for this report."
+          },
+          "replies": {
+            "title": "Replies to the reporter",
+            "placeholder": "Reply to the reporter…",
+            "send": "Send",
+            "empty": "No reply has been sent yet."
+          },
+          "upload": {
+            "zone": "Drag and drop a file or click to select one",
+            "hint": "Images, PDF, DOC, TXT, ZIP — 10 MB max",
+            "button": "Choose a file",
+            "descPlaceholder": "Description (optional)…",
+            "confirm": "Attach",
+            "cancel": "Cancel",
+            "remove": "Remove attachment",
+            "success": "Attachment added successfully."
+          }
+        },
+        "emptyText": "No report matches the selected filters."
       },
-      "list": {
-        "title": "Moderation queue",
-        "subtitle": "Click a card to open the full detail panel and access actions.",
-        "filtered": "{count} active filter(s)"
+      "reportDetail": {
+        "badge": "Report details",
+        "subtitle": "Review the case, analyze the context, and make a moderation decision.",
+        "side": {
+          "label": "Decision center",
+          "title": "Case processing",
+          "text": "Track the report status, add internal context, and centralize moderation exchanges."
+        },
+        "meta": {
+          "status": "Status",
+          "statusCaption": "Current processing state",
+          "severity": "Severity",
+          "severityCaption": "Case priority level",
+          "assignedTo": "Assigned to",
+          "assignedCaption": "Current owner of the follow-up",
+          "attachments": "Attachments",
+          "attachmentsCaption": "Images and files linked to the case"
+        },
+        "fields": {
+          "target": "Target",
+          "assignedTo": "Assigned to",
+          "targetType": "Target type",
+          "reporter": "Report author",
+          "reason": "Reason",
+          "createdAt": "Created at",
+          "updatedAt": "Last updated",
+          "summary": "Summary",
+          "evidence": "Provided evidence",
+          "attachments": "Attachments",
+          "images": "Images",
+          "files": "Files"
+        },
+        "cards": {
+          "overview": "Overview",
+          "overviewSubtitle": "Main report information and initial context.",
+          "actions": "Moderation actions",
+          "actionsSubtitle": "Assign the case and move it forward.",
+          "reply": "Reply",
+          "replySubtitle": "Send a reply visible in the report thread.",
+          "internalNotes": "Internal notes",
+          "internalNotesSubtitle": "Add comments reserved for the moderation team.",
+          "activity": "Activity history",
+          "activitySubtitle": "Timeline of actions performed on this case.",
+          "attachments": "Attachments",
+          "attachmentsSubtitle": "Add mock images or documents to the moderation case."
+        },
+        "actions": {
+          "backToReports": "Back to reports",
+          "applyAssignment": "Assign",
+          "assignToMe": "Assign to me",
+          "setInvestigating": "Set to investigating",
+          "resolve": "Resolve",
+          "dismiss": "Dismiss",
+          "reopen": "Reopen",
+          "sendReply": "Send reply",
+          "addNote": "Add note",
+          "addAttachment": "Add attachment",
+          "removeAttachment": "Remove",
+          "previewAttachment": "Open"
+        },
+        "placeholders": {
+          "assignee": "Moderator or team name",
+          "reply": "Write a reply for the case or the reporter...",
+          "internalNote": "Add an internal note visible only to moderation...",
+          "attachmentAsset": "Select a mock asset",
+          "attachmentDescription": "Optional attachment description"
+        },
+        "emptyActivity": "No activity has been recorded for this case yet.",
+        "emptyAttachments": "No attachment is associated with this case yet.",
+        "notFoundTitle": "Report not found",
+        "notFoundText": "The requested case does not exist or is no longer available."
       },
-      "filters": {
-        "search": "Search (title, author, tags…)",
-        "allSeverities": "All severities",
-        "allOrigins": "All origins",
-        "sortUpdatedDesc": "Sort: recently updated",
-        "sortCreatedDesc": "Sort: recently created",
-        "sortFlagsDesc": "Sort: most flagged",
-        "sortSeverityDesc": "Sort: severity descending"
+      "content": {
+        "badge": "Content",
+        "title": "Content moderation",
+        "subtitle": "Supervise reported maps, comments, and assets. Click a card to see the full details and take action.",
+        "side": {
+          "label": "Moderation",
+          "title": "Content under watch",
+          "text": "Each item can be viewed in detail with direct access to moderation actions from its record.",
+          "chips": {
+            "visibility": "Visibility",
+            "review": "Review",
+            "quickActions": "Quick actions"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Items loaded in the queue",
+          "actionable": "Actionable",
+          "actionableCaption": "Require a decision",
+          "review": "Under review",
+          "reviewCaption": "Currently being reviewed",
+          "hidden": "Hidden",
+          "hiddenCaption": "Removed from public view",
+          "highPriority": "High priority",
+          "highPriorityCaption": "High or critical severity"
+        },
+        "list": {
+          "title": "Moderation queue",
+          "subtitle": "Click a card to open the full details and access actions.",
+          "filtered": "{count} active filter(s)"
+        },
+        "filters": {
+          "search": "Search (title, author, tags…)",
+          "allSeverities": "All severities",
+          "allOrigins": "All origins",
+          "sortUpdatedDesc": "Sort: recently updated",
+          "sortCreatedDesc": "Sort: recently created",
+          "sortFlagsDesc": "Sort: most reported",
+          "sortSeverityDesc": "Sort: severity descending"
+        },
+        "card": {
+          "category": "Category:",
+          "flags": "Reports:",
+          "reports": "Reports:",
+          "note": "Moderation note",
+          "lastAction": "Last action:",
+          "lastActionFallback": "No action recorded",
+          "lastActionValue": "{actor} · {date}"
+        },
+        "modal": {
+          "mapLabel": "Associated map",
+          "viewMap": "View map",
+          "preview": "Content preview",
+          "origin": "Origin",
+          "created": "Created at",
+          "updated": "Updated at",
+          "tags": "Tags",
+          "actionsHint": "Actions are tracked in the audit log.",
+          "mapLabelParent": "Parent map"
+        },
+        "actions": {
+          "backToModeration": "Back to moderation",
+          "resetFilters": "Reset filters",
+          "review": "Send to review",
+          "inReview": "Under review",
+          "hide": "Hide",
+          "restore": "Restore"
+        },
+        "emptyText": "No content matches the selected filters."
       },
-      "card": {
-        "category": "Category:",
-        "flags": "Flags:",
-        "reports": "Reports:",
-        "note": "Moderation note",
-        "lastAction": "Last action:",
-        "lastActionFallback": "No action recorded",
-        "lastActionValue": "{actor} · {date}"
+      "sanctions": {
+        "badge": "Sanctions",
+        "title": "Sanction management",
+        "emptyText": "No sanction found",
+        "subtitle": "Apply, track, and manage all disciplinary measures across the platform.",
+        "side": {
+          "label": "Discipline",
+          "title": "Sanction register",
+          "text": "Manage the full sanction lifecycle, from draft preparation to expiration or revocation.",
+          "chips": {
+            "active": "Active",
+            "draft": "Drafts",
+            "revoke": "Revoked"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Recorded sanctions",
+          "active": "Active",
+          "activeCaption": "Measures currently enforced",
+          "draft": "Drafts",
+          "draftCaption": "Pending validation",
+          "expiringSoon": "Expiring soon",
+          "expiringSoonCaption": "Active sanctions expiring soon"
+        },
+        "list": {
+          "title": "Decision register",
+          "subtitle": "Find and filter all sanctions applied to users."
+        },
+        "filters": {
+          "search": "Search for a user, reason, or note",
+          "allScopes": "All scopes",
+          "sortUpdated": "Last updated",
+          "sortEndingSoon": "Ending soonest",
+          "sortSeverity": "Highest severity"
+        },
+        "card": {
+          "reason": "Reason:",
+          "moderator": "Moderator:",
+          "start": "Start:",
+          "policy": "Policy:",
+          "updated": "Updated:",
+          "appeals": "Appeals:",
+          "until": "Until {date}"
+        },
+        "actions": {
+          "activate": "Activate sanction",
+          "revoke": "Revoke",
+          "viewDetails": "View details",
+          "backToList": "Back to register"
+        },
+        "detail": {
+          "badge": "Sanction case",
+          "note": "Internal note",
+          "side": {
+            "label": "Decision",
+            "title": "Detailed view",
+            "text": "Review the reason, lifecycle, linked elements, and history of the measure."
+          },
+          "summary": {
+            "title": "Decision summary",
+            "subtitle": "Operational context and follow-up information."
+          },
+          "evidence": {
+            "title": "Linked elements",
+            "subtitle": "References and clues useful to justify or review the sanction.",
+            "empty": "No element linked to this case."
+          },
+          "timeline": {
+            "title": "History",
+            "subtitle": "Traceability of actions performed on the sanction.",
+            "empty": "No activity has been recorded yet."
+          },
+          "lifecycle": {
+            "title": "Lifecycle",
+            "subtitle": "Key dates and administrative follow-up."
+          },
+          "links": {
+            "title": "Case links",
+            "subtitle": "Reports and appeals linked to this decision.",
+            "reports": "Linked reports",
+            "appeals": "Open appeals",
+            "none": "None"
+          },
+          "info": {
+            "reason": "Reason",
+            "scope": "Scope",
+            "policy": "Policy",
+            "assignedTo": "Assigned to",
+            "createdBy": "Created by",
+            "createdAt": "Created at",
+            "updatedAt": "Last updated",
+            "startAt": "Effective from",
+            "endAt": "Measure end"
+          },
+          "emptyTitle": "Sanction not found",
+          "emptyText": "The requested case does not exist or is no longer available."
+        },
+        "modal": {
+          "appealsCount": "appeal(s) submitted for this sanction",
+          "actionsHint": "Actions are tracked in the audit log.",
+          "sections": {
+            "info": "Information",
+            "summary": "Summary",
+            "evidence": "Evidence",
+            "appeals": "Appeals",
+            "relatedReports": "Related reports",
+            "activity": "Activity"
+          },
+          "note": {
+            "title": "Internal note",
+            "edit": "Edit",
+            "placeholder": "Add or edit the internal note…",
+            "save": "Save",
+            "cancel": "Cancel",
+            "empty": "No internal note for this sanction.",
+            "saved": "Note saved."
+          },
+          "activity": {
+            "empty": "No activity recorded for this sanction."
+          }
+        }
       },
-      "modal": {
-        "mapLabel": "Associated map",
-        "viewMap": "View map",
-        "preview": "Content preview",
-        "origin": "Origin",
-        "created": "Created",
-        "updated": "Updated",
-        "tags": "Tags",
-        "actionsHint": "Actions are recorded in the audit log.",
-        "mapLabelParent": "Parent map"
+      "appeals": {
+        "badge": "Appeals",
+        "title": "Appeal management",
+        "actionRequired": "Action required",
+        "subtitle": "A clear space to process disputes, request additional details, and notify a decision.",
+        "side": {
+          "label": "Review",
+          "title": "Dispute follow-up",
+          "text": "Process review requests with a readable, structured interface designed for decision tracking.",
+          "chips": {
+            "pending": "Pending",
+            "context": "Context",
+            "decision": "Decision"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Recorded appeals",
+          "pending": "Pending",
+          "pendingCaption": "To process first",
+          "needsInfo": "Information requested",
+          "needsInfoCaption": "Require a response from the player",
+          "decided": "Decided",
+          "decidedCaption": "Appeals already ruled on"
+        },
+        "list": {
+          "title": "Appeal inbox",
+          "subtitle": "Easily find requests and make a consistent decision.",
+          "filtered": "{count} active filter(s)"
+        },
+        "filters": {
+          "search": "Search for a player, message, or note",
+          "allSanctionTypes": "All sanctions",
+          "sortPendingFirst": "Sort: pending first",
+          "sortNewest": "Sort: newest first",
+          "sortOldest": "Sort: oldest first"
+        },
+        "card": {
+          "sanction": "Sanction:",
+          "note": "Note:",
+          "submittedAt": "Submitted at:",
+          "decisionLabel": "Decision:",
+          "appealedAction": "Appealed action"
+        },
+        "actions": {
+          "requestInfo": "Request more info",
+          "reject": "Reject",
+          "accept": "Accept",
+          "backToModeration": "Back to moderation",
+          "resetFilters": "Reset filters"
+        },
+        "modal": {
+          "sanctionContext": "Related sanction",
+          "message": "Player message",
+          "decisionNote": "Decision note",
+          "addNote": "Add an internal note",
+          "notePlaceholder": "Decision note (optional)…",
+          "actionableHint": "Choose an action — it will be applied immediately.",
+          "decidedHint": "Decision: {status}",
+          "sections": {
+            "info": "Information",
+            "decision": "Make a decision",
+            "outcome": "Decision made"
+          },
+          "meta": {
+            "id": "Identifier",
+            "sanctionType": "Sanction type",
+            "submitted": "Submitted at"
+          },
+          "awaitingInfo": "Waiting for info",
+          "noteHint": "This note will be associated with your decision in the audit log.",
+          "close": "Close",
+          "actions": {
+            "requestInfoDesc": "Request clarification from the player",
+            "rejectDesc": "Reject and keep the sanction",
+            "acceptDesc": "Accept and lift the sanction"
+          },
+          "sanctionDescs": {
+            "warning": "Official warning issued on the account",
+            "temporaryBan": "Temporary suspension of the account or a feature",
+            "permanentBan": "Permanent account ban",
+            "mute": "Communication restriction"
+          },
+          "outcomes": {
+            "accepted": "The appeal was accepted. The sanction was lifted.",
+            "rejected": "The appeal was rejected. The sanction is maintained."
+          },
+          "appealedAction": {
+            "title": "Appealed action",
+            "summaryLabel": "Action summary",
+            "detailsTitle": "Elements that motivated the sanction",
+            "unknownDate": "Action date not provided",
+            "resourceFallback": "Player account / moderated content",
+            "originFallback": "Context generated from the sanction",
+            "facts": {
+              "player": "Player",
+              "sanction": "Sanction",
+              "resource": "Resource",
+              "origin": "Origin"
+            },
+            "timeline": {
+              "action": "Initial action",
+              "sanction": "Sanction applied",
+              "appeal": "Appeal received"
+            },
+            "titles": {
+              "warning": "Reported behavior that triggered a warning",
+              "temporaryBan": "Action that led to a temporary ban",
+              "permanentBan": "Serious action that led to a permanent ban",
+              "mute": "Message or behavior that led to a speech restriction"
+            },
+            "descriptions": {
+              "warning": "The player disputes a warning issued after an action considered borderline or against community rules.",
+              "temporaryBan": "The player disputes a temporary suspension applied after problematic or repeated behavior.",
+              "permanentBan": "The player disputes a permanent exclusion applied after an action considered serious by moderation.",
+              "mute": "The player disputes a communication restriction applied after a problematic message, comment, or voice/text behavior."
+            },
+            "details": {
+              "warning": {
+                "one": "One of the player's actions was reported or detected as potentially against the rules.",
+                "two": "Moderation considered that the behavior required a formal reminder.",
+                "three": "The appeal makes it possible to check whether the warning was proportionate to the context."
+              },
+              "temporaryBan": {
+                "one": "An action or repeated actions were considered problematic enough to temporarily block the account.",
+                "two": "The sanction aims to protect the experience of other players while the case is reviewed.",
+                "three": "The appeal makes it possible to reassess the duration, justification, and context of the suspension."
+              },
+              "permanentBan": {
+                "one": "A serious action or accumulation of incidents was associated with the player's account.",
+                "two": "Moderation considered that keeping the account active represented a risk to the community.",
+                "three": "The appeal makes it possible to review the case elements before confirming or canceling the exclusion."
+              },
+              "mute": {
+                "one": "A message, comment, or communication behavior was considered inappropriate.",
+                "two": "The restriction aims to limit problematic interactions without fully blocking the account.",
+                "three": "The appeal makes it possible to check whether the speech restriction is justified and proportionate."
+              }
+            }
+          }
+        },
+        "emptyText": "No appeal matches the selected filters."
       },
-      "actions": {
-        "backToModeration": "Back to moderation",
-        "resetFilters": "Reset filters",
-        "review": "Mark for review",
-        "inReview": "In review",
-        "hide": "Hide",
-        "restore": "Restore"
-      },
-      "emptyText": "No content matches the selected filters."
+      "audit": {
+        "badge": "Audit",
+        "title": "Audit log",
+        "subtitle": "A clear and structured view to track moderation actions, strengthen traceability, and quickly find sensitive events.",
+        "side": {
+          "label": "Traceability",
+          "title": "Action history",
+          "text": "Review sensitive operations performed across moderation areas and follow their chronology in an analysis-friendly interface.",
+          "chips": {
+            "traceability": "Traceability",
+            "history": "History",
+            "security": "Security"
+          }
+        },
+        "stats": {
+          "total": "Total",
+          "totalCaption": "Logged events",
+          "today": "Last 24h",
+          "todayCaption": "Recent activity detected",
+          "sanctions": "Sanctions",
+          "sanctionsCaption": "Actions related to disciplinary measures",
+          "content": "Content",
+          "contentCaption": "Actions related to content moderation"
+        },
+        "actions": {
+          "backToModeration": "Back to moderation",
+          "resetFilters": "Reset filters"
+        },
+        "filters": {
+          "title": "Filters",
+          "subtitle": "Refine the log display by resource, action type, or free search.",
+          "search": "Search for an actor, resource, identifier, or metadata",
+          "allActions": "All actions",
+          "sortNewest": "Sort: newest first",
+          "sortOldest": "Sort: oldest first",
+          "sortActor": "Sort: actor (A-Z)",
+          "filtered": "{count} active filter(s)"
+        },
+        "list": {
+          "title": "Activity history",
+          "subtitle": "Browse the timeline, find recent operations, and quickly filter by event type."
+        },
+        "card": {
+          "resource": "Resource:"
+        },
+        "emptyText": "No audit entry matches the selected filters."
+      }
     }
   }
 }

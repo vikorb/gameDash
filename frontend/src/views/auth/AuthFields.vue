@@ -62,25 +62,36 @@ const handleInput = (key: string, value: string) => {
 }
 
 .label {
-  font-weight: 600;
-  color: var(--color-cream);
-  font-size: 0.95rem;
-  text-align: left;
+  color: rgba(252, 239, 225, 0.72);
+  font-size: 0.86rem;
+  font-weight: 900;
 }
 
 .input {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--color-border);
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  background: #d9d9d9;
   width: 100%;
+  min-height: 46px;
   box-sizing: border-box;
+  padding: 0.8rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: var(--color-cream);
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.input::placeholder {
+  color: rgba(252, 239, 225, 0.42);
 }
 
 .input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+  border-color: rgba(242, 139, 91, 0.56);
+  background: rgba(18, 24, 38, 0.48);
+  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.12);
 }
 </style>

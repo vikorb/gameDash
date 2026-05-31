@@ -32,7 +32,6 @@ export function buildMapsExportRows(maps: MapItem[]): CsvRow[] {
     creator_id: map.creator.id,
     creator_username: map.creator.username,
     status: map.status,
-    visibility: map.visibility,
     featured: map.featured,
     current_version_number: map.current_version_number,
     versions_count: map.versions_count,

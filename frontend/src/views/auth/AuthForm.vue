@@ -56,25 +56,29 @@ const {
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
+  gap: 1.25rem;
+  margin-bottom: 1.7rem;
+  width: 100%;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  font-weight: 600;
+  min-height: 46px;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  font-weight: 900;
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
 }
 
 .error-message {
-  padding: 0.75rem;
-  background-color: #fee;
-  color: #c33;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(225, 91, 91, 0.35);
+  background: rgba(225, 91, 91, 0.14);
+  color: #ffb3b3;
+  font-size: 0.86rem;
+  font-weight: 800;
   text-align: center;
+  line-height: 1.45;
 }
 </style>

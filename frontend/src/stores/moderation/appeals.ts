@@ -1,82 +1,111 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+import { apiRequest } from '../apiClient'
 import { useModerationAuditStore } from './audit'
-import { generateAppeals, MODERATION_MOCK_COUNTS } from './mock'
 import type { ModerationAppeal } from './types'
+
+type AppealsListResponse = {
+  data: Array<Partial<ModerationAppeal> & { id: string | number }>
+}
+
+type AppealResponse = {
+  data: Partial<ModerationAppeal> & { id: string | number }
+}
+
+function normalizeAppeal(item: Partial<ModerationAppeal> & { id: string | number }) {
+  return {
+    id: String(item.id),
+    targetName: item.targetName ?? '—',
+    sanctionType: item.sanctionType ?? 'warning',
+    status: item.status ?? 'pending',
+    submittedAt: item.submittedAt ?? new Date().toISOString(),
+    message: item.message ?? '',
+    decisionNote: item.decisionNote ?? '',
+  } satisfies ModerationAppeal
+}
 
 export const useModerationAppealsStore = defineStore('moderation-appeals', () => {
   const auditStore = useModerationAuditStore()
-  const appeals = ref<ModerationAppeal[]>(generateAppeals(MODERATION_MOCK_COUNTS.appeals))
+  const appeals = ref<ModerationAppeal[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-  function acceptAppeal(appealId: string, actorName = 'Administration') {
-    const appeal = appeals.value.find((item) => item.id === appealId)
+  function replaceAppeal(appeal: ModerationAppeal) {
+    const index = appeals.value.findIndex((item) => item.id === appeal.id)
 
-    if (!appeal) {
+    if (index === -1) {
+      appeals.value.unshift(appeal)
       return
     }
 
-    appeal.status = 'accepted'
-    appeal.decisionNote = 'La demande a été acceptée après réexamen du dossier.'
-
-    auditStore.pushAudit({
-      actorName,
-      actionKey: 'appeal_accepted',
-      resourceType: 'appeal',
-      resourceLabel: appeal.targetName,
-      metadata: [appeal.id, appeal.sanctionType],
-    })
+    appeals.value[index] = appeal
   }
 
-  function rejectAppeal(appealId: string, actorName = 'Administration') {
-    const appeal = appeals.value.find((item) => item.id === appealId)
+  async function fetchAppeals() {
+    loading.value = true
+    error.value = null
 
-    if (!appeal) {
-      return
+    try {
+      const response = await apiRequest<AppealsListResponse>('/moderation/appeals')
+      appeals.value = response.data.map(normalizeAppeal)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Impossible de charger les appels.'
+      throw err
+    } finally {
+      loading.value = false
     }
-
-    appeal.status = 'rejected'
-    appeal.decisionNote = 'La décision initiale a été maintenue après réexamen.'
-
-    auditStore.pushAudit({
-      actorName,
-      actionKey: 'appeal_rejected',
-      resourceType: 'appeal',
-      resourceLabel: appeal.targetName,
-      metadata: [appeal.id, appeal.sanctionType],
-    })
   }
 
-  function requestAppealInfo(appealId: string, actorName = 'Administration') {
-    const appeal = appeals.value.find((item) => item.id === appealId)
-
-    if (!appeal) {
-      return
+  async function refreshAudit() {
+    try {
+      await auditStore.fetchAuditEntries()
+    } catch {
+      // Non bloquant.
     }
+  }
 
-    appeal.status = 'needsInfo'
-    appeal.decisionNote =
-      'Des informations complémentaires ont été demandées avant décision finale.'
-
-    auditStore.pushAudit({
-      actorName,
-      actionKey: 'appeal_info_requested',
-      resourceType: 'appeal',
-      resourceLabel: appeal.targetName,
-      metadata: [appeal.id, appeal.sanctionType],
+  async function updateAppeal(
+    appealId: string,
+    endpoint: 'accept' | 'reject' | 'request-info',
+    actorName = 'Administration',
+    decisionNote?: string,
+  ) {
+    const response = await apiRequest<AppealResponse>(`/moderation/appeals/${appealId}/${endpoint}`, {
+      method: 'POST',
+      body: JSON.stringify({ actor: actorName, decisionNote }),
     })
+
+    replaceAppeal(normalizeAppeal(response.data))
+    await refreshAudit()
+  }
+
+  function acceptAppeal(appealId: string, actorName = 'Administration', decisionNote?: string) {
+    return updateAppeal(appealId, 'accept', actorName, decisionNote)
+  }
+
+  function rejectAppeal(appealId: string, actorName = 'Administration', decisionNote?: string) {
+    return updateAppeal(appealId, 'reject', actorName, decisionNote)
+  }
+
+  function requestAppealInfo(appealId: string, actorName = 'Administration', decisionNote?: string) {
+    return updateAppeal(appealId, 'request-info', actorName, decisionNote)
   }
 
   const appealSummary = computed(() => ({
     total: appeals.value.length,
     pendingCount: appeals.value.filter((item) => item.status === 'pending').length,
     acceptedCount: appeals.value.filter((item) => item.status === 'accepted').length,
+    rejectedCount: appeals.value.filter((item) => item.status === 'rejected').length,
     needsInfoCount: appeals.value.filter((item) => item.status === 'needsInfo').length,
   }))
 
   return {
     appeals,
+    loading,
+    error,
     appealSummary,
+    fetchAppeals,
     acceptAppeal,
     rejectAppeal,
     requestAppealInfo,

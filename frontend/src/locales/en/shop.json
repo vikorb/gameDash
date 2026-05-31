@@ -1,0 +1,312 @@
+{
+  "shop": {
+    "title": "Shop",
+    "badge": "Nebula Shop",
+    "subtitle": "Browse cosmetics, packs and exclusive offers to personalise your experience.",
+    "goToInventory": "My inventory",
+    "seeAll": "See all",
+    "new": "NEW",
+    "loading": "Loading shop…",
+    "tabs": {
+      "boutique": "Shop",
+      "bundles": "Bundles",
+      "catalogue": "Catalogue"
+    },
+    "section": {
+      "bundles": "Current offers",
+      "bundlesSubtitle": "{count} bundles available",
+      "featured": "Featured items",
+      "featuredSubtitle": "This week's selection"
+    },
+    "categories": {
+      "all": "All categories",
+      "cosmetic": "Cosmetics",
+      "pack": "Packs",
+      "pass": "Passes",
+      "boost": "Boosters"
+    },
+    "currencies": {
+      "all": "All currencies",
+      "soft": "Coins ◇",
+      "hard": "Gems ◈"
+    },
+    "rarities": {
+      "all": "All rarities"
+    },
+    "rarity": {
+      "common": "Common",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    },
+    "slots": {
+      "avatar": "Avatar",
+      "banner": "Banner",
+      "frame": "Frame",
+      "emote": "Emote",
+      "trail": "Trail",
+      "spray": "Spray"
+    },
+    "wallet": {
+      "label": "My wallet",
+      "title": "Currencies",
+      "text": "Earn coins by playing or top up your gems to access premium items.",
+      "soft": "Coins",
+      "hard": "Gems",
+      "topup": "Top up"
+    },
+    "stats": {
+      "items": "Items",
+      "itemsCaption": "items available",
+      "bundles": "Offers",
+      "bundlesCaption": "active bundles",
+      "soft": "Coins",
+      "softCaption": "in your wallet",
+      "hard": "Gems",
+      "hardCaption": "in your wallet"
+    },
+    "filters": {
+      "reset": "Reset filters"
+    },
+    "search": {
+      "placeholder": "Search items…"
+    },
+    "item": {
+      "buy": "Buy",
+      "owned": "Owned",
+      "insufficient": "Insufficient funds",
+      "notAvailable": "Unavailable"
+    },
+    "bundle": {
+      "buy": "Buy bundle",
+      "saving": "saved",
+      "expiresIn": "Expires in",
+      "expired": "Expired",
+      "purchaseSuccess": "Bundle added to your inventory!"
+    },
+    "purchase": {
+      "confirm": "Confirm purchase",
+      "cancel": "Cancel",
+      "success": "Item added to your inventory!",
+      "insufficientFunds": "Insufficient funds — top up your gems.",
+      "error": "An error occurred."
+    },
+    "topup": {
+      "badge": "Top-up",
+      "title": "Top up gems",
+      "subtitle": "Choose a pack to credit your account.",
+      "bestValue": "Best value",
+      "bonus": "bonus",
+      "simulate": "Simulate payment",
+      "processing": "Processing…",
+      "disclaimer": "Simulated transaction — no real payment is made.",
+      "success": "{amount} ◈ successfully credited!",
+      "fail": "Payment declined — please try again.",
+      "packs": {
+        "starter": "Starter pack",
+        "popular": "Popular pack",
+        "basic": "Basic pack",
+        "standard": "Standard pack",
+        "premium": "Premium pack",
+        "ultimate": "Ultimate pack"
+      }
+    },
+    "empty": {
+      "title": "No items found",
+      "text": "Try adjusting your filters or search query."
+    }
+  },
+  "inventory": {
+    "badge": "Inventory",
+    "title": "My Inventory",
+    "subtitle": "Manage your cosmetics and configure your equipment.",
+    "goToShop": "Go to shop",
+    "hero": {
+      "label": "Active loadout",
+      "title": "My configuration",
+      "text": "Equip items in each slot to customise your in-game appearance."
+    },
+    "stats": {
+      "total": "Items",
+      "totalCaption": "in your collection",
+      "equipped": "Equipped",
+      "equippedCaption": "active slots",
+      "legendaries": "Legendaries",
+      "legendarycaption": "rare items owned",
+      "slots": "Free slots",
+      "slotsCaption": "available slots"
+    },
+    "slots": {
+      "title": "Loadout",
+      "subtitle": "{filled} / {total} slots configured",
+      "avatar": "Avatar",
+      "banner": "Banner",
+      "frame": "Frame",
+      "emote": "Emote",
+      "trail": "Trail",
+      "spray": "Spray"
+    },
+    "items": {
+      "title": "My collection"
+    },
+    "filters": {
+      "all": "All",
+      "equipped": "Equipped"
+    },
+    "itemsCount": "items",
+    "equippedCount": "equipped",
+    "equip": "Equip",
+    "unequip": "Remove",
+    "equippedLabel": "Equipped",
+    "slotEmpty": "Empty slot",
+    "equipped": "equipped successfully",
+    "search": "Search…",
+    "errors": {
+      "generic": "Could not equip this item."
+    },
+    "empty": {
+      "title": "Empty inventory",
+      "text": "Visit the shop to get your first cosmetic items."
+    }
+  },
+  "backoffice": {
+    "economy": {
+      "bundles": {
+        "title": "Bundle management",
+        "subtitle": "Create, edit and manage shop bundle deals.",
+        "count": "bundles",
+        "addBundle": "New bundle",
+        "editBundle": "Edit bundle",
+        "permanent": "Permanent",
+        "edit": "Edit",
+        "delete": "Delete",
+        "emptyTitle": "No bundles configured",
+        "emptyText": "Create your first bundle using the button above.",
+        "columns": {
+          "bundle": "Bundle",
+          "items": "Items",
+          "originalPrice": "Original price",
+          "bundlePrice": "Bundle price",
+          "saving": "Saving",
+          "expiry": "Expiry",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "form": {
+          "name": "Bundle name",
+          "badge": "Badge",
+          "noBadge": "No badge",
+          "description": "Description",
+          "imageSeed": "Image key",
+          "imageSeedHint": "e.g. bundle-cyber, bundle-inferno…",
+          "imageSeedDesc": "Used to generate the cover image via picsum.photos.",
+          "gradient": "Overlay colour",
+          "bundlePrice": "Bundle price",
+          "originalPriceHint": "Calculated item total: {price} ◈",
+          "expiry": "Expiry date",
+          "expiryHint": "Leave empty for a permanent bundle.",
+          "items": "Included items",
+          "selected": "selected",
+          "searchItems": "Search items…",
+          "save": "Save",
+          "create": "Create bundle"
+        },
+        "feedback": {
+          "created": "Bundle \"{name}\" created successfully.",
+          "updated": "Bundle \"{name}\" updated.",
+          "deleted": "Bundle \"{name}\" deleted."
+        },
+        "searchPlaceholder": "Search bundles…",
+        "emptyFiltered": "No bundle matches",
+        "emptyFilteredText": "Try adjusting your filters.",
+        "filters": {
+          "allBadges": "All badges",
+          "noBadge": "No badge",
+          "allStatuses": "All statuses",
+          "expiring": "Expiring soon"
+        }
+      },
+      "shop": {
+        "addItem": "New item",
+        "editItem": "Edit",
+        "deleteItem": "Delete",
+        "columns": {
+          "rarity": "Rarity"
+        },
+        "rarities": {
+          "common": "Common",
+          "rare": "Rare",
+          "epic": "Epic",
+          "legendary": "Legendary"
+        },
+        "modal": {
+          "addTitle": "New item",
+          "editTitle": "Edit item",
+          "name": "Name",
+          "imageSeed": "Image key",
+          "imageSeedHint": "e.g. item-avatar-neon, item-trail-thunder…",
+          "imageSeedDesc": "Used to generate the cover image via picsum.photos.",
+          "imagePlaceholder": "Enter an image key above to preview",
+          "category": "Category",
+          "slot": "Slot",
+          "noSlot": "No slot (pack / boost)",
+          "slotHint": "Used to assign the item to a player equipment slot.",
+          "rarity": "Rarity",
+          "currency": "Currency",
+          "price": "Price",
+          "flagNew": "Badge NEW",
+          "flagFeatured": "Featured",
+          "flagAvailable": "Available",
+          "save": "Save",
+          "create": "Create item",
+          "feedback": {
+            "created": "Item \"{name}\" created successfully.",
+            "updated": "Item \"{name}\" updated.",
+            "deleted": "Item \"{name}\" deleted."
+          }
+        },
+        "pagination": {
+          "showing": "Showing {from}-{to} of {total}"
+        }
+      },
+      "actions": {
+        "resetFilters": "Reset"
+      },
+      "journal": {
+        "title": "Economy journal",
+        "subtitle": "Player transactions and configuration audit trail.",
+        "tabs": {
+          "transactions": "Transactions",
+          "audit": "Config audit"
+        },
+        "searchPlaceholder": "Player or item…",
+        "emptyTitle": "No transactions",
+        "emptyText": "Try adjusting your filters.",
+        "columns": {
+          "player": "Player",
+          "item": "Item",
+          "type": "Type",
+          "amount": "Amount",
+          "currency": "Currency",
+          "status": "Status",
+          "date": "Date"
+        },
+        "filters": {
+          "allTypes": "All types",
+          "allStatuses": "All statuses",
+          "allCurrencies": "All currencies",
+          "purchase": "Purchase",
+          "payment": "Payment",
+          "reward": "Reward",
+          "success": "Success",
+          "fail": "Failed"
+        },
+        "types": {
+          "purchase": "Purchase",
+          "payment_sim": "Payment",
+          "reward": "Reward"
+        }
+      }
+    }
+  }
+}

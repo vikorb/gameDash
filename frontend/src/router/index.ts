@@ -2,11 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import { authService } from '@/services/pocketbase'
 import { type UserRole, useUserStore } from '@/stores/userStore'
-import AuthView from '@/views/AuthView.vue'
+import AuthView from '@/views/auth/AuthView.vue'
 import BackofficeDashboardView from '@/views/backoffice/BackofficeDashboardView.vue'
 import BackofficeEconomyView from '@/views/backoffice/BackofficeEconomyView.vue'
 import BackofficeMatchmakingView from '@/views/backoffice/BackofficeMatchmakingView.vue'
-import BackOfficeView from '@/views/BackOfficeView.vue'
+import BackOfficeView from '@/views/backoffice/BackOfficeView.vue'
 import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import HomeView from '@/views/HomeView.vue'
 import LandingView from '@/views/LandingView.vue'
@@ -17,7 +17,7 @@ import MapsDetailView from '@/views/maps/MapsDetailView.vue'
 import MapsMineView from '@/views/maps/MapsMineView.vue'
 import MatchmakingView from '@/views/matchmaking/MatchmakingView.vue'
 import ModerationUsersView from '@/views/moderation/ModerationUsersView.vue'
-import ModerationView from '@/views/ModerationView.vue'
+import ModerationView from '@/views/moderation/ModerationView.vue'
 import ProfilView from '@/views/profile/ProfileView.vue'
 
 const canAccess = (role: UserRole, allowedRoles?: UserRole[]) => {
@@ -63,13 +63,8 @@ const router = createRouter({
       props: { sectionKey: 'activities' },
       meta: { requiresAuth: true, roles: ['admin', 'moderator'] as UserRole[] },
     },
-    {
-      path: '/shop',
-      name: 'shop-home',
-      component: RoleSectionView,
-      props: { sectionKey: 'shop' },
-      meta: { requiresAuth: true, roles: ['player', 'admin'] as UserRole[] },
-    },
+    { path: '/shop', component: () => import('@/views/shop/ShopView.vue') },
+    { path: '/inventory', component: () => import('@/views/shop/InventoryView.vue') },
     {
       path: '/maps',
       name: 'maps-browse',

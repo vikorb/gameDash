@@ -718,6 +718,7 @@ onMounted(() => {
 .profile-page {
   min-height: calc(100vh - var(--footer-height));
   padding: 2rem 1.25rem 3rem;
+  color: var(--color-cream);
 }
 
 .profile-shell {
@@ -730,16 +731,21 @@ onMounted(() => {
 
 .state-card {
   padding: 2rem;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid var(--color-border);
   border-radius: 24px;
-  box-shadow: var(--shadow-md);
-  color: var(--color-ink);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  color: rgba(252, 239, 225, 0.76);
   text-align: center;
+  font-weight: 800;
 }
 
 .state-card--error {
-  color: var(--color-danger);
+  color: #ff9a9a;
+  border-color: rgba(225, 91, 91, 0.35);
+  background:
+    linear-gradient(180deg, rgba(225, 91, 91, 0.16), rgba(46, 50, 68, 0.96)), var(--color-navy);
 }
 
 .admin-actions {
@@ -750,21 +756,27 @@ onMounted(() => {
 
 .admin-action-btn {
   min-height: 44px;
-  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.88);
-  color: var(--color-ink);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.84);
   padding: 0.75rem 1rem;
   font: inherit;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
   transition:
     transform 0.18s ease,
-    opacity 0.18s ease;
+    opacity 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
-.admin-action-btn:hover {
+.admin-action-btn:hover:not(:disabled) {
   transform: translateY(-1px);
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
 }
 
 .admin-action-btn:disabled {
@@ -773,8 +785,15 @@ onMounted(() => {
 }
 
 .admin-action-btn--warn {
-  background: rgba(242, 139, 91, 0.14);
-  color: #8a5c1d;
+  background: rgba(225, 91, 91, 0.14);
+  color: #ffb3b3;
+  border-color: rgba(225, 91, 91, 0.3);
+}
+
+.admin-action-btn--warn:hover:not(:disabled) {
+  background: rgba(225, 91, 91, 0.2);
+  border-color: rgba(225, 91, 91, 0.45);
+  color: #ffd0d0;
 }
 
 @media (max-width: 720px) {

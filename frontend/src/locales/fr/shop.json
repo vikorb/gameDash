@@ -1,0 +1,312 @@
+{
+  "shop": {
+    "title": "Boutique",
+    "badge": "Nébula Shop",
+    "subtitle": "Découvrez cosmétiques, packs et offres exclusives pour personnaliser votre expérience.",
+    "goToInventory": "Mon inventaire",
+    "seeAll": "Voir tout",
+    "new": "NEW",
+    "loading": "Chargement de la boutique…",
+    "tabs": {
+      "boutique": "Boutique",
+      "bundles": "Bundles",
+      "catalogue": "Catalogue"
+    },
+    "section": {
+      "bundles": "Offres du moment",
+      "bundlesSubtitle": "{count} packs disponibles",
+      "featured": "Articles en vedette",
+      "featuredSubtitle": "Sélection de la semaine"
+    },
+    "categories": {
+      "all": "Toutes catégories",
+      "cosmetic": "Cosmétiques",
+      "pack": "Packs",
+      "pass": "Passes",
+      "boost": "Boosters"
+    },
+    "currencies": {
+      "all": "Toutes devises",
+      "soft": "Pièces ◇",
+      "hard": "Gemmes ◈"
+    },
+    "rarities": {
+      "all": "Toutes raretés"
+    },
+    "rarity": {
+      "common": "Commun",
+      "rare": "Rare",
+      "epic": "Épique",
+      "legendary": "Légendaire"
+    },
+    "slots": {
+      "avatar": "Avatar",
+      "banner": "Bannière",
+      "frame": "Cadre",
+      "emote": "Emote",
+      "trail": "Traînée",
+      "spray": "Spray"
+    },
+    "wallet": {
+      "label": "Mon portefeuille",
+      "title": "Devises",
+      "text": "Gagnez des pièces en jouant ou rechargez vos gemmes pour accéder aux items premium.",
+      "soft": "Pièces",
+      "hard": "Gemmes",
+      "topup": "Recharger"
+    },
+    "stats": {
+      "items": "Articles",
+      "itemsCaption": "articles disponibles",
+      "bundles": "Offres",
+      "bundlesCaption": "bundles actifs",
+      "soft": "Pièces",
+      "softCaption": "dans votre wallet",
+      "hard": "Gemmes",
+      "hardCaption": "dans votre wallet"
+    },
+    "filters": {
+      "reset": "Réinitialiser"
+    },
+    "search": {
+      "placeholder": "Rechercher un article…"
+    },
+    "item": {
+      "buy": "Acheter",
+      "owned": "Possédé",
+      "insufficient": "Fonds insuffisants",
+      "notAvailable": "Indisponible"
+    },
+    "bundle": {
+      "buy": "Acheter le pack",
+      "saving": "économisé",
+      "expiresIn": "Expire dans",
+      "expired": "Expiré",
+      "purchaseSuccess": "Pack ajouté à votre inventaire !"
+    },
+    "purchase": {
+      "confirm": "Confirmer l'achat",
+      "cancel": "Annuler",
+      "success": "Article ajouté à votre inventaire !",
+      "insufficientFunds": "Fonds insuffisants — rechargez vos gemmes.",
+      "error": "Une erreur est survenue."
+    },
+    "topup": {
+      "badge": "Recharge",
+      "title": "Recharger mes gemmes",
+      "subtitle": "Choisissez un pack pour créditer votre compte.",
+      "bestValue": "Meilleur rapport",
+      "bonus": "bonus",
+      "simulate": "Simuler le paiement",
+      "processing": "Traitement en cours…",
+      "disclaimer": "Transaction simulée — aucun paiement réel n'est effectué.",
+      "success": "{amount} ◈ crédités avec succès !",
+      "fail": "Paiement refusé — veuillez réessayer.",
+      "packs": {
+        "starter": "Pack de démarrage",
+        "popular": "Pack populaire",
+        "basic": "Pack de base",
+        "standard": "Pack standard",
+        "premium": "Pack premium",
+        "ultimate": "Pack ultime"
+      }
+    },
+    "empty": {
+      "title": "Aucun article trouvé",
+      "text": "Essayez d'ajuster vos filtres ou votre recherche."
+    }
+  },
+  "inventory": {
+    "badge": "Inventaire",
+    "title": "Mon inventaire",
+    "subtitle": "Gérez vos cosmétiques et configurez votre équipement.",
+    "goToShop": "Aller à la boutique",
+    "hero": {
+      "label": "Équipement actif",
+      "title": "Ma configuration",
+      "text": "Équipez vos items sur les différents slots pour personnaliser votre joueur en jeu."
+    },
+    "stats": {
+      "total": "Articles",
+      "totalCaption": "dans votre collection",
+      "equipped": "Équipés",
+      "equippedCaption": "slots actifs",
+      "legendaries": "Légendaires",
+      "legendarycaption": "items rares possédés",
+      "slots": "Slots libres",
+      "slotsCaption": "emplacements disponibles"
+    },
+    "slots": {
+      "title": "Configuration",
+      "subtitle": "{filled} / {total} slots configurés",
+      "avatar": "Avatar",
+      "banner": "Bannière",
+      "frame": "Cadre",
+      "emote": "Emote",
+      "trail": "Traînée",
+      "spray": "Spray"
+    },
+    "items": {
+      "title": "Ma collection"
+    },
+    "filters": {
+      "all": "Tous",
+      "equipped": "Équipés"
+    },
+    "itemsCount": "articles",
+    "equippedCount": "équipés",
+    "equip": "Équiper",
+    "unequip": "Retirer",
+    "equippedLabel": "Équipé",
+    "slotEmpty": "Slot vide",
+    "equipped": "équipé avec succès",
+    "search": "Rechercher…",
+    "errors": {
+      "generic": "Impossible d'équiper cet item."
+    },
+    "empty": {
+      "title": "Inventaire vide",
+      "text": "Visitez la boutique pour acquérir vos premiers items cosmétiques."
+    }
+  },
+  "backoffice": {
+    "economy": {
+      "bundles": {
+        "title": "Gestion des bundles",
+        "subtitle": "Créez, modifiez et gérez les offres groupées de la boutique.",
+        "count": "bundles",
+        "addBundle": "Nouveau bundle",
+        "editBundle": "Modifier le bundle",
+        "permanent": "Permanent",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "emptyTitle": "Aucun bundle configuré",
+        "emptyText": "Créez votre premier bundle avec le bouton ci-dessus.",
+        "columns": {
+          "bundle": "Bundle",
+          "items": "Articles",
+          "originalPrice": "Prix original",
+          "bundlePrice": "Prix bundle",
+          "saving": "Économie",
+          "expiry": "Expiration",
+          "status": "Statut",
+          "actions": "Actions"
+        },
+        "form": {
+          "name": "Nom du bundle",
+          "badge": "Badge",
+          "noBadge": "Aucun badge",
+          "description": "Description",
+          "imageSeed": "Clé d'image",
+          "imageSeedHint": "ex: bundle-cyber, bundle-inferno…",
+          "imageSeedDesc": "Utilisé pour générer l'image de couverture via picsum.photos.",
+          "gradient": "Couleur d'overlay",
+          "bundlePrice": "Prix bundle",
+          "originalPriceHint": "Prix cumulé des articles : {price} ◈",
+          "expiry": "Date d'expiration",
+          "expiryHint": "Laisser vide pour un bundle permanent.",
+          "items": "Articles inclus",
+          "selected": "sélectionnés",
+          "searchItems": "Rechercher un article…",
+          "save": "Sauvegarder",
+          "create": "Créer le bundle"
+        },
+        "feedback": {
+          "created": "Bundle \"{name}\" créé avec succès.",
+          "updated": "Bundle \"{name}\" mis à jour.",
+          "deleted": "Bundle \"{name}\" supprimé."
+        },
+        "searchPlaceholder": "Rechercher un bundle…",
+        "emptyFiltered": "Aucun bundle correspond",
+        "emptyFilteredText": "Essayez de modifier vos filtres.",
+        "filters": {
+          "allBadges": "Tous les badges",
+          "noBadge": "Sans badge",
+          "allStatuses": "Tous les statuts",
+          "expiring": "Expirent bientôt"
+        }
+      },
+      "shop": {
+        "addItem": "Nouvel article",
+        "editItem": "Modifier",
+        "deleteItem": "Supprimer",
+        "columns": {
+          "rarity": "Rareté"
+        },
+        "rarities": {
+          "common": "Commun",
+          "rare": "Rare",
+          "epic": "Épique",
+          "legendary": "Légendaire"
+        },
+        "modal": {
+          "addTitle": "Nouvel article",
+          "editTitle": "Modifier l'article",
+          "name": "Nom",
+          "imageSeed": "Clé d'image",
+          "imageSeedHint": "ex : item-avatar-neon, item-trail-thunder…",
+          "imageSeedDesc": "Utilisé pour générer l'image via picsum.photos.",
+          "imagePlaceholder": "Saisissez une clé ci-dessus pour prévisualiser",
+          "category": "Catégorie",
+          "slot": "Slot",
+          "noSlot": "Aucun slot (pack / booster)",
+          "slotHint": "Associe l'article à un emplacement d'équipement joueur.",
+          "rarity": "Rareté",
+          "currency": "Devise",
+          "price": "Prix",
+          "flagNew": "Badge NEW",
+          "flagFeatured": "En vedette",
+          "flagAvailable": "Disponible",
+          "save": "Sauvegarder",
+          "create": "Créer l'article",
+          "feedback": {
+            "created": "Article \"{name}\" créé avec succès.",
+            "updated": "Article \"{name}\" mis à jour.",
+            "deleted": "Article \"{name}\" supprimé."
+          }
+        },
+        "pagination": {
+          "showing": "{from}-{to} sur {total} résultats"
+        }
+      },
+      "actions": {
+        "resetFilters": "Réinitialiser"
+      },
+      "journal": {
+        "title": "Journal économique",
+        "subtitle": "Transactions joueurs et audit des modifications de configuration.",
+        "tabs": {
+          "transactions": "Transactions",
+          "audit": "Audit config"
+        },
+        "searchPlaceholder": "Joueur ou article…",
+        "emptyTitle": "Aucune transaction",
+        "emptyText": "Essayez de modifier vos filtres.",
+        "columns": {
+          "player": "Joueur",
+          "item": "Article",
+          "type": "Type",
+          "amount": "Montant",
+          "currency": "Devise",
+          "status": "Statut",
+          "date": "Date"
+        },
+        "filters": {
+          "allTypes": "Tous les types",
+          "allStatuses": "Tous les statuts",
+          "allCurrencies": "Toutes devises",
+          "purchase": "Achat",
+          "payment": "Paiement",
+          "reward": "Récompense",
+          "success": "Succès",
+          "fail": "Échec"
+        },
+        "types": {
+          "purchase": "Achat",
+          "payment_sim": "Paiement",
+          "reward": "Récompense"
+        }
+      }
+    }
+  }
+}

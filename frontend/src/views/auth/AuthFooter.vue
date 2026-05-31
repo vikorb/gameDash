@@ -20,24 +20,28 @@ const { t } = useI18n({ useScope: 'global' })
 <style scoped>
 .auth-footer {
   text-align: center;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(252, 239, 225, 0.12);
 }
 
 .auth-footer p {
-  color: var(--color-text-muted);
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.5rem;
+  color: rgba(252, 239, 225, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .link {
-  color: var(--color-primary);
+  color: var(--color-primary-strong);
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s;
+  font-weight: 900;
+  transition:
+    color 0.16s ease,
+    opacity 0.16s ease;
 }
 
 .link:hover {
-  color: var(--color-primary-strong);
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 </style>

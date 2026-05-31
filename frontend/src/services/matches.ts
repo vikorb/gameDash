@@ -39,7 +39,7 @@ export type MatchHistoryResponse = {
   offset: number
 }
 
-function getMapFallbackPool(): Array<{ id: string; name: string }> {
+function getMapFallbackPool(): Array<{ id: number; name: string }> {
   if (!getActivePinia()) return []
 
   const mapsStore = useMapsStore()

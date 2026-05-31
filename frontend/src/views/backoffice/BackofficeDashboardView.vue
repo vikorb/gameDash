@@ -29,7 +29,6 @@
 
           <div class="hero-side__chips">
             <span>{{ t('backoffice.dashboard.side.chips.live') }}</span>
-            <span>{{ t('backoffice.dashboard.side.chips.poc') }}</span>
             <span>{{ t('backoffice.dashboard.side.chips.rbac') }}</span>
           </div>
         </aside>
@@ -221,19 +220,36 @@ import {
   mdiTrendingUp,
 } from '@mdi/js'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+import {
+  type BackofficeActivityType,
+  type BackofficePeriodValue,
+  type BackofficeRankKey,
+  useBackofficeDashboardStore,
+} from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
 
-type PeriodValue = '7d' | '30d' | '90d'
-type RankKey = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'master'
-type ActivityType = 'match' | 'transaction' | 'map' | 'sanction'
+type PeriodValue = BackofficePeriodValue
+type RankKey = BackofficeRankKey
+type ActivityType = BackofficeActivityType
+
+type ActivityEvent = {
+  id: number
+  type: ActivityType
+  actor: string
+  target?: string | null
+  timestamp: string
+}
 
 const router = useRouter()
 const userStore = useUserStore()
+const dashboardStore = useBackofficeDashboardStore()
 const { profile } = storeToRefs(userStore)
+const { snapshot, trends, rankDistribution, topMaps, topCreators, recentActivity } =
+  storeToRefs(dashboardStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const selectedPeriod = ref<PeriodValue>('7d')
@@ -249,77 +265,9 @@ const periodLabel = computed(() => {
   return found?.label ?? ''
 })
 
-// --- Mock data POC ----------------------------------------------------------
-
-type PeriodSnapshot = {
-  activeUsers: number
-  matchesPerDay: number
-  transactionsPerDay: number
-  mapsPublished: number
-  virtualRevenue: number
-  pendingReports: number
-}
-
-const snapshots: Record<PeriodValue, PeriodSnapshot> = {
-  '7d': {
-    activeUsers: 1842,
-    matchesPerDay: 3120,
-    transactionsPerDay: 412,
-    mapsPublished: 87,
-    virtualRevenue: 18430,
-    pendingReports: 23,
-  },
-  '30d': {
-    activeUsers: 5294,
-    matchesPerDay: 2890,
-    transactionsPerDay: 387,
-    mapsPublished: 342,
-    virtualRevenue: 72180,
-    pendingReports: 41,
-  },
-  '90d': {
-    activeUsers: 12480,
-    matchesPerDay: 2715,
-    transactionsPerDay: 365,
-    mapsPublished: 1024,
-    virtualRevenue: 218400,
-    pendingReports: 58,
-  },
-}
-
-const trends: Record<
-  PeriodValue,
-  Record<keyof PeriodSnapshot, { value: string; direction: 'up' | 'down' }>
-> = {
-  '7d': {
-    activeUsers: { value: '+12.4%', direction: 'up' },
-    matchesPerDay: { value: '+5.8%', direction: 'up' },
-    transactionsPerDay: { value: '+3.1%', direction: 'up' },
-    mapsPublished: { value: '+8.0%', direction: 'up' },
-    virtualRevenue: { value: '+9.7%', direction: 'up' },
-    pendingReports: { value: '-2.5%', direction: 'down' },
-  },
-  '30d': {
-    activeUsers: { value: '+7.2%', direction: 'up' },
-    matchesPerDay: { value: '+2.4%', direction: 'up' },
-    transactionsPerDay: { value: '-1.2%', direction: 'down' },
-    mapsPublished: { value: '+14.5%', direction: 'up' },
-    virtualRevenue: { value: '+6.1%', direction: 'up' },
-    pendingReports: { value: '+8.4%', direction: 'up' },
-  },
-  '90d': {
-    activeUsers: { value: '+18.9%', direction: 'up' },
-    matchesPerDay: { value: '+1.5%', direction: 'up' },
-    transactionsPerDay: { value: '+0.8%', direction: 'up' },
-    mapsPublished: { value: '+22.1%', direction: 'up' },
-    virtualRevenue: { value: '+12.8%', direction: 'up' },
-    pendingReports: { value: '+15.2%', direction: 'up' },
-  },
-}
-
 const kpiCards = computed(() => {
-  const snap = snapshots[selectedPeriod.value]
-  const trend = trends[selectedPeriod.value]
+  const snap = snapshot.value
+  const trend = trends.value
 
   return [
     {
@@ -379,83 +327,13 @@ const kpiCards = computed(() => {
   ]
 })
 
-const rankDistribution = computed<Array<{ key: RankKey; count: number; percentage: number }>>(
-  () => {
-    const base: Array<{ key: RankKey; count: number }> = [
-      { key: 'bronze', count: 4820 },
-      { key: 'silver', count: 3210 },
-      { key: 'gold', count: 2150 },
-      { key: 'platinum', count: 1080 },
-      { key: 'diamond', count: 480 },
-      { key: 'master', count: 120 },
-    ]
-
-    const multiplier =
-      selectedPeriod.value === '7d' ? 1 : selectedPeriod.value === '30d' ? 1.2 : 1.45
-
-    const scaled = base.map((item) => ({ ...item, count: Math.round(item.count * multiplier) }))
-    const total = scaled.reduce((sum, item) => sum + item.count, 0)
-
-    return scaled.map((item) => ({
-      ...item,
-      percentage: total === 0 ? 0 : (item.count / total) * 100,
-    }))
-  },
-)
-
 const totalRankedPlayers = computed(() =>
   rankDistribution.value.reduce((sum, item) => sum + item.count, 0),
 )
 
-const topMaps = ref([
-  { id: 1, title: 'Neon Crucible', author: 'pixelqueen', tests: 12480, rating: 4.8 },
-  { id: 2, title: 'Forgotten Outpost', author: 'shadowfox', tests: 9820, rating: 4.6 },
-  { id: 3, title: 'Skybreaker', author: 'neo_runner', tests: 8190, rating: 4.5 },
-  { id: 4, title: 'Ember Run', author: 'helios', tests: 7240, rating: 4.4 },
-  { id: 5, title: 'Hollow Frontier', author: 'raven', tests: 6510, rating: 4.3 },
-])
-
-const topCreators = ref([
-  { id: 1, name: 'pixelqueen', mapsPublished: 24, totalTests: 38200 },
-  { id: 2, name: 'shadowfox', mapsPublished: 18, totalTests: 29150 },
-  { id: 3, name: 'neo_runner', mapsPublished: 15, totalTests: 22480 },
-  { id: 4, name: 'mira', mapsPublished: 11, totalTests: 15920 },
-])
-
-type ActivityEvent = {
-  id: number
-  type: ActivityType
-  actor: string
-  target?: string
-  timestamp: string
-}
-
-const recentActivity = ref<ActivityEvent[]>([
-  { id: 1, type: 'sanction', actor: 'alice', target: 'shadowfox', timestamp: minutesAgo(4) },
-  {
-    id: 2,
-    type: 'map',
-    actor: 'pixelqueen',
-    target: 'Neon Crucible v3',
-    timestamp: minutesAgo(11),
-  },
-  {
-    id: 3,
-    type: 'transaction',
-    actor: 'luna',
-    target: '500 hard currency',
-    timestamp: minutesAgo(18),
-  },
-  { id: 4, type: 'match', actor: 'neo_runner', target: 'Ranked 5v5', timestamp: minutesAgo(27) },
-  { id: 5, type: 'map', actor: 'helios', target: 'Ember Run v2', timestamp: minutesAgo(42) },
-  { id: 6, type: 'sanction', actor: 'enzo', target: 'thorium', timestamp: minutesAgo(58) },
-])
-
-function minutesAgo(minutes: number) {
-  return new Date(Date.now() - minutes * 60 * 1000).toISOString()
-}
-
-// --- Helpers ----------------------------------------------------------------
+watch(selectedPeriod, (period) => {
+  void dashboardStore.fetchDashboard(period)
+})
 
 function goBackToBackoffice() {
   router.push('/backoffice')
@@ -510,7 +388,10 @@ onMounted(() => {
 
   if (!['admin', 'moderator'].includes(role)) {
     router.replace('/home')
+    return
   }
+
+  void dashboardStore.fetchDashboard(selectedPeriod.value)
 })
 </script>
 
@@ -518,6 +399,7 @@ onMounted(() => {
 .backoffice-page {
   min-height: calc(100vh - var(--footer-height));
   padding: 2rem;
+  color: var(--color-cream);
 }
 
 .page-shell {
@@ -531,9 +413,27 @@ onMounted(() => {
   gap: 1.5rem;
   padding: 1.75rem;
   border-radius: 28px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
+  pointer-events: none;
+}
+
+.page-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-hero__content {
@@ -549,52 +449,85 @@ onMounted(() => {
 
 .page-badge {
   display: inline-flex;
+  width: fit-content;
   padding: 0.38rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border: 1px solid rgba(242, 139, 91, 0.36);
+  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .page-title {
   margin: 0.9rem 0 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(1.8rem, 2.6vw, 2.6rem);
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
 .page-subtitle {
   margin: 0.55rem 0 0;
   max-width: 720px;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.68);
+  line-height: 1.6;
 }
 
 .btn {
-  border: none;
+  min-height: 42px;
   border-radius: 14px;
+  border: 1px solid transparent;
   padding: 0.85rem 1.1rem;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: transform 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn--primary {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border-color: rgba(242, 139, 91, 0.42);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+}
+
+.btn--primary:hover {
+  filter: brightness(1.04);
 }
 
 .btn--ghost {
-  color: var(--color-ink);
-  background: rgba(81, 96, 121, 0.08);
-  border: 1px solid rgba(81, 96, 121, 0.15);
+  color: rgba(252, 239, 225, 0.84);
+  background: rgba(18, 24, 38, 0.34);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.btn--ghost:hover {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
 }
 
 .hero-side {
   padding: 1.25rem;
   border-radius: 22px;
-  background: linear-gradient(145deg, rgba(46, 50, 68, 0.97), rgba(81, 96, 121, 0.95));
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(242, 139, 91, 0.2), transparent 38%),
+    rgba(18, 24, 38, 0.38);
   color: var(--color-cream);
   display: flex;
   flex-direction: column;
@@ -602,23 +535,24 @@ onMounted(() => {
 }
 
 .hero-side__label {
-  font-size: 0.78rem;
-  font-weight: 700;
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.78;
+  letter-spacing: 0.08em;
 }
 
 .hero-side__title {
   margin-top: 0.35rem;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .hero-side__text {
   margin-top: 0.4rem;
-  color: rgba(252, 239, 225, 0.82);
+  color: rgba(252, 239, 225, 0.68);
   font-size: 0.92rem;
+  line-height: 1.55;
 }
 
 .hero-side__chips {
@@ -631,19 +565,21 @@ onMounted(() => {
   display: inline-flex;
   padding: 0.32rem 0.6rem;
   border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
   font-size: 0.74rem;
-  font-weight: 700;
-  background: rgba(252, 239, 225, 0.14);
-  color: var(--color-cream);
+  font-weight: 800;
+  background: rgba(18, 24, 38, 0.36);
+  color: rgba(252, 239, 225, 0.78);
 }
 
 .period-bar {
   margin-top: 1.5rem;
   padding: 1.25rem 1.5rem;
   border-radius: 24px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -655,13 +591,14 @@ onMounted(() => {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.15rem;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
 .period-bar__subtitle {
   margin: 0.3rem 0 0;
   font-size: 0.88rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
 }
 
 .period-bar__pills {
@@ -669,25 +606,34 @@ onMounted(() => {
   gap: 0.5rem;
   padding: 0.35rem;
   border-radius: 14px;
-  background: rgba(81, 96, 121, 0.08);
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.34);
 }
 
 .period-pill {
   border: none;
   background: transparent;
   padding: 0.55rem 1rem;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.88rem;
   border-radius: 10px;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.period-pill:hover {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.12);
 }
 
 .period-pill--active {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-  box-shadow: 0 8px 16px -10px rgba(242, 139, 91, 0.7);
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  box-shadow: 0 10px 22px -14px rgba(242, 139, 91, 0.85);
 }
 
 .kpi-grid {
@@ -700,12 +646,24 @@ onMounted(() => {
 .kpi-card {
   padding: 1.25rem;
   border-radius: 22px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.9)), var(--color-navy);
+  box-shadow: 0 18px 42px -30px rgba(0, 0, 0, 0.8);
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.82), rgba(46, 50, 68, 0.98)), var(--color-navy);
 }
 
 .kpi-card__top {
@@ -721,8 +679,9 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(81, 96, 121, 0.09);
-  color: var(--color-ink);
+  background: rgba(242, 139, 91, 0.14);
+  color: var(--color-primary-strong);
+  border: 1px solid rgba(242, 139, 91, 0.24);
 }
 
 .kpi-card__icon svg {
@@ -738,7 +697,7 @@ onMounted(() => {
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .kpi-card__trend svg {
@@ -748,20 +707,24 @@ onMounted(() => {
 }
 
 .kpi-card__trend--up {
-  color: #146c43;
-  background: rgba(61, 191, 125, 0.16);
+  color: #7ee0ad;
+  background: rgba(61, 191, 125, 0.14);
+  border: 1px solid rgba(61, 191, 125, 0.28);
 }
 
 .kpi-card__trend--down {
-  color: #9f2f2f;
-  background: rgba(225, 91, 91, 0.16);
+  color: #ff9a9a;
+  background: rgba(225, 91, 91, 0.14);
+  border: 1px solid rgba(225, 91, 91, 0.28);
 }
 
 .kpi-card__label {
   display: block;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
+  font-size: 0.82rem;
+  color: rgba(252, 239, 225, 0.58);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .kpi-card__value {
@@ -769,15 +732,15 @@ onMounted(() => {
   margin-top: 0.4rem;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-ink);
+  font-weight: 900;
+  color: var(--color-cream);
 }
 
 .kpi-card__caption {
   display: block;
   margin-top: 0.3rem;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.52);
 }
 
 .dashboard-grid {
@@ -790,9 +753,10 @@ onMounted(() => {
 .surface {
   padding: 1.5rem;
   border-radius: 24px;
-  background: rgba(252, 239, 225, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
 }
 
 .surface-header {
@@ -807,12 +771,13 @@ onMounted(() => {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.2rem;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
 .surface-subtitle {
   margin: 0.3rem 0 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   font-size: 0.88rem;
 }
 
@@ -821,13 +786,13 @@ onMounted(() => {
   align-items: center;
   padding: 0.35rem 0.65rem;
   border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
   font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  background: rgba(81, 96, 121, 0.08);
+  font-weight: 800;
+  color: rgba(252, 239, 225, 0.72);
+  background: rgba(18, 24, 38, 0.3);
 }
 
-/* Rank chart */
 .rank-chart {
   display: flex;
   flex-direction: column;
@@ -843,27 +808,28 @@ onMounted(() => {
 }
 
 .rank-row__name {
-  font-weight: 700;
-  color: var(--color-ink);
+  font-weight: 900;
+  color: var(--color-cream);
   flex: 1;
 }
 
 .rank-row__count {
-  color: var(--color-text-muted);
-  font-weight: 600;
+  color: rgba(252, 239, 225, 0.64);
+  font-weight: 900;
 }
 
 .rank-row__pct {
   margin-left: 0.3rem;
-  color: var(--color-text-muted);
-  font-weight: 500;
+  color: rgba(252, 239, 225, 0.48);
+  font-weight: 700;
 }
 
 .rank-row__bar {
   height: 10px;
   border-radius: 999px;
-  background: rgba(81, 96, 121, 0.1);
+  background: rgba(18, 24, 38, 0.48);
   overflow: hidden;
+  border: 1px solid rgba(252, 239, 225, 0.06);
 }
 
 .rank-row__fill {
@@ -886,7 +852,7 @@ onMounted(() => {
 
 .rank-dot--silver,
 .rank-row__fill--silver {
-  background: linear-gradient(135deg, #c5cad4, #9aa1ae);
+  background: linear-gradient(135deg, #d8deea, #9aa1ae);
 }
 
 .rank-dot--gold,
@@ -909,13 +875,16 @@ onMounted(() => {
   background: linear-gradient(135deg, #ba8df0, #7a4ecd);
 }
 
-/* Top lists */
-.top-list {
+.top-list,
+.activity-feed {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+.top-list {
   gap: 0.7rem;
 }
 
@@ -925,8 +894,8 @@ onMounted(() => {
   gap: 0.85rem;
   padding: 0.85rem;
   border-radius: 16px;
-  background: rgba(81, 96, 121, 0.05);
-  border: 1px solid rgba(81, 96, 121, 0.08);
+  border: 1px solid rgba(252, 239, 225, 0.08);
+  background: rgba(18, 24, 38, 0.26);
 }
 
 .top-list__rank {
@@ -936,11 +905,10 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 0.88rem;
-  color: var(--color-ink);
-  background: rgba(252, 239, 225, 1);
-  border: 1px solid rgba(81, 96, 121, 0.15);
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
   flex-shrink: 0;
 }
 
@@ -951,9 +919,10 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: var(--color-cream);
-  font-weight: 700;
+  background: rgba(242, 139, 91, 0.14);
+  color: var(--color-primary-strong);
+  border: 1px solid rgba(242, 139, 91, 0.24);
+  font-weight: 900;
   flex-shrink: 0;
 }
 
@@ -964,15 +933,16 @@ onMounted(() => {
 
 .top-list__title {
   display: block;
-  color: var(--color-ink);
+  color: var(--color-cream);
   font-size: 0.94rem;
+  font-weight: 900;
 }
 
 .top-list__author {
   display: block;
   margin-top: 0.2rem;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.52);
 }
 
 .top-list__metrics {
@@ -982,13 +952,7 @@ onMounted(() => {
   gap: 0.3rem;
 }
 
-/* Activity feed */
 .activity-feed {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
   gap: 0.65rem;
 }
 
@@ -998,7 +962,8 @@ onMounted(() => {
   gap: 0.85rem;
   padding: 0.75rem;
   border-radius: 14px;
-  background: rgba(81, 96, 121, 0.05);
+  border: 1px solid rgba(252, 239, 225, 0.08);
+  background: rgba(18, 24, 38, 0.26);
 }
 
 .activity-feed__icon {
@@ -1018,50 +983,55 @@ onMounted(() => {
 }
 
 .activity-feed__icon--match {
-  color: #31598c;
-  background: rgba(49, 89, 140, 0.12);
+  color: #9ab8ff;
+  background: rgba(80, 120, 238, 0.14);
+  border: 1px solid rgba(80, 120, 238, 0.24);
 }
 
 .activity-feed__icon--transaction {
-  color: #146c43;
-  background: rgba(61, 191, 125, 0.16);
+  color: #7ee0ad;
+  background: rgba(61, 191, 125, 0.14);
+  border: 1px solid rgba(61, 191, 125, 0.24);
 }
 
 .activity-feed__icon--map {
-  color: #8a5c1d;
-  background: rgba(242, 139, 91, 0.18);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.16);
+  border: 1px solid rgba(242, 139, 91, 0.26);
 }
 
 .activity-feed__icon--sanction {
-  color: #9f2f2f;
-  background: rgba(225, 91, 91, 0.16);
+  color: #ff9a9a;
+  background: rgba(225, 91, 91, 0.14);
+  border: 1px solid rgba(225, 91, 91, 0.26);
 }
 
 .activity-feed__title {
   display: block;
   font-size: 0.92rem;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
 .activity-feed__meta {
   display: block;
   margin-top: 0.15rem;
   font-size: 0.8rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.52);
 }
 
 @media (max-width: 1200px) {
   .kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
   .page-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1071,21 +1041,40 @@ onMounted(() => {
     padding: 1rem;
   }
 
+  .page-hero,
+  .period-bar,
+  .surface {
+    border-radius: 22px;
+    padding: 1rem;
+  }
+
   .kpi-grid {
     grid-template-columns: 1fr;
   }
 
-  .period-bar {
+  .period-bar__pills {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .period-pill {
+    padding-inline: 0.5rem;
+  }
+
+  .page-hero__actions,
+  .top-list__item,
+  .activity-feed__item {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .period-bar__pills {
-    justify-content: space-between;
+  .btn {
+    width: 100%;
   }
 
-  .period-pill {
-    flex: 1;
+  .top-list__metrics {
+    align-items: flex-start;
   }
 }
 </style>

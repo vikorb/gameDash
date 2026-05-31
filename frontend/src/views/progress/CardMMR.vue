@@ -1,7 +1,9 @@
 <template>
   <div class="mmr-card">
     <div class="mmr-header">
-      <h2>MMR <strong>{{ mmr }}</strong></h2>
+      <h2>
+        MMR <strong>{{ mmr }}</strong>
+      </h2>
     </div>
     <div class="mmr-graph">
       <LineChart :data="chartData" :options="chartOptions" />
@@ -10,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { Chart, registerables } from 'chart.js'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
@@ -56,10 +57,12 @@ const chartData = computed(() => ({
       backgroundColor: 'rgba(242,139,91,0.08)',
       tension: 0.3,
       fill: false,
-      pointRadius: props.history.map((h: MMRHistory) => h.isCurrent ? 8 : 4),
-      pointBackgroundColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#fff'),
-      pointBorderColor: props.history.map((h: MMRHistory) => h.isCurrent ? '#f28b5b' : '#f28b5b'),
-      pointBorderWidth: props.history.map((h: MMRHistory) => h.isCurrent ? 3 : 1),
+      pointRadius: props.history.map((h: MMRHistory) => (h.isCurrent ? 8 : 4)),
+      pointBackgroundColor: props.history.map((h: MMRHistory) =>
+        h.isCurrent ? '#f28b5b' : '#fff',
+      ),
+      pointBorderColor: props.history.map((h: MMRHistory) => (h.isCurrent ? '#f28b5b' : '#f28b5b')),
+      pointBorderWidth: props.history.map((h: MMRHistory) => (h.isCurrent ? 3 : 1)),
     },
     {
       label: 'Mediane',

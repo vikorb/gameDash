@@ -1,5 +1,5 @@
 import type { MapFormData } from '@/types/form'
-import type { GameMap } from '@/types/map'
+import type { MapItem, MapStatus, ModerationStatus } from '@/types/maps'
 
 export type MapFormErrors = {
   title?: string
@@ -8,27 +8,24 @@ export type MapFormErrors = {
 export function parseRouteId(param: unknown): number | null {
   if (typeof param !== 'string') return null
   const n = Number(param)
-  return Number.isFinite(n) ? n : null
+  return Number.isFinite(n) && n > 0 ? n : null
 }
 
 export function initMapFormData(): MapFormData {
   return {
     title: '',
     description: '',
-    creator_id: 1,
+    creator_id: 66, // MY_USER_ID – demo
     original: null,
   }
 }
 
 export function mapToFormData(
   form: MapFormData,
-  map: Pick<
-    GameMap,
-    'id' | 'creator_id' | 'title' | 'description' | 'status' | 'moderation_status'
-  >,
+  map: Pick<MapItem, 'id' | 'creator' | 'title' | 'description' | 'status' | 'moderation_status'>,
 ): void {
   form.id = map.id
-  form.creator_id = map.creator_id ?? 1
+  form.creator_id = map.creator.id ?? 66
   form.title = map.title ?? ''
   form.description = map.description ?? ''
   form.status = map.status
@@ -56,7 +53,7 @@ export function resetMapFormData(form: MapFormData): void {
   }
 
   form.id = undefined
-  form.creator_id = 1
+  form.creator_id = 66
   form.title = ''
   form.description = ''
   form.status = undefined
@@ -82,8 +79,15 @@ export function toSavePayload(
   form: MapFormData,
   isEditMode: boolean,
   mapId: number | null,
-): Partial<GameMap> {
-  const payload: Partial<GameMap> = {
+): {
+  title: string
+  description: string | null
+  creator_id?: number
+  id?: number
+  status?: MapStatus
+  moderation_status?: ModerationStatus
+} {
+  const payload: ReturnType<typeof toSavePayload> = {
     title: form.title.trim(),
     description: form.description.trim() === '' ? null : form.description.trim(),
   }

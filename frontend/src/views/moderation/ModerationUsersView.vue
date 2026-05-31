@@ -367,36 +367,27 @@ import {
   mdiMagnify,
   mdiRefresh,
 } from '@mdi/js'
+import { storeToRefs } from 'pinia'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import ExportButton from '@/components/export/ExportButton.vue'
-import { useModerationUsersStore } from '@/stores/moderation'
+import {
+  type ModerationSelectedUser,
+  type ModerationUserRole,
+  type ModerationUserStatus,
+  useModerationUsersStore,
+} from '@/stores/moderation'
 
-type UserRole = 'player' | 'admin' | 'moderator'
-type UserStatus = 0 | 1 | 2 | 3
+type UserRole = ModerationUserRole
+type UserStatus = ModerationUserStatus
 type UserDeletedFilter = 'all' | 'active' | 'deleted'
 type UserSortBy = 'updated_at' | 'created_at' | 'username' | 'email' | 'role' | 'status'
 type UserSortOrder = 'asc' | 'desc'
 type UiStatusFilter = 'all' | '0' | '1' | '2' | '3'
 type FeedbackType = 'success' | 'warning' | 'error'
-
-type UserProfile = {
-  id: number
-  pocketbase_user_id: string | null
-  username: string | null
-  email: string | null
-  role: UserRole
-  status: UserStatus
-  region: string | null
-  bio: string | null
-  language: string | null
-  matchmaking_pref: unknown
-  created_at: string | null
-  updated_at: string | null
-  deleted_at: string | null
-}
+type UserProfile = ModerationSelectedUser
 
 type UserListFilters = {
   search: string
@@ -422,10 +413,16 @@ const DEFAULT_USER_LIST_FILTERS: UserListFilters = {
 
 const router = useRouter()
 const { t, locale } = useI18n({ useScope: 'global' })
+const moderationStore = useModerationUsersStore()
+const {
+  users,
+  pagination: usersPagination,
+  summary: usersSummary,
+  loading,
+} = storeToRefs(moderationStore)
 
 const actionLoadingId = ref<number | null>(null)
 const feedback = ref<{ type: FeedbackType; message: string } | null>(null)
-const loading = ref(false)
 const pendingRoles = ref<Record<number, UserRole>>({})
 
 const filters = reactive<{
@@ -448,253 +445,6 @@ const filters = reactive<{
   sortOrder: DEFAULT_USER_LIST_FILTERS.sortOrder,
 })
 
-function buildIso(date: string) {
-  return new Date(date).toISOString()
-}
-
-const allUsers = ref<UserProfile[]>([
-  {
-    id: 1,
-    pocketbase_user_id: 'pb_001',
-    username: 'enzo',
-    email: 'enzo@gamedash.test',
-    role: 'admin',
-    status: 1,
-    region: 'Île-de-France',
-    bio: 'Admin principal',
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-01T10:00:00'),
-    updated_at: buildIso('2026-04-06T11:15:00'),
-    deleted_at: null,
-  },
-  {
-    id: 2,
-    pocketbase_user_id: 'pb_002',
-    username: 'alice',
-    email: 'alice@gamedash.test',
-    role: 'moderator',
-    status: 1,
-    region: 'Lyon',
-    bio: 'Modération communauté',
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-02T14:00:00'),
-    updated_at: buildIso('2026-04-06T09:40:00'),
-    deleted_at: null,
-  },
-  {
-    id: 3,
-    pocketbase_user_id: 'pb_003',
-    username: 'neo_runner',
-    email: 'neo.runner@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: 'Marseille',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-04T09:30:00'),
-    updated_at: buildIso('2026-04-05T18:20:00'),
-    deleted_at: null,
-  },
-  {
-    id: 4,
-    pocketbase_user_id: 'pb_004',
-    username: 'shadowfox',
-    email: 'shadowfox@gamedash.test',
-    role: 'player',
-    status: 3,
-    region: 'Lille',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-05T12:10:00'),
-    updated_at: buildIso('2026-04-06T07:15:00'),
-    deleted_at: null,
-  },
-  {
-    id: 5,
-    pocketbase_user_id: 'pb_005',
-    username: 'luna',
-    email: 'luna@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Bordeaux',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-06T16:00:00'),
-    updated_at: buildIso('2026-04-04T20:10:00'),
-    deleted_at: null,
-  },
-  {
-    id: 6,
-    pocketbase_user_id: 'pb_006',
-    username: 'atlas',
-    email: 'atlas@gamedash.test',
-    role: 'moderator',
-    status: 2,
-    region: 'Toulouse',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-07T08:00:00'),
-    updated_at: buildIso('2026-04-02T13:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 7,
-    pocketbase_user_id: 'pb_007',
-    username: 'nova',
-    email: 'nova@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Nantes',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-08T11:00:00'),
-    updated_at: buildIso('2026-04-05T10:30:00'),
-    deleted_at: null,
-  },
-  {
-    id: 8,
-    pocketbase_user_id: 'pb_008',
-    username: 'blitz',
-    email: 'blitz@gamedash.test',
-    role: 'player',
-    status: 0,
-    region: 'Paris',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-09T09:00:00'),
-    updated_at: buildIso('2026-04-01T15:40:00'),
-    deleted_at: buildIso('2026-04-01T15:40:00'),
-  },
-  {
-    id: 9,
-    pocketbase_user_id: 'pb_009',
-    username: 'raven',
-    email: 'raven@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: 'Nice',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-10T13:20:00'),
-    updated_at: buildIso('2026-04-03T14:10:00'),
-    deleted_at: null,
-  },
-  {
-    id: 10,
-    pocketbase_user_id: 'pb_010',
-    username: 'pixelqueen',
-    email: 'pixelqueen@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Strasbourg',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-11T18:30:00'),
-    updated_at: buildIso('2026-04-06T08:55:00'),
-    deleted_at: null,
-  },
-  {
-    id: 11,
-    pocketbase_user_id: 'pb_011',
-    username: 'thorium',
-    email: 'thorium@gamedash.test',
-    role: 'player',
-    status: 3,
-    region: 'Rennes',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-12T07:10:00'),
-    updated_at: buildIso('2026-04-05T17:45:00'),
-    deleted_at: null,
-  },
-  {
-    id: 12,
-    pocketbase_user_id: 'pb_012',
-    username: 'mira',
-    email: 'mira@gamedash.test',
-    role: 'player',
-    status: 1,
-    region: 'Montpellier',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-13T10:45:00'),
-    updated_at: buildIso('2026-04-06T06:25:00'),
-    deleted_at: null,
-  },
-  {
-    id: 13,
-    pocketbase_user_id: 'pb_013',
-    username: 'helios',
-    email: 'helios@gamedash.test',
-    role: 'moderator',
-    status: 1,
-    region: 'Grenoble',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-14T12:00:00'),
-    updated_at: buildIso('2026-04-04T19:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 14,
-    pocketbase_user_id: 'pb_014',
-    username: 'ivy',
-    email: 'ivy@gamedash.test',
-    role: 'player',
-    status: 2,
-    region: null,
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-15T09:40:00'),
-    updated_at: buildIso('2026-04-03T21:00:00'),
-    deleted_at: null,
-  },
-  {
-    id: 15,
-    pocketbase_user_id: 'pb_015',
-    username: 'zenit',
-    email: 'zenit@gamedash.test',
-    role: 'player',
-    status: 0,
-    region: 'Paris',
-    bio: null,
-    language: 'en',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-16T15:15:00'),
-    updated_at: buildIso('2026-04-02T10:25:00'),
-    deleted_at: buildIso('2026-04-02T10:25:00'),
-  },
-  {
-    id: 16,
-    pocketbase_user_id: 'pb_016',
-    username: 'ember',
-    email: 'ember@gamedash.test',
-    role: 'admin',
-    status: 2,
-    region: 'Bruxelles',
-    bio: null,
-    language: 'fr',
-    matchmaking_pref: null,
-    created_at: buildIso('2026-03-17T11:20:00'),
-    updated_at: buildIso('2026-04-06T05:45:00'),
-    deleted_at: null,
-  },
-])
-
 const statusQuickFilters = computed(() => [
   { value: 'all' as const, label: t('moderationUsers.statuses.all') },
   { value: '1' as const, label: t('moderationUsers.statuses.online') },
@@ -702,74 +452,6 @@ const statusQuickFilters = computed(() => [
   { value: '3' as const, label: t('moderationUsers.statuses.banned') },
   { value: '0' as const, label: t('moderationUsers.statuses.deleted') },
 ])
-
-const filteredUsers = computed(() => {
-  let result = [...allUsers.value]
-
-  const search = filters.search.trim().toLowerCase()
-  if (search) {
-    result = result.filter((user) => {
-      const haystack = [user.username, user.email, user.region, user.role, user.language]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(search)
-    })
-  }
-
-  if (filters.role !== 'all') {
-    result = result.filter((user) => user.role === filters.role)
-  }
-
-  if (filters.status !== 'all') {
-    const status = Number(filters.status) as UserStatus
-    result = result.filter((user) => user.status === status)
-  }
-
-  if (filters.deleted === 'active') {
-    result = result.filter((user) => !user.deleted_at)
-  }
-
-  if (filters.deleted === 'deleted') {
-    result = result.filter((user) => !!user.deleted_at)
-  }
-
-  result.sort((left, right) => {
-    const leftValue = getSortableValue(left, filters.sortBy)
-    const rightValue = getSortableValue(right, filters.sortBy)
-
-    if (leftValue < rightValue) {
-      return filters.sortOrder === 'asc' ? -1 : 1
-    }
-
-    if (leftValue > rightValue) {
-      return filters.sortOrder === 'asc' ? 1 : -1
-    }
-
-    return 0
-  })
-
-  return result
-})
-
-const usersPagination = computed(() => {
-  const total = filteredUsers.value.length
-  const totalPages = total === 0 ? 0 : Math.ceil(total / filters.limit)
-  const safePage = totalPages === 0 ? 1 : Math.min(filters.page, totalPages)
-
-  return {
-    page: safePage,
-    limit: filters.limit,
-    total,
-    totalPages,
-  }
-})
-
-const users = computed(() => {
-  const offset = (usersPagination.value.page - 1) * usersPagination.value.limit
-  return filteredUsers.value.slice(offset, offset + usersPagination.value.limit)
-})
 
 const activeFilterCount = computed(() => {
   let count = 0
@@ -785,12 +467,9 @@ const activeFilterCount = computed(() => {
   return count
 })
 
-const bannedCount = computed(() => filteredUsers.value.filter((user) => user.status === 3).length)
-const deletedCount = computed(() => filteredUsers.value.filter((user) => !!user.deleted_at).length)
-const adminsAndModeratorsCount = computed(
-  () =>
-    filteredUsers.value.filter((user) => user.role === 'admin' || user.role === 'moderator').length,
-)
+const bannedCount = computed(() => usersSummary.value.bannedCount)
+const deletedCount = computed(() => usersSummary.value.deletedCount)
+const adminsAndModeratorsCount = computed(() => usersSummary.value.adminsAndModeratorsCount)
 
 watch(
   users,
@@ -806,22 +485,6 @@ watch(
   { immediate: true },
 )
 
-watch(
-  () => [filteredUsers.value.length, filters.limit],
-  () => {
-    const totalPages = usersPagination.value.totalPages
-
-    if (totalPages === 0) {
-      filters.page = 1
-      return
-    }
-
-    if (filters.page > totalPages) {
-      filters.page = totalPages
-    }
-  },
-)
-
 onMounted(() => {
   void initPage()
 })
@@ -834,23 +497,28 @@ function goBackToModeration() {
   router.push('/moderation')
 }
 
-function getSortableValue(user: UserProfile, sortBy: UserSortBy) {
-  if (sortBy === 'username') return (user.username ?? '').toLowerCase()
-  if (sortBy === 'email') return (user.email ?? '').toLowerCase()
-  if (sortBy === 'role') return user.role
-  if (sortBy === 'status') return user.status
-  if (sortBy === 'created_at') return user.created_at ?? ''
-  return user.updated_at ?? ''
-}
-
 function setFeedback(type: FeedbackType, message: string) {
   feedback.value = { type, message }
 }
 
 async function loadUsers() {
-  loading.value = true
-  await wait(180)
-  loading.value = false
+  try {
+    await moderationStore.fetchUsers({
+      search: filters.search,
+      role: filters.role,
+      status: filters.status,
+      deleted: filters.deleted,
+      page: filters.page,
+      limit: filters.limit,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    })
+  } catch (err) {
+    setFeedback(
+      'error',
+      err instanceof Error ? err.message : 'Impossible de charger les utilisateurs.',
+    )
+  }
 }
 
 async function submitFilters() {
@@ -878,6 +546,8 @@ function clearSearch() {
 
 function setQuickStatus(value: UiStatusFilter) {
   filters.status = value
+  filters.page = 1
+  void loadUsers()
 }
 
 async function goToPage(page: number) {
@@ -929,74 +599,48 @@ function formatDate(value: string | null) {
   }).format(date)
 }
 
-function patchLocalUser(userId: number, payload: Partial<UserProfile>) {
-  const updatedAt = new Date().toISOString()
-
-  allUsers.value = allUsers.value.map((user) =>
-    user.id === userId
-      ? {
-          ...user,
-          ...payload,
-          updated_at: updatedAt,
-        }
-      : user,
-  )
-
-  if (moderationStore.selectedUser?.id === userId) {
-    moderationStore.patchSelectedUser({
-      ...payload,
-      updated_at: updatedAt,
-    })
-  }
-}
-
-async function runLocalAction(
-  user: UserProfile,
-  payload: Partial<Pick<UserProfile, 'role' | 'status'>>,
-  message: string,
-  feedbackType: FeedbackType = 'success',
-) {
-  actionLoadingId.value = user.id
-
-  await wait(160)
-
-  patchLocalUser(user.id, payload)
-  setFeedback(feedbackType, message)
-
-  actionLoadingId.value = null
-}
-
 async function changeRoleFromSelect(user: UserProfile) {
   const nextRole = pendingRoles.value[user.id] ?? user.role
 
-  if (nextRole === user.role) {
-    return
-  }
+  if (nextRole === user.role) return
 
-  await runLocalAction(
-    user,
-    { role: nextRole },
-    t('moderationUsers.messages.roleSimulated', {
-      user: getDisplayName(user),
-      role: getRoleLabel(nextRole),
-    }),
-  )
+  actionLoadingId.value = user.id
+
+  try {
+    await moderationStore.updateUserRole(user.id, nextRole, 'POC Admin')
+    setFeedback(
+      'success',
+      t('moderationUsers.messages.roleSimulated', {
+        user: getDisplayName(user),
+        role: getRoleLabel(nextRole),
+      }),
+    )
+  } catch (err) {
+    pendingRoles.value[user.id] = user.role
+    setFeedback('error', err instanceof Error ? err.message : 'Action impossible côté API.')
+  } finally {
+    actionLoadingId.value = null
+  }
 }
 
 async function toggleBan(user: UserProfile) {
   const nextStatus: UserStatus = user.status === 3 ? 2 : 3
+  actionLoadingId.value = user.id
 
-  await runLocalAction(
-    user,
-    { status: nextStatus },
-    user.status === 3
-      ? t('moderationUsers.messages.userUnbannedSimulated', { user: getDisplayName(user) })
-      : t('moderationUsers.messages.userBannedSimulated', { user: getDisplayName(user) }),
-    'warning',
-  )
+  try {
+    await moderationStore.updateUserStatus(user.id, nextStatus, 'POC Admin')
+    setFeedback(
+      'warning',
+      user.status === 3
+        ? t('moderationUsers.messages.userUnbannedSimulated', { user: getDisplayName(user) })
+        : t('moderationUsers.messages.userBannedSimulated', { user: getDisplayName(user) }),
+    )
+  } catch (err) {
+    setFeedback('error', err instanceof Error ? err.message : 'Action impossible côté API.')
+  } finally {
+    actionLoadingId.value = null
+  }
 }
-
-const moderationStore = useModerationUsersStore()
 
 function viewUser(user: UserProfile) {
   moderationStore.setSelectedUser(user)
@@ -1006,99 +650,240 @@ function viewUser(user: UserProfile) {
     params: { id: user.id },
   })
 }
-
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
 </script>
 
 <style scoped>
 .moderation-users-view {
   min-height: calc(100vh - var(--footer-height));
   padding: 2rem;
+  color: var(--color-cream);
 }
 
+/* ── Layout ─────────────────────────────────────────────── */
 .moderation-users-shell {
-  max-width: 1450px;
+  max-width: 1380px;
   margin: 0 auto;
 }
 
+/* ── Header ─────────────────────────────────────────────── */
 .page-header {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.35rem;
+  padding: 1.4rem;
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.24), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
+  pointer-events: none;
+}
+
+.page-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-header__badge {
   display: inline-flex;
   align-items: center;
+  width: fit-content;
   padding: 0.38rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border: 1px solid rgba(242, 139, 91, 0.36);
+  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .page-header__title {
-  margin: 0.9rem 0 0;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  line-height: 1.05;
+  margin: 1rem 0 0;
   color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  font-weight: 900;
 }
 
 .page-header__subtitle {
-  margin: 0.65rem 0 0;
   max-width: 760px;
-  color: rgba(252, 239, 225, 0.8);
+  margin: 0.9rem 0 0;
+  color: rgba(252, 239, 225, 0.7);
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
 .page-header__actions {
   display: flex;
-  gap: 0.75rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  flex-shrink: 0;
 }
 
-.feedback-banner,
-.filters-card,
-.table-card,
-.stat-card {
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--shadow-md);
+/* ── Buttons ─────────────────────────────────────────────── */
+.toolbar-btn,
+.mini-btn,
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease,
+    filter 0.16s ease;
 }
 
+.toolbar-btn {
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  font-size: 0.88rem;
+}
+
+.toolbar-btn svg,
+.mini-btn svg,
+.pagination-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.toolbar-btn:hover:not(:disabled),
+.mini-btn:hover:not(:disabled),
+.pagination-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.toolbar-btn:disabled,
+.mini-btn:disabled,
+.pagination-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.toolbar-btn--primary,
+.mini-btn--primary {
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border-color: rgba(242, 139, 91, 0.42);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+}
+
+.toolbar-btn--primary:hover:not(:disabled),
+.mini-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.04);
+  box-shadow: 0 20px 36px -20px rgba(242, 139, 91, 1);
+}
+
+.toolbar-btn--ghost,
+.pagination-btn {
+  color: rgba(252, 239, 225, 0.84);
+  background: rgba(18, 24, 38, 0.34);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.toolbar-btn--ghost:hover:not(:disabled),
+.pagination-btn:hover:not(:disabled) {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
+}
+
+.mini-btn {
+  min-height: 36px;
+  padding: 0.52rem 0.82rem;
+  font-size: 0.78rem;
+}
+
+.mini-btn--warn {
+  color: #ffb3b3;
+  background: rgba(225, 91, 91, 0.14);
+  border-color: rgba(225, 91, 91, 0.32);
+  margin-top: 33px;
+  height: 20px;
+}
+
+.mini-btn--warn:hover:not(:disabled) {
+  color: #ffd0d0;
+  background: rgba(225, 91, 91, 0.22);
+  border-color: rgba(225, 91, 91, 0.46);
+}
+
+/* ── Feedback ────────────────────────────────────────────── */
 .feedback-banner {
   margin-bottom: 1rem;
-  padding: 1rem 1.25rem;
-  color: var(--color-ink);
-  background: rgba(252, 239, 225, 0.98);
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  font-weight: 900;
+  line-height: 1.45;
+  box-shadow: 0 14px 30px -24px rgba(0, 0, 0, 0.85);
 }
 
 .feedback-banner--success {
-  border-color: rgba(61, 191, 125, 0.35);
+  color: #7ee0ad;
+  background: rgba(61, 191, 125, 0.14);
+  border: 1px solid rgba(61, 191, 125, 0.32);
 }
 
 .feedback-banner--warning {
-  border-color: rgba(242, 139, 91, 0.35);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.14);
+  border: 1px solid rgba(242, 139, 91, 0.32);
 }
 
 .feedback-banner--error {
-  border-color: rgba(225, 91, 91, 0.35);
+  color: #ffb3b3;
+  background: rgba(225, 91, 91, 0.14);
+  border: 1px solid rgba(225, 91, 91, 0.35);
+}
+
+/* ── Shared cards ────────────────────────────────────────── */
+.filters-card,
+.table-card,
+.stat-card,
+.empty-state {
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
 }
 
 .filters-card,
 .table-card {
-  background: rgba(252, 239, 225, 0.98);
+  padding: 1.15rem;
 }
 
+/* ── Filters ─────────────────────────────────────────────── */
 .filters-card {
-  padding: 1.4rem;
+  margin-bottom: 1.35rem;
 }
 
 .search-row {
@@ -1108,72 +893,117 @@ function wait(ms: number) {
   align-items: end;
 }
 
-.search-field {
+.search-field,
+.field,
+.row-select {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.field__label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
+.field__label,
+.search-field__label,
+.row-select__label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(242, 139, 91, 0.1);
+  border: 1px solid rgba(242, 139, 91, 0.22);
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .search-field__control {
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 56px;
+  min-height: 54px;
   border-radius: 18px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: linear-gradient(180deg, rgba(24, 30, 45, 0.96), rgba(35, 43, 62, 0.96));
   overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.03),
+    0 10px 24px -18px rgba(0, 0, 0, 0.85);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.search-field__control:hover {
+  border-color: rgba(252, 239, 225, 0.16);
+  background: linear-gradient(180deg, rgba(28, 35, 51, 0.98), rgba(39, 47, 67, 0.98));
 }
 
 .search-field__control:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.16);
+  border-color: rgba(242, 139, 91, 0.62);
+  background: linear-gradient(180deg, rgba(30, 37, 54, 1), rgba(42, 50, 71, 1));
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.04),
+    0 0 0 4px rgba(242, 139, 91, 0.12),
+    0 16px 30px -20px rgba(242, 139, 91, 0.35);
 }
 
 .search-field__icon {
   width: 20px;
   height: 20px;
-  fill: var(--color-ink-muted);
+  fill: rgba(252, 239, 225, 0.48);
   margin-left: 1rem;
   flex-shrink: 0;
 }
 
 .search-field__input {
-  flex: 1;
-  min-width: 0;
-  height: 56px;
+  width: 100%;
+  min-height: 54px;
   border: none;
-  outline: none;
   background: transparent;
-  padding: 0 0.85rem;
+  color: var(--color-cream);
+  padding: 0 0.8rem;
   font: inherit;
-  color: var(--color-text);
+  font-weight: 800;
+  outline: none;
+}
+
+.search-field__input::placeholder {
+  color: rgba(252, 239, 225, 0.34);
+  font-weight: 600;
 }
 
 .search-field__clear {
   width: 42px;
   height: 42px;
   margin-right: 0.45rem;
-  border: none;
-  background: rgba(81, 96, 121, 0.08);
-  color: var(--color-ink-muted);
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.64);
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.search-field__clear:hover {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
+  transform: translateY(-1px);
 }
 
 .search-field__clear svg {
@@ -1196,28 +1026,35 @@ function wait(ms: number) {
 }
 
 .quick-status {
-  border: 1px solid rgba(46, 50, 68, 0.12);
-  background: rgba(255, 255, 255, 0.74);
-  color: var(--color-ink);
+  min-height: 40px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.32);
+  color: rgba(252, 239, 225, 0.76);
   border-radius: 999px;
   padding: 0.55rem 0.95rem;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
   transition:
     transform 0.18s ease,
     background-color 0.18s ease,
-    border-color 0.18s ease;
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .quick-status:hover {
   transform: translateY(-1px);
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.12);
+  border-color: rgba(242, 139, 91, 0.34);
 }
 
 .quick-status--active {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
+  color: var(--color-navy);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
   border-color: transparent;
+  box-shadow: 0 14px 26px -20px rgba(242, 139, 91, 0.95);
 }
 
 .filters-grid {
@@ -1227,24 +1064,50 @@ function wait(ms: number) {
   margin-top: 1rem;
 }
 
-.field__control {
+.field__control,
+.row-select__control {
   width: 100%;
-  min-height: 48px;
-  border-radius: 14px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.86);
-  padding: 0.75rem 0.9rem;
-  color: var(--color-text);
+  min-height: 46px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: linear-gradient(180deg, rgba(24, 30, 45, 0.96), rgba(35, 43, 62, 0.96));
+  color: var(--color-cream);
+  padding: 0.85rem 0.95rem;
   font: inherit;
+  font-weight: 800;
   outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.03),
+    0 10px 24px -18px rgba(0, 0, 0, 0.85);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
 }
 
-.field__control:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.16);
+.field__control:hover,
+.row-select__control:hover {
+  border-color: rgba(252, 239, 225, 0.16);
+  background: linear-gradient(180deg, rgba(28, 35, 51, 0.98), rgba(39, 47, 67, 0.98));
+}
+
+.field__control:focus,
+.row-select__control:focus {
+  border-color: rgba(242, 139, 91, 0.62);
+  background: linear-gradient(180deg, rgba(30, 37, 54, 1), rgba(42, 50, 71, 1));
+  box-shadow:
+    inset 0 1px 0 rgba(252, 239, 225, 0.04),
+    0 0 0 4px rgba(242, 139, 91, 0.12),
+    0 16px 30px -20px rgba(242, 139, 91, 0.35);
+  transform: translateY(-1px);
+}
+
+.field__control option,
+.row-select__control option {
+  background: var(--color-navy);
+  color: var(--color-cream);
 }
 
 .filters-footer {
@@ -1264,85 +1127,67 @@ function wait(ms: number) {
 .summary-pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.42rem 0.75rem;
+  width: fit-content;
+  padding: 0.36rem 0.68rem;
   border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-ink);
-  background: rgba(81, 96, 121, 0.08);
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.32);
+  color: rgba(252, 239, 225, 0.78);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 .summary-pill--accent {
-  color: #8a5c1d;
-  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.28);
 }
 
-.toolbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  min-height: 46px;
-  border: none;
-  border-radius: 14px;
-  padding: 0.75rem 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.toolbar-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-.toolbar-btn:hover {
-  transform: translateY(-1px);
-}
-
-.toolbar-btn--primary {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-}
-
-.toolbar-btn--ghost {
-  color: var(--color-ink);
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--color-border);
-}
-
+/* ── Stats ───────────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-  margin: 1rem 0;
+  margin-bottom: 1.35rem;
 }
 
 .stat-card {
-  padding: 1.1rem 1.2rem;
-  background: rgba(252, 239, 225, 0.98);
+  padding: 1rem;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.82), rgba(46, 50, 68, 0.98)), var(--color-navy);
 }
 
 .stat-card__label {
   display: block;
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .stat-card__value {
   display: block;
   margin-top: 0.45rem;
-  color: var(--color-ink);
-  font-size: 1.6rem;
-  font-weight: 700;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
+/* ── Table card ──────────────────────────────────────────── */
 .table-card {
-  padding: 1.25rem;
+  padding: 1.15rem;
 }
 
 .table-card__header {
@@ -1355,79 +1200,125 @@ function wait(ms: number) {
 
 .table-card__title {
   margin: 0;
+  color: var(--color-cream);
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.4rem;
-  color: var(--color-ink);
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
 }
 
 .table-card__subtitle {
   margin: 0.35rem 0 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
 .table-card__loading {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.36rem 0.68rem;
+  border-radius: 999px;
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.14);
+  border: 1px solid rgba(242, 139, 91, 0.28);
+  font-size: 0.78rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
+/* ── Empty state ─────────────────────────────────────────── */
 .empty-state {
   padding: 3rem 1rem;
   text-align: center;
+  border-style: dashed;
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.68), rgba(46, 50, 68, 0.94)), var(--color-navy);
 }
 
 .empty-state h3 {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
 .empty-state p {
-  margin: 0.5rem 0 0;
-  color: var(--color-text-muted);
+  max-width: 520px;
+  margin: 0.6rem auto 0;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
+/* ── Users table ─────────────────────────────────────────── */
 .users-table-wrap {
   overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.22);
 }
 
 .users-table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
 .users-table th,
 .users-table td {
-  padding: 1rem 0.8rem;
+  padding: 0.9rem;
+  border-bottom: 1px solid rgba(252, 239, 225, 0.08);
   text-align: left;
-  vertical-align: top;
-  border-bottom: 1px solid rgba(46, 50, 68, 0.08);
+  color: rgba(252, 239, 225, 0.78);
+  vertical-align: middle;
 }
 
 .users-table th {
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
+  color: rgba(252, 239, 225, 0.56);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(18, 24, 38, 0.34);
   white-space: nowrap;
 }
 
+.users-table tbody tr {
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.users-table tbody tr:hover {
+  background: rgba(242, 139, 91, 0.06);
+}
+
+.users-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── User cell ───────────────────────────────────────────── */
 .user-cell {
   display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  min-width: 280px;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 260px;
 }
 
 .user-cell__avatar {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: white;
-  font-weight: 700;
+  font-weight: 900;
   flex-shrink: 0;
+  box-shadow: 0 12px 24px -18px rgba(242, 139, 91, 0.95);
 }
 
 .user-cell__content {
@@ -1437,269 +1328,214 @@ function wait(ms: number) {
 .user-cell__name-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .user-cell__name {
-  color: var(--color-ink);
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
 .user-cell__meta {
   display: flex;
-  gap: 0.45rem;
   flex-wrap: wrap;
-  margin-top: 0.3rem;
-  color: var(--color-text-muted);
-  font-size: 0.84rem;
+  gap: 0.35rem;
+  margin-top: 0.18rem;
+  color: rgba(252, 239, 225, 0.52);
+  font-size: 0.8rem;
 }
 
-.inline-badge,
-.pill {
+/* ── Pills / badges ──────────────────────────────────────── */
+.pill,
+.inline-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  width: fit-content;
+  padding: 0.34rem 0.65rem;
   border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.32);
+  color: rgba(252, 239, 225, 0.78);
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 900;
+  line-height: 1;
   white-space: nowrap;
 }
 
-.inline-badge {
-  padding: 0.28rem 0.55rem;
-}
-
-.inline-badge--deleted {
-  color: var(--color-ink-muted);
-  background: rgba(106, 114, 136, 0.14);
-}
-
-.pill {
-  padding: 0.35rem 0.7rem;
-}
-
-.pill--role-player {
-  color: #31598c;
-  background: rgba(49, 89, 140, 0.12);
-}
-
-.pill--role-moderator {
-  color: #8a5c1d;
-  background: rgba(242, 139, 91, 0.18);
-}
-
-.pill--role-admin {
-  color: #5d2ca8;
-  background: rgba(93, 44, 168, 0.12);
+.inline-badge--deleted,
+.pill--status-deleted,
+.pill--status-banned {
+  color: #ffb3b3;
+  background: rgba(225, 91, 91, 0.14);
+  border-color: rgba(225, 91, 91, 0.3);
 }
 
 .pill--status-online {
-  color: #146c43;
+  color: #7ee0ad;
   background: rgba(61, 191, 125, 0.14);
+  border-color: rgba(61, 191, 125, 0.28);
 }
 
 .pill--status-offline {
-  color: #5d677a;
-  background: rgba(106, 114, 136, 0.12);
+  color: rgba(252, 239, 225, 0.6);
+  background: rgba(18, 24, 38, 0.34);
+  border-color: rgba(252, 239, 225, 0.1);
 }
 
-.pill--status-banned {
-  color: #9f2f2f;
-  background: rgba(225, 91, 91, 0.14);
+.pill--role-admin {
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.28);
 }
 
-.pill--status-deleted {
-  color: #5d677a;
-  background: rgba(106, 114, 136, 0.14);
+.pill--role-moderator {
+  color: #9ab8ff;
+  background: rgba(80, 120, 238, 0.14);
+  border-color: rgba(80, 120, 238, 0.28);
 }
 
+.pill--role-player {
+  color: rgba(252, 239, 225, 0.76);
+  background: rgba(18, 24, 38, 0.32);
+  border-color: rgba(252, 239, 225, 0.1);
+}
+
+/* ── Row actions ─────────────────────────────────────────── */
 .actions-panel {
-  min-width: 280px;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.75rem;
+  min-width: 230px;
 }
 
 .actions-panel__bottom {
   display: flex;
-  align-items: end;
-  gap: 0.6rem;
   flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .row-select {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 150px;
-  flex: 1;
-}
-
-.row-select__label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
+  flex: 1 1 130px;
 }
 
 .row-select__control {
-  min-height: 40px;
+  min-height: 36px;
+  padding: 0.5rem 0.7rem;
   border-radius: 12px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.84);
-  padding: 0.5rem 0.75rem;
-  color: var(--color-text);
-  font: inherit;
-  outline: none;
+  font-size: 0.78rem;
 }
 
-.row-select__control:focus {
-  border-color: var(--color-primary);
+.actions-panel__bottom .mini-btn {
+  flex: 1 1 auto;
 }
 
-.mini-btn {
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.84);
-  color: var(--color-ink);
-  border-radius: 12px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-}
-
-.mini-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-
-.mini-btn:hover {
-  transform: translateY(-1px);
-}
-
-.mini-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.mini-btn--primary {
-  color: var(--color-cream);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-  border-color: transparent;
-}
-
-.mini-btn--warn {
-  color: #8a5c1d;
-  background: rgba(242, 139, 91, 0.14);
-}
-
+/* ── Pagination ──────────────────────────────────────────── */
 .pagination-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 1rem;
-}
-
-.pagination-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-height: 42px;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.82);
-  padding: 0.65rem 0.9rem;
-  color: var(--color-ink);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.pagination-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-.pagination-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+  padding: 1rem 0 0;
 }
 
 .pagination-info {
-  color: var(--color-text-muted);
-  font-weight: 700;
+  color: rgba(252, 239, 225, 0.58);
+  font-weight: 800;
+  text-align: center;
 }
 
-@media (max-width: 1300px) {
-  .filters-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.pagination-btn {
+  min-height: 38px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
 }
 
-@media (max-width: 1000px) {
-  .moderation-users-view {
-    padding: 1rem;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .stats-grid,
+  .filters-grid,
   .search-row {
     grid-template-columns: 1fr;
   }
 
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header__actions {
+    justify-content: flex-start;
+  }
+
   .search-actions {
-    justify-content: stretch;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .moderation-users-view {
+    padding: 1rem;
   }
 
-  .search-actions .toolbar-btn {
-    flex: 1;
+  .page-header,
+  .filters-card,
+  .table-card,
+  .stat-card,
+  .empty-state {
+    border-radius: 22px;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .page-header,
+  .filters-card,
+  .table-card {
+    padding: 1rem;
   }
 
-  .filters-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .page-header__title {
+    font-size: 2rem;
   }
 
+  .page-header__actions,
+  .search-actions,
+  .filters-footer,
   .pagination-bar {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .toolbar-btn,
   .pagination-btn {
+    width: 100%;
+  }
+
+  .quick-status {
+    flex: 1 1 calc(50% - 0.65rem);
     justify-content: center;
+  }
+
+  .table-card__header {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
-@media (max-width: 640px) {
-  .stats-grid,
-  .filters-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 560px) {
+  .quick-status {
+    flex-basis: 100%;
+  }
+
+  .actions-panel,
+  .actions-panel__bottom {
+    min-width: 0;
+    width: 100%;
   }
 
   .actions-panel__bottom {
     flex-direction: column;
-    align-items: stretch;
   }
 
+  .mini-btn,
   .row-select {
-    width: 100%;
-  }
-
-  .mini-btn {
     width: 100%;
   }
 }

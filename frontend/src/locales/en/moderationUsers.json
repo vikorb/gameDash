@@ -2,23 +2,26 @@
   "moderationUsers": {
     "badge": "Admin users",
     "title": "User moderation",
-    "subtitle": "Browse accounts, filter profiles, and test moderation actions in a modern admin interface.",
+    "subtitle": "View accounts, filter profiles, and test moderation actions in a modern admin interface.",
     "loading": "Loading...",
     "actions": {
       "reset": "Reload",
       "search": "Search",
       "clearFilters": "Reset filters",
-      "applyFilters": "Apply"
+      "applyFilters": "Apply",
+      "clearSearch": "Clear search"
     },
     "filters": {
       "search": "Search",
-      "searchPlaceholder": "Username, email, region...",
+      "searchPlaceholder": "Name, email, region...",
       "role": "Role",
       "status": "Status",
       "deleted": "Deletion",
       "sortBy": "Sort by",
       "sortOrder": "Order",
-      "limit": "Results"
+      "limit": "Results",
+      "results": "{count} results",
+      "activeFilters": "{count} active filters"
     },
     "roles": {
       "all": "All roles",
@@ -39,7 +42,7 @@
       "deleted": "Deleted"
     },
     "sort": {
-      "updatedAt": "Last update",
+      "updatedAt": "Last updated",
       "createdAt": "Creation date",
       "username": "Username",
       "email": "Email",
@@ -55,7 +58,7 @@
       "deleted": "Deleted"
     },
     "table": {
-      "title": "Users list",
+      "title": "User list",
       "subtitle": "{total} users found • page {page}/{totalPages}"
     },
     "columns": {
@@ -67,13 +70,15 @@
       "actions": "Actions"
     },
     "rowActions": {
-      "makePlayer": "Set player",
-      "makeModerator": "Set moderator",
-      "makeAdmin": "Set admin",
+      "makePlayer": "Set as player",
+      "makeModerator": "Set as moderator",
+      "makeAdmin": "Set as admin",
       "ban": "Ban",
       "unban": "Unban",
       "softDelete": "Delete",
-      "restore": "Restore"
+      "restore": "Restore",
+      "view": "View",
+      "role": "Role"
     },
     "pagination": {
       "previous": "Previous",
@@ -82,7 +87,7 @@
     },
     "empty": {
       "title": "No users found",
-      "description": "Try changing your filters or search."
+      "description": "Try changing the filters or search query."
     },
     "badges": {
       "deleted": "Deleted"
@@ -94,14 +99,14 @@
     },
     "messages": {
       "unknownError": "An unknown error occurred.",
-      "roleUpdated": "{user} now has the role {role}.",
-      "roleSimulated": "Simulated update: {user} now has the role {role}.",
+      "roleUpdated": "{user} now has the {role} role.",
+      "roleSimulated": "Simulated update: {user} now has the {role} role.",
       "userBanned": "{user} has been banned.",
       "userBannedSimulated": "Simulated ban for {user}.",
       "userUnbanned": "{user} has been unbanned.",
       "userUnbannedSimulated": "Simulated unban for {user}.",
       "deleteSimulated": "Simulated deletion for {user}.",
-      "restoreSimulated": "Simulated restore for {user}."
+      "restoreSimulated": "Simulated restoration for {user}."
     }
   }
 }

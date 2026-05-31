@@ -64,7 +64,13 @@
             <!-- Map grids (favorites / liked / disliked / tested) -->
             <template v-if="activeTab !== 'commented'">
               <div v-if="displayedMaps.length > 0" class="maps-grid">
-                <MapCard v-for="map in displayedMaps" :key="map.id" :map="map" @view="onView" />
+                <div v-for="map in displayedMaps" :key="map.id" class="map-card-report-wrap">
+                  <MapCard :map="map" @view="onView" />
+                  <button type="button" class="map-card-report-btn" @click.stop="openMapReport(map)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+                    Signaler
+                  </button>
+                </div>
               </div>
               <div v-else class="empty-state activity-empty">
                 <div class="activity-empty__icon">
@@ -110,16 +116,26 @@
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
-                    @click="store.toggleCommentLike(comment.id)"
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
-                    </svg>
-                    {{ comment.likes_count }}
-                  </button>
+                  <div class="chi-actions">
+                    <button
+                      type="button"
+                      :class="['chi-like-btn', { 'is-active': comment.user_liked }]"
+                      @click="handleCommentLike(comment.id)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path :d="comment.user_liked ? mdiHeart : mdiHeartOutline" />
+                      </svg>
+                      {{ comment.likes_count }}
+                    </button>
+                    <button
+                      type="button"
+                      class="chi-report-btn"
+                      @click="openCommentReport(comment)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+                      Signaler
+                    </button>
+                  </div>
                 </article>
               </div>
 
@@ -145,12 +161,37 @@
         </Transition>
       </section>
     </div>
+
+    <MapReportModal
+      v-if="reportTarget"
+      :open="reportModalOpen"
+      :target-type="reportTarget.targetType"
+      :target-id="reportTarget.targetId"
+      :target-name="reportTarget.targetName"
+      :map-id="reportTarget.mapId"
+      :map-title="reportTarget.mapTitle"
+      :author-name="reportTarget.authorName"
+      :source-url="reportTarget.sourceUrl"
+      @close="closeReportModal"
+      @submitted="handleReportSubmitted"
+    />
+
+    <Transition name="toast">
+      <div v-if="toast" :class="['toast', `toast--${toast.type}`]">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path :d="toast.type === 'success' ? mdiCheck : mdiAlert" />
+        </svg>
+        {{ toast.message }}
+      </div>
+    </Transition>
   </main>
 </template>
 
 <script setup lang="ts">
 import {
+  mdiAlert,
   mdiArrowLeft,
+  mdiCheck,
   mdiCommentText,
   mdiCompass,
   mdiHeart,
@@ -164,7 +205,9 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import MapCard from '@/components/MapCard.vue'
+import MapReportModal from '@/components/MapReportModal.vue'
 import { useMapsStore } from '@/stores/mapsStore'
+import type { MapItem } from '@/types/maps'
 
 const store = useMapsStore()
 const router = useRouter()
@@ -224,9 +267,67 @@ const TABS: Tab[] = [
   },
 ]
 
-const activeTab = ref<TabKey>('favorites')
-const currentTab = computed(() => TABS.find((t) => t.key === activeTab.value) ?? TABS[0]!)
+type ReportTarget = {
+  targetType: 'map' | 'comment'
+  targetId: string | number
+  targetName: string
+  mapId: string | number
+  mapTitle: string
+  authorName?: string
+  sourceUrl: string
+}
 
+const reportModalOpen = ref(false)
+const reportTarget = ref<ReportTarget | null>(null)
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { message, type }
+  toastTimer = setTimeout(() => {
+    toast.value = null
+  }, 3200)
+}
+
+function openMapReport(map: MapItem) {
+  reportTarget.value = {
+    targetType: 'map',
+    targetId: map.id,
+    targetName: map.title,
+    mapId: map.id,
+    mapTitle: map.title,
+    authorName: map.creator.username,
+    sourceUrl: `${window.location.origin}/maps/${map.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function openCommentReport(comment: { id: string | number; mapId: string | number; content: string }) {
+  const title = getMapTitle(comment.mapId)
+
+  reportTarget.value = {
+    targetType: 'comment',
+    targetId: comment.id,
+    targetName: comment.content.slice(0, 80),
+    mapId: comment.mapId,
+    mapTitle: title,
+    authorName: 'Vous',
+    sourceUrl: `${window.location.origin}/maps/${comment.mapId}#comment-${comment.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function closeReportModal() {
+  reportModalOpen.value = false
+}
+
+function handleReportSubmitted() {
+  showToast('Signalement envoyé à la modération.', 'success')
+}
+
+const activeTab = ref<TabKey>('favorites')
+const currentTab = computed(() => TABS.find((tab) => tab.key === activeTab.value) ?? TABS[0]!)
 const displayedMaps = computed(() => {
   switch (activeTab.value) {
     case 'favorites':
@@ -237,6 +338,8 @@ const displayedMaps = computed(() => {
       return store.dislikedMaps
     case 'tested':
       return store.testedMaps
+    case 'commented':
+      return []
     default:
       return []
   }
@@ -273,16 +376,20 @@ function tabCount(key: TabKey) {
   }
 }
 
-function onView(id: string) {
+function onView(id: string | number) {
   router.push(`/maps/${id}`)
 }
 
 /* Comment history helpers */
-function getMapTitle(mapId: string) {
-  return store.getMap(mapId)?.title ?? mapId
+function getMapTitle(mapId: string | number) {
+  return store.getMap(mapId)?.title ?? String(mapId)
 }
-function getMapThumb(mapId: string) {
+function getMapThumb(mapId: string | number) {
   return store.getMap(mapId)?.screenshots[0]?.url ?? ''
+}
+
+async function handleCommentLike(commentId: number) {
+  await store.toggleCommentLike(commentId)
 }
 
 function formatRelativeDate(iso: string) {
@@ -294,20 +401,31 @@ function formatRelativeDate(iso: string) {
   if (days < 7) return isFr ? `il y a ${days} jours` : `${days} days ago`
   const w = Math.floor(days / 7)
   if (days < 30) return isFr ? `il y a ${w} sem.` : `${w}w ago`
-  const m = Math.floor(days / 30)
-  return isFr ? `il y a ${m} mois` : `${m}mo ago`
+  const mo = Math.floor(days / 30)
+  return isFr ? `il y a ${mo} mois` : `${mo}mo ago`
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo({ top: 0 })
+  await store.loadMaps()
+  await store.loadActivity(true)
 })
 </script>
 
 <style scoped>
 .maps-activity-page {
   padding-bottom: 3rem;
+  color: var(--color-cream);
 }
 
+/* ── Layout ─────────────────────────────────────────────── */
+.page-shell {
+  width: min(1440px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────── */
 .detail-nav {
   display: flex;
   align-items: center;
@@ -316,48 +434,277 @@ onMounted(() => {
   font-size: 0.9rem;
   color: rgba(252, 239, 225, 0.7);
 }
+
 .detail-nav__back {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   color: rgba(252, 239, 225, 0.85);
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.16s ease;
+  font-weight: 800;
+  transition:
+    color 0.16s ease,
+    transform 0.16s ease;
 }
+
 .detail-nav__back:hover {
-  color: var(--color-primary);
+  color: var(--color-primary-strong);
+  transform: translateX(-2px);
 }
+
 .detail-nav__back svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
 }
+
 .detail-nav__sep {
   opacity: 0.4;
 }
+
 .detail-nav__current {
-  color: rgba(252, 239, 225, 0.98);
-  font-weight: 700;
+  color: var(--color-cream);
+  font-weight: 900;
 }
 
-/* Tabs */
+/* ── Hero ───────────────────────────────────────────────── */
+.page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-bottom: 1.35rem;
+  padding: 1.4rem;
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  position: relative;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
+  pointer-events: none;
+}
+
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 139, 91, 0.36);
+  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.page-title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.page-subtitle {
+  max-width: 760px;
+  margin: 0.85rem 0 0;
+  color: rgba(252, 239, 225, 0.72);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.hero-side {
+  min-height: 100%;
+  padding: 1.15rem;
+  border-radius: 24px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(242, 139, 91, 0.2), transparent 38%),
+    rgba(18, 24, 38, 0.38);
+  box-shadow: inset 0 1px 0 rgba(252, 239, 225, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.1rem;
+}
+
+.hero-side__label {
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-side__title {
+  margin-top: 0.45rem;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.hero-side__text {
+  margin: 0.55rem 0 0;
+  color: rgba(252, 239, 225, 0.68);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.hero-side__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hero-side__chips span {
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.36);
+  color: rgba(252, 239, 225, 0.78);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  padding: 0.7rem 1rem;
+  font-weight: 900;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
+  border-color: rgba(242, 139, 91, 0.42);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+}
+
+.btn--primary:hover:not(:disabled) {
+  filter: brightness(1.04);
+  box-shadow: 0 20px 36px -20px rgba(242, 139, 91, 1);
+}
+
+.btn--ghost {
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.84);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.btn--ghost:hover {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
+}
+
+.maps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.maps-btn__icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* ── Surface ─────────────────────────────────────────────── */
+.surface {
+  padding: 1.15rem;
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.96)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+}
+
+.surface-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.surface-title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.surface-subtitle {
+  margin: 0.35rem 0 0;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
 .activity-tabs {
   display: flex;
   gap: 0.6rem;
   margin-top: 1.3rem;
   flex-wrap: wrap;
 }
+
 .activity-tab {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
   padding: 0.65rem 1.1rem;
   border-radius: 16px;
-  border: 1.5px solid rgba(255, 255, 255, 0.14);
-  background: rgba(252, 239, 225, 0.12);
-  color: rgba(252, 239, 225, 0.75);
-  font-weight: 700;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.76);
+  font-weight: 900;
   font-size: 0.9rem;
   cursor: pointer;
   transition:
@@ -367,24 +714,29 @@ onMounted(() => {
     transform 0.18s ease,
     box-shadow 0.18s ease;
 }
+
 .activity-tab:hover {
-  background: rgba(252, 239, 225, 0.18);
-  color: rgba(252, 239, 225, 0.95);
-  transform: translateY(-1px);
-}
-.activity-tab.is-active {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-apricot-dark));
-  border-color: transparent;
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.34);
   color: var(--color-cream);
-  box-shadow: 0 8px 20px -10px rgba(242, 139, 91, 0.7);
   transform: translateY(-1px);
 }
+
+.activity-tab.is-active {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  border-color: rgba(242, 139, 91, 0.42);
+  color: var(--color-navy);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+  transform: translateY(-1px);
+}
+
 .activity-tab__icon {
   width: 18px;
   height: 18px;
   fill: currentColor;
   flex-shrink: 0;
 }
+
 .activity-tab__count {
   display: inline-flex;
   align-items: center;
@@ -393,105 +745,159 @@ onMounted(() => {
   height: 22px;
   padding: 0 0.4rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(252, 239, 225, 0.12);
+  color: currentColor;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1;
 }
+
 .activity-tab.is-active .activity-tab__count {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(46, 50, 68, 0.16);
+  color: var(--color-navy);
 }
 
 .activity-surface {
   margin-top: 1rem;
 }
 
-/* Map grid */
+/* ── Map grid ────────────────────────────────────────────── */
 .maps-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
 }
 
-/* Tab transition */
+:deep(.map-card) {
+  height: 100%;
+}
+
+/* ── Tab transition ──────────────────────────────────────── */
 .tab-fade-enter-active,
 .tab-fade-leave-active {
   transition:
     opacity 0.18s ease,
     transform 0.18s ease;
 }
+
 .tab-fade-enter-from,
 .tab-fade-leave-to {
   opacity: 0;
   transform: translateY(6px);
 }
 
-/* Empty state */
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+  padding: 3rem 1rem;
+  border-radius: 24px;
+  border: 1px dashed rgba(252, 239, 225, 0.16);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.68), rgba(46, 50, 68, 0.94)), var(--color-navy);
+  text-align: center;
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+}
+
+.empty-state__title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.empty-state__text {
+  max-width: 520px;
+  margin: 0.6rem auto 0;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
 .activity-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2.5rem 1rem;
+  padding: 2.8rem 1rem;
   text-align: center;
 }
+
 .activity-empty__icon {
   width: 64px;
   height: 64px;
   border-radius: 20px;
-  background: rgba(242, 139, 91, 0.1);
-  border: 1.5px solid rgba(242, 139, 91, 0.2);
+  background: rgba(242, 139, 91, 0.12);
+  border: 1px solid rgba(242, 139, 91, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
+  box-shadow: 0 16px 30px -24px rgba(242, 139, 91, 0.9);
 }
+
 .activity-empty__icon svg {
   width: 30px;
   height: 30px;
-  fill: var(--color-primary);
+  fill: var(--color-primary-strong);
 }
 
-/* ── Comment history ────────────────────────────────────────── */
+/* ── Comment history ─────────────────────────────────────── */
 .comment-history-list {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
 
 .chi-card {
   display: grid;
-  grid-template-columns: 150px 1fr auto;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
   gap: 1rem;
   align-items: center;
   padding: 0.9rem;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(81, 96, 121, 0.1);
-  border-radius: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.58), rgba(46, 50, 68, 0.92)), var(--color-navy);
+  box-shadow: 0 16px 36px -30px rgba(0, 0, 0, 0.85);
   transition:
+    transform 0.18s ease,
     border-color 0.18s ease,
+    background 0.18s ease,
     box-shadow 0.18s ease;
 }
+
 .chi-card:hover {
-  border-color: rgba(242, 139, 91, 0.25);
-  box-shadow: 0 4px 14px -8px rgba(46, 50, 68, 0.2);
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.7), rgba(46, 50, 68, 0.98)), var(--color-navy);
+  box-shadow: 0 22px 44px -32px rgba(0, 0, 0, 0.9);
 }
 
 .chi-thumb {
   display: block;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  aspect-ratio: 16/9;
-  background: linear-gradient(135deg, var(--color-navy), var(--color-slate));
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(circle at top left, rgba(242, 139, 91, 0.22), transparent 36%),
+    linear-gradient(135deg, #202637, var(--color-navy), var(--color-slate));
   flex-shrink: 0;
+  border: 1px solid rgba(252, 239, 225, 0.08);
 }
+
 .chi-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    filter 0.2s ease;
 }
+
 .chi-card:hover .chi-thumb img {
   transform: scale(1.04);
+  filter: saturate(1.08) contrast(1.04);
 }
+
 .chi-thumb-placeholder {
   width: 100%;
   height: 100%;
@@ -500,114 +906,330 @@ onMounted(() => {
 .chi-body {
   min-width: 0;
 }
+
 .chi-map-name {
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: var(--color-ink);
   margin-bottom: 0.35rem;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 900;
+  font-size: 0.98rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .chi-content {
   margin: 0;
-  font-size: 0.88rem;
-  color: var(--color-text-muted);
-  line-height: 1.4;
+  color: rgba(252, 239, 225, 0.66);
+  font-size: 0.9rem;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-style: italic;
 }
+
 .chi-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.55rem;
   font-size: 0.78rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.52);
+  flex-wrap: wrap;
 }
+
 .chi-link {
-  color: var(--color-primary);
-  font-weight: 700;
+  color: var(--color-primary-strong);
+  font-weight: 900;
   text-decoration: none;
+  transition: color 0.14s ease;
 }
+
 .chi-link:hover {
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
 .chi-like-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
+  min-width: 54px;
+  padding: 0.52rem 0.75rem;
   border-radius: 12px;
-  border: 1px solid rgba(81, 96, 121, 0.18);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--color-text-muted);
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.32);
+  color: rgba(252, 239, 225, 0.62);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
-  transition: all 0.14s ease;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease;
   flex-shrink: 0;
   align-self: center;
 }
+
 .chi-like-btn svg {
   width: 15px;
   height: 15px;
   fill: currentColor;
 }
+
 .chi-like-btn:hover {
-  border-color: rgba(225, 91, 91, 0.35);
-  color: #8a4040;
-}
-.chi-like-btn.is-active {
-  background: rgba(225, 91, 91, 0.12);
-  color: #8a4040;
-  border-color: rgba(225, 91, 91, 0.32);
+  transform: translateY(-1px);
+  border-color: rgba(225, 91, 91, 0.38);
+  color: #ff9a9a;
+  background: rgba(225, 91, 91, 0.1);
 }
 
-/* Shared */
-.maps-btn {
+.chi-like-btn.is-active {
+  background: rgba(225, 91, 91, 0.16);
+  color: #ff9a9a;
+  border-color: rgba(225, 91, 91, 0.38);
+}
+
+
+.map-card-report-wrap {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+.map-card-report-wrap :deep(.map-card) {
+  height: 100%;
+}
+
+.map-card-report-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
+  gap: 0.32rem;
+  min-height: 34px;
+  padding: 0.45rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  background: rgba(18, 24, 38, 0.68);
+  color: rgba(252, 239, 225, 0.74);
+  font-size: 0.76rem;
+  font-weight: 950;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.8);
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
-.maps-btn__icon {
+
+.map-card-report-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.map-card-report-btn:hover {
+  transform: translateY(-1px);
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.42);
+  background: rgba(242, 139, 91, 0.16);
+}
+
+.chi-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-self: center;
+}
+
+.chi-report-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 54px;
+  padding: 0.52rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.24);
+  color: rgba(252, 239, 225, 0.5);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    color 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease,
+    transform 0.14s ease;
+}
+
+.chi-report-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.chi-report-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 139, 91, 0.35);
+  color: var(--color-primary-strong);
+  background: rgba(242, 139, 91, 0.1);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 1300;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  transform: translateX(-50%);
+  padding: 0.78rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  color: var(--color-cream);
+  font-weight: 900;
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.9);
+}
+
+.toast svg {
   width: 18px;
   height: 18px;
   fill: currentColor;
 }
 
-/* Responsive */
-@media (max-width: 1100px) {
+.toast--success {
+  background: linear-gradient(135deg, #2d6a4f, #1b4332);
+  border-color: rgba(61, 191, 125, 0.35);
+}
+
+.toast--error {
+  background: linear-gradient(135deg, #8a4040, #5e2020);
+  border-color: rgba(225, 91, 91, 0.35);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 1300px) {
+  .page-hero {
+    grid-template-columns: 1fr;
+  }
+
   .maps-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 @media (max-width: 900px) {
   .chi-card {
-    grid-template-columns: 120px 1fr auto;
+    grid-template-columns: 120px minmax(0, 1fr) auto;
   }
 }
-@media (max-width: 720px) {
+
+@media (max-width: 760px) {
+  .page-shell {
+    width: min(100% - 1rem, 1440px);
+    padding-top: 1rem;
+  }
+
+  .page-hero,
+  .surface,
+  .empty-state {
+    border-radius: 22px;
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .activity-tabs {
+    gap: 0.45rem;
+  }
+
+  .activity-tab {
+    flex: 1 1 calc(50% - 0.45rem);
+    justify-content: center;
+    padding: 0.58rem 0.75rem;
+    font-size: 0.82rem;
+  }
+
   .maps-grid {
     grid-template-columns: 1fr;
   }
-  .activity-tabs {
-    gap: 0.4rem;
+
+  .surface-header {
+    flex-direction: column;
+    align-items: stretch;
   }
-  .activity-tab {
-    padding: 0.55rem 0.8rem;
-    font-size: 0.82rem;
-  }
+
   .chi-card {
     grid-template-columns: 1fr auto;
   }
+
   .chi-thumb {
     display: none;
   }
 }
+
+@media (max-width: 520px) {
+  .activity-tab {
+    flex-basis: 100%;
+  }
+
+  .chi-card {
+    grid-template-columns: 1fr;
+  }
+
+  .chi-like-btn,
+  .chi-report-btn {
+    width: 100%;
+  }
+
+  .chi-actions {
+    width: 100%;
+  }
+
+  .hero-side__chips span {
+    width: 100%;
+  }
+}
+@media (max-width: 560px) {
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: translateY(10px);
+  }
+}
+
 </style>

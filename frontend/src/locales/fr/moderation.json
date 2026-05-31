@@ -448,6 +448,7 @@
       "sanctions": {
         "badge": "Sanctions",
         "title": "Gestion des sanctions",
+        "emptyText": "Aucune sanction trouvée",
         "subtitle": "Appliquez, suivez et gérez l'ensemble des mesures disciplinaires de la plateforme.",
         "side": {
           "label": "Discipline",

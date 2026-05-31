@@ -1,21 +1,48 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { generateAuditEntries, MODERATION_MOCK_COUNTS } from './mock'
+import { apiRequest } from '../apiClient'
 import type { ModerationAuditEntry } from './types'
 
-export const useModerationAuditStore = defineStore('moderation-audit', () => {
-  const auditEntries = ref<ModerationAuditEntry[]>(
-    generateAuditEntries(MODERATION_MOCK_COUNTS.auditEntries),
-  )
+type AuditListResponse = {
+  data: ModerationAuditEntry[]
+}
 
-  let auditSequence = MODERATION_MOCK_COUNTS.auditEntries
+function normalizeAuditEntry(entry: Partial<ModerationAuditEntry> & { id: string | number }) {
+  return {
+    id: String(entry.id),
+    actorName: entry.actorName ?? 'system',
+    actionKey: entry.actionKey ?? 'content_review_requested',
+    resourceType: entry.resourceType ?? 'content',
+    resourceLabel: entry.resourceLabel ?? '—',
+    metadata: Array.isArray(entry.metadata) ? entry.metadata.map(String) : [],
+    createdAt: entry.createdAt ?? new Date().toISOString(),
+  } satisfies ModerationAuditEntry
+}
+
+export const useModerationAuditStore = defineStore('moderation-audit', () => {
+  const auditEntries = ref<ModerationAuditEntry[]>([])
+  const loading = ref(false)
+  const error = ref<string | null>(null)
+
+  async function fetchAuditEntries() {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await apiRequest<AuditListResponse>('/moderation/audit')
+      auditEntries.value = response.data.map(normalizeAuditEntry)
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Impossible de charger le journal de modération.'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
   function pushAudit(entry: Omit<ModerationAuditEntry, 'id' | 'createdAt'>) {
-    auditSequence += 1
-
     auditEntries.value.unshift({
-      id: `audit-${auditSequence}`,
+      id: `local-audit-${Date.now()}`,
       createdAt: new Date().toISOString(),
       ...entry,
     })
@@ -23,6 +50,9 @@ export const useModerationAuditStore = defineStore('moderation-audit', () => {
 
   return {
     auditEntries,
+    loading,
+    error,
+    fetchAuditEntries,
     pushAudit,
   }
 })

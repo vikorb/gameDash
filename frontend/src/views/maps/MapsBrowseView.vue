@@ -132,7 +132,13 @@
         </div>
 
         <div v-if="filtered.length > 0" class="maps-grid">
-          <MapCard v-for="map in filtered" :key="map.id" :map="map" @view="onView" />
+          <div v-for="map in filtered" :key="map.id" class="map-card-report-wrap">
+            <MapCard :map="map" @view="onView" />
+            <button type="button" class="map-card-report-btn" @click.stop="openBrowseReport(map)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiAlert" /></svg>
+              Signaler
+            </button>
+          </div>
         </div>
 
         <div v-else class="empty-state">
@@ -176,21 +182,53 @@
         </div>
       </section>
     </div>
+
+    <MapReportModal
+      v-if="reportTarget"
+      :open="reportModalOpen"
+      :target-type="reportTarget.targetType"
+      :target-id="reportTarget.targetId"
+      :target-name="reportTarget.targetName"
+      :map-id="reportTarget.mapId"
+      :map-title="reportTarget.mapTitle"
+      :author-name="reportTarget.authorName"
+      :source-url="reportTarget.sourceUrl"
+      @close="closeReportModal"
+      @submitted="handleReportSubmitted"
+    />
+
+    <Transition name="toast">
+      <div v-if="toast" :class="['toast', `toast--${toast.type}`]">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path :d="toast.type === 'success' ? mdiCheck : mdiAlert" />
+        </svg>
+        {{ toast.message }}
+      </div>
+    </Transition>
   </main>
 </template>
 
 <script setup lang="ts">
-import { mdiChartTimelineVariant, mdiFilterRemove, mdiHistory, mdiMagnify, mdiPlus } from '@mdi/js'
-import { computed } from 'vue'
+import {
+  mdiAlert,
+  mdiChartTimelineVariant,
+  mdiCheck,
+  mdiFilterRemove,
+  mdiHistory,
+  mdiMagnify,
+  mdiPlus,
+} from '@mdi/js'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import ExportButton from '@/components/export/ExportButton.vue'
 import MapCard from '@/components/MapCard.vue'
+import MapReportModal from '@/components/MapReportModal.vue'
 import { buildMapsExportRows } from '@/services/export'
 import { useMapsStore } from '@/stores/mapsStore'
 import { useUserStore } from '@/stores/userStore'
-import type { MapTag } from '@/types/maps'
+import type { MapItem, MapTag } from '@/types/maps'
 
 const store = useMapsStore()
 const userStore = useUserStore()
@@ -201,6 +239,50 @@ const filtered = computed(() => store.filteredMaps)
 const featured = computed(() => store.featuredMap)
 const mapsExportRows = computed(() => buildMapsExportRows(store.filteredMaps))
 
+type ReportTarget = {
+  targetType: 'map'
+  targetId: string | number
+  targetName: string
+  mapId: string | number
+  mapTitle: string
+  authorName?: string
+  sourceUrl: string
+}
+
+const reportModalOpen = ref(false)
+const reportTarget = ref<ReportTarget | null>(null)
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { message, type }
+  toastTimer = setTimeout(() => {
+    toast.value = null
+  }, 3200)
+}
+
+function openBrowseReport(map: MapItem) {
+  reportTarget.value = {
+    targetType: 'map',
+    targetId: map.id,
+    targetName: map.title,
+    mapId: map.id,
+    mapTitle: map.title,
+    authorName: map.creator.username,
+    sourceUrl: `${window.location.origin}/maps/${map.id}`,
+  }
+  reportModalOpen.value = true
+}
+
+function closeReportModal() {
+  reportModalOpen.value = false
+}
+
+function handleReportSubmitted() {
+  showToast('Signalement envoyé à la modération.', 'success')
+}
+
 function tagLabel(tag: MapTag) {
   return locale.value === 'fr' ? tag.label_fr : tag.label_en
 }
@@ -210,7 +292,7 @@ function formatNumber(n: number) {
   return n.toString()
 }
 
-function onView(id: string) {
+function onView(id: string | number) {
   router.push(`/maps/${id}`)
 }
 
@@ -225,30 +307,140 @@ function resetFilters() {
   store.selectedStatus = ''
   store.sortKey = 'popular'
 }
+
+onMounted(async () => {
+  window.scrollTo({ top: 0 })
+  await store.loadMaps()
+})
 </script>
 
 <style scoped>
 .maps-page {
+  min-height: 100vh;
   padding-bottom: 3rem;
+  color: var(--color-cream);
 }
 
-.search-field {
+.page-shell {
+  width: min(1440px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.page-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-bottom: 1.35rem;
+  padding: 1.4rem;
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(135deg, rgba(81, 96, 121, 0.74), rgba(46, 50, 68, 0.94)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.search-field__icon {
+.page-hero::before {
+  content: '';
   position: absolute;
-  left: 0.95rem;
-  width: 18px;
-  height: 18px;
-  fill: var(--color-text-muted);
+  inset: -1px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(242, 139, 91, 0.24), transparent 34%),
+    radial-gradient(circle at 88% 10%, rgba(247, 167, 132, 0.12), transparent 32%);
   pointer-events: none;
 }
 
-.search-field .field {
-  padding-left: 2.6rem;
+.page-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.page-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 0.75rem;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 139, 91, 0.36);
+  background: rgba(242, 139, 91, 0.16);
+  color: var(--color-primary-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.page-title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.page-subtitle {
+  max-width: 760px;
+  margin: 0.85rem 0 0;
+  color: rgba(252, 239, 225, 0.72);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.audit-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.25rem;
+}
+
+.btn {
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  padding: 0.7rem 1rem;
+  font-weight: 900;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  color: var(--color-navy);
+  border-color: rgba(242, 139, 91, 0.42);
+  box-shadow: 0 16px 30px -20px rgba(242, 139, 91, 0.95);
+}
+
+.btn--primary:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 20px 36px -20px rgba(242, 139, 91, 1);
+}
+
+.btn--ghost {
+  background: rgba(18, 24, 38, 0.34);
+  color: rgba(252, 239, 225, 0.84);
+  border-color: rgba(252, 239, 225, 0.12);
+}
+
+.btn--ghost:hover {
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.14);
+  border-color: rgba(242, 139, 91, 0.38);
 }
 
 .maps-btn {
@@ -264,12 +456,224 @@ function resetFilters() {
   fill: currentColor;
 }
 
+.hero-side {
+  min-height: 100%;
+  padding: 1.15rem;
+  border-radius: 24px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(242, 139, 91, 0.22), transparent 38%),
+    rgba(18, 24, 38, 0.38);
+  box-shadow: inset 0 1px 0 rgba(252, 239, 225, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.1rem;
+}
+
+.hero-side__label {
+  color: var(--color-primary-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-side__title {
+  margin-top: 0.45rem;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.hero-side__text {
+  margin: 0.55rem 0 0;
+  color: rgba(252, 239, 225, 0.68);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.hero-side__text strong {
+  color: var(--color-cream);
+}
+
+.hero-side__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hero-side__chips span {
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.1);
+  background: rgba(18, 24, 38, 0.36);
+  color: rgba(252, 239, 225, 0.78);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.stat-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.35rem;
+}
+
 .maps-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.stat-card {
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.88)), var(--color-navy);
+  box-shadow: 0 18px 42px -30px rgba(0, 0, 0, 0.8);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.82), rgba(46, 50, 68, 0.96)), var(--color-navy);
+}
+
+.stat-card__label {
+  display: block;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-card__value {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.stat-card__caption {
+  display: block;
+  margin-top: 0.45rem;
+  color: rgba(252, 239, 225, 0.56);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.surface {
+  padding: 1.15rem;
+  border-radius: 28px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.76), rgba(46, 50, 68, 0.94)), var(--color-navy);
+  box-shadow: 0 22px 54px -34px rgba(0, 0, 0, 0.85);
+}
+
+.surface-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.surface-title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.surface-subtitle {
+  margin: 0.35rem 0 0;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.toolbar {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
 .maps-toolbar {
   grid-template-columns: minmax(0, 2fr) repeat(3, minmax(160px, 0.7fr));
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-field__icon {
+  position: absolute;
+  left: 0.95rem;
+  width: 18px;
+  height: 18px;
+  fill: rgba(252, 239, 225, 0.52);
+  pointer-events: none;
+}
+
+.search-field .field {
+  padding-left: 2.6rem;
+}
+
+.field,
+.select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: var(--color-cream);
+  font-size: 0.9rem;
+  font-weight: 700;
+  outline: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.field {
+  padding: 0 0.9rem;
+}
+
+.select {
+  padding: 0 0.85rem;
+  cursor: pointer;
+}
+
+.field::placeholder {
+  color: rgba(252, 239, 225, 0.42);
+}
+
+.field:focus,
+.select:focus {
+  border-color: rgba(242, 139, 91, 0.56);
+  background: rgba(18, 24, 38, 0.48);
+  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.12);
+}
+
+.select option {
+  background: var(--color-navy);
+  color: var(--color-cream);
 }
 
 .maps-grid {
@@ -291,11 +695,24 @@ function resetFilters() {
 .creator-card {
   padding: 1.1rem;
   border-radius: 22px;
-  border: 1px solid rgba(81, 96, 121, 0.12);
-  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(252, 239, 225, 0.11);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.6), rgba(46, 50, 68, 0.9)), var(--color-navy);
   display: flex;
   gap: 0.85rem;
   align-items: center;
+  box-shadow: 0 16px 36px -30px rgba(0, 0, 0, 0.85);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.creator-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 139, 91, 0.34);
+  background:
+    linear-gradient(180deg, rgba(81, 96, 121, 0.72), rgba(46, 50, 68, 0.98)), var(--color-navy);
 }
 
 .creator-card__avatar {
@@ -303,13 +720,14 @@ function resetFilters() {
   height: 48px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
-  color: var(--color-cream);
+  color: var(--color-navy);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 1.1rem;
   flex-shrink: 0;
+  box-shadow: 0 14px 28px -18px rgba(242, 139, 91, 0.95);
 }
 
 .creator-card__body {
@@ -318,37 +736,173 @@ function resetFilters() {
 
 .creator-card__name {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--color-cream);
   font-size: 0.96rem;
-  font-weight: 800;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .creator-card__meta {
   margin: 0.2rem 0 0;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   font-size: 0.8rem;
+  line-height: 1.4;
 }
 
 .creator-card__metrics {
   margin-top: 0.55rem;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  color: var(--color-text-muted);
+  color: rgba(252, 239, 225, 0.58);
   font-size: 0.78rem;
 }
 
 .creator-card__metrics strong {
-  color: var(--color-ink);
-  font-weight: 800;
+  color: var(--color-primary-strong);
+  font-weight: 900;
   margin-right: 0.2rem;
 }
 
+.empty-state {
+  padding: 3rem 1rem;
+  border-radius: 22px;
+  border: 1px dashed rgba(252, 239, 225, 0.16);
+  background: rgba(18, 24, 38, 0.26);
+  text-align: center;
+}
+
+.empty-state__title {
+  margin: 0;
+  color: var(--color-cream);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.empty-state__text {
+  max-width: 520px;
+  margin: 0.6rem auto 0;
+  color: rgba(252, 239, 225, 0.62);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+:deep(.map-card) {
+  height: 100%;
+}
+
+.map-card-report-wrap {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+.map-card-report-wrap :deep(.map-card) {
+  height: 100%;
+}
+
+.map-card-report-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-height: 34px;
+  padding: 0.45rem 0.68rem;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  background: rgba(18, 24, 38, 0.68);
+  color: rgba(252, 239, 225, 0.74);
+  font-size: 0.76rem;
+  font-weight: 950;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.8);
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.map-card-report-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.map-card-report-btn:hover {
+  transform: translateY(-1px);
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.42);
+  background: rgba(242, 139, 91, 0.16);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 1300;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  transform: translateX(-50%);
+  padding: 0.78rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  color: var(--color-cream);
+  font-weight: 900;
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.9);
+}
+
+.toast svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.toast--success {
+  background: linear-gradient(135deg, #2d6a4f, #1b4332);
+  border-color: rgba(61, 191, 125, 0.35);
+}
+
+.toast--error {
+  background: linear-gradient(135deg, #8a4040, #5e2020);
+  border-color: rgba(225, 91, 91, 0.35);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+}
+
 @media (max-width: 1300px) {
+  .page-hero {
+    grid-template-columns: 1fr;
+  }
+
   .maps-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .maps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .creators-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -358,16 +912,50 @@ function resetFilters() {
     grid-template-columns: 1fr;
   }
 
-  .creators-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .surface-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .surface-header .btn {
+    width: fit-content;
   }
 }
 
 @media (max-width: 720px) {
+  .page-shell {
+    width: min(100% - 1rem, 1440px);
+    padding-top: 1rem;
+  }
+
+  .page-hero,
+  .surface {
+    border-radius: 22px;
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .audit-hero__actions {
+    flex-direction: column;
+  }
+
+  .audit-hero__actions .btn,
+  .surface-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .maps-stat-grid,
   .maps-grid,
   .creators-grid {
     grid-template-columns: 1fr;
+  }
+
+  .creator-card {
+    align-items: flex-start;
   }
 }
 
@@ -377,9 +965,25 @@ function resetFilters() {
     opacity 0.18s ease,
     transform 0.18s ease;
 }
+
 .fade-btn-enter-from,
 .fade-btn-leave-to {
   opacity: 0;
   transform: scale(0.95);
+}
+@media (max-width: 560px) {
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: translateY(10px);
+  }
 }
 </style>

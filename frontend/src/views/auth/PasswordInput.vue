@@ -46,46 +46,65 @@ const visible = ref(false)
 }
 
 .input {
-  padding: 0.75rem 3rem 0.75rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  background: #d9d9d9;
   width: 100%;
+  min-height: 46px;
   box-sizing: border-box;
+  padding: 0.8rem 3rem 0.8rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(252, 239, 225, 0.12);
+  background: rgba(18, 24, 38, 0.34);
+  color: var(--color-cream);
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.input::placeholder {
+  color: rgba(252, 239, 225, 0.42);
 }
 
 .input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+  border-color: rgba(242, 139, 91, 0.56);
+  background: rgba(18, 24, 38, 0.48);
+  box-shadow: 0 0 0 4px rgba(242, 139, 91, 0.12);
 }
 
 .toggle-btn {
   position: absolute;
-  right: 0.75rem;
-  background: none;
-  border: none;
+  right: 0.65rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(252, 239, 225, 0.58);
   cursor: pointer;
-  padding: 0.25rem;
-  font-size: 1.25rem;
-  line-height: 1;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .toggle-btn:hover {
-  opacity: 1;
+  color: var(--color-cream);
+  background: rgba(242, 139, 91, 0.12);
+  border-color: rgba(242, 139, 91, 0.28);
+  transform: translateY(-1px);
 }
 
 .toggle-btn:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-  opacity: 1;
+  outline: none;
+  color: var(--color-primary-strong);
+  border-color: rgba(242, 139, 91, 0.45);
+  box-shadow: 0 0 0 3px rgba(242, 139, 91, 0.12);
 }
 </style>

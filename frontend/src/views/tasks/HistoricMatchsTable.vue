@@ -64,7 +64,9 @@
                   <div class="team-head">
                     <strong class="team-name">{{ team.name }}</strong>
                     <div class="team-head-right">
-                      <span v-if="team.id === match.my_team.id" class="my-team-badge">Ton équipe</span>
+                      <span v-if="team.id === match.my_team.id" class="my-team-badge"
+                        >Ton équipe</span
+                      >
                     </div>
                   </div>
 
@@ -118,15 +120,20 @@ const emit = defineEmits<{
 const mapsStore = useMapsStore()
 
 function resultLabel(result: string) {
-  const labels: Record<string, string> = { win: 'Victoire', loss: 'Défaite', draw: 'Nul', pending: '–' }
+  const labels: Record<string, string> = {
+    win: 'Victoire',
+    loss: 'Défaite',
+    draw: 'Nul',
+    pending: '–',
+  }
   return labels[result] ?? result
 }
 
-function getMapDetailId(match: MatchEntry): string | null {
+function getMapDetailId(match: MatchEntry): number | null {
   if (!match.map) return null
 
   if (typeof match.map.id === 'string' && match.map.id.length > 0) {
-    return match.map.id
+    return Number.parseInt(match.map.id, 10)
   }
 
   const found = mapsStore.maps.find((map) => map.title === match.map?.name)
