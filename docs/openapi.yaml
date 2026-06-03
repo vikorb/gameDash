@@ -1,0 +1,954 @@
+openapi: 3.0.3
+info:
+  title: GameDash API
+  version: 1.0.0
+  description: >
+    API REST de **GameDash** — dashboard compétitif et contenu communautaire pour
+    un jeu vidéo en ligne (studio fictif Nebula Studio).
+    Authentification par JWT PocketBase (en-tête `Authorization: Bearer <jwt>`).
+    En développement, l'utilisateur courant peut être résolu via l'en-tête `X-User-Id`.
+  license:
+    name: Académique (M2 Dev Full-Stack)
+
+servers:
+  - url: http://localhost:3000/api
+    description: Développement local
+  - url: http://gamedash-supdevinci-2026.germanywestcentral.azurecontainer.io:3000/api
+    description: Azure Container Instances
+
+tags:
+  - name: System
+  - name: Maps
+  - name: Shop
+  - name: Shop Backoffice
+  - name: Moderation
+  - name: Backoffice
+  - name: Users
+  - name: Competitive
+  - name: Admin
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ---------------- System ----------------
+  /ping:
+    get:
+      tags: [System]
+      summary: Vérification de vie
+      security: []
+      responses:
+        "200": { description: OK }
+  /health:
+    get:
+      tags: [System]
+      summary: Health check (exécute SELECT 1 sur la base)
+      security: []
+      responses:
+        "200": { description: API et base disponibles }
+        "503": { description: Base indisponible }
+
+  # ---------------- Maps ----------------
+  /maps:
+    get:
+      tags: [Maps]
+      summary: Liste des maps (enrichies)
+      parameters:
+        - {
+            name: status,
+            in: query,
+            schema: { type: string, enum: [draft, beta, stable] },
+          }
+        - { name: tag, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Liste des maps
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MapList" }
+    post:
+      tags: [Maps]
+      summary: Créer une map
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateMap" }
+      responses:
+        "201":
+          {
+            description: Map créée,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/MapDetail" } },
+              },
+          }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /maps/tags:
+    get:
+      tags: [Maps]
+      summary: Bibliothèque de tags
+      responses:
+        "200":
+          description: Tags
+          content:
+            application/json:
+              schema:
+                { type: array, items: { $ref: "#/components/schemas/MapTag" } }
+  /maps/mine:
+    get:
+      tags: [Maps]
+      summary: Maps du joueur courant
+      responses:
+        "200": { description: Mes maps }
+  /maps/activity:
+    get:
+      tags: [Maps]
+      summary: Activité du joueur (favoris, votes, tests, commentaires)
+      responses:
+        "200": { description: Activité }
+  /maps/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Maps]
+      summary: Détail d'une map
+      responses:
+        "200":
+          {
+            description: Détail,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/MapDetail" } },
+              },
+          }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Maps]
+      summary: Mettre à jour une map (crée une version si releaseNotes fourni)
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateMap" }
+      responses:
+        "200": { description: Map mise à jour }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Maps]
+      summary: Retirer une map (moderation_status = removed)
+      responses:
+        "204": { description: Supprimée }
+  /maps/{id}/versions:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Créer une nouvelle version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [releaseNotes]
+              properties:
+                releaseNotes: { type: string }
+      responses:
+        "201": { description: Version créée }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /maps/{id}/vote:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Voter (like/dislike, toggle)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vote: { type: string, enum: [like, dislike] }
+      responses:
+        "200": { description: Vote enregistré }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /maps/{id}/favorite:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Ajouter/retirer des favoris (toggle)
+      responses:
+        "200": { description: Favori basculé }
+  /maps/{id}/tests:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Enregistrer un test de la map
+      responses:
+        "200": { description: Test enregistré }
+  /maps/{id}/comments:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Ajouter un commentaire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+      responses:
+        "201": { description: Commentaire créé }
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /maps/comments/{commentId}/like:
+    parameters:
+      - { name: commentId, in: path, required: true, schema: { type: integer } }
+    post:
+      tags: [Maps]
+      summary: Liker/déliker un commentaire (toggle)
+      responses:
+        "200": { description: Like basculé }
+
+  # ---------------- Shop (joueur) ----------------
+  /shop:
+    get:
+      tags: [Shop]
+      summary: État de la boutique pour le joueur
+      responses:
+        "200":
+          {
+            description: État boutique,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/ShopState" } },
+              },
+          }
+  /shop/items:
+    get:
+      {
+        tags: [Shop],
+        summary: Catalogue des articles actifs,
+        responses: { "200": { description: Articles } },
+      }
+  /shop/bundles:
+    get:
+      {
+        tags: [Shop],
+        summary: Liste des bundles actifs,
+        responses: { "200": { description: Bundles } },
+      }
+  /shop/wallet:
+    get:
+      {
+        tags: [Shop],
+        summary: Portefeuille du joueur,
+        responses:
+          {
+            "200":
+              {
+                description: Wallet,
+                content:
+                  {
+                    application/json:
+                      { schema: { $ref: "#/components/schemas/Wallet" } },
+                  },
+              },
+          },
+      }
+  /shop/inventory:
+    get:
+      {
+        tags: [Shop],
+        summary: Inventaire du joueur,
+        responses: { "200": { description: Inventaire } },
+      }
+  /shop/transactions:
+    get:
+      {
+        tags: [Shop],
+        summary: Historique des transactions,
+        responses: { "200": { description: Transactions } },
+      }
+  /shop/purchase/item:
+    post:
+      tags: [Shop]
+      summary: Acheter un article (transactionnel)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              {
+                type: object,
+                required: [itemId],
+                properties: { itemId: { type: integer } },
+              }
+      responses:
+        "200":
+          {
+            description: Achat effectué,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/Wallet" } },
+              },
+          }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "402": { description: Fonds insuffisants }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Article déjà possédé }
+  /shop/purchase/bundle:
+    post:
+      tags: [Shop]
+      summary: Acheter un bundle (transactionnel)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              {
+                type: object,
+                required: [bundleId],
+                properties: { bundleId: { type: integer } },
+              }
+      responses:
+        "200": { description: Achat effectué }
+        "402": { description: Fonds insuffisants }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /shop/topup:
+    post:
+      tags: [Shop]
+      summary: Recharger de la hard currency (paiement simulé)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              {
+                type: object,
+                required: [packId],
+                properties: { packId: { type: string } },
+              }
+      responses:
+        "200": { description: Rechargement effectué }
+  /shop/equip:
+    post:
+      tags: [Shop]
+      summary: Équiper un article
+      requestBody:
+        content:
+          application/json:
+            schema:
+              {
+                type: object,
+                properties:
+                  { itemId: { type: integer }, slot: { type: string } },
+              }
+      responses:
+        "200": { description: Équipé }
+  /shop/unequip:
+    post:
+      tags: [Shop]
+      summary: Déséquiper un slot
+      responses:
+        "200": { description: Déséquipé }
+
+  # ---------------- Shop backoffice ----------------
+  /shop/backoffice:
+    get:
+      tags: [Shop Backoffice]
+      summary: État backoffice économie (catalogue, transactions, récompenses, KPIs, audit)
+      responses:
+        "200": { description: État backoffice }
+  /shop/backoffice/items:
+    post:
+      tags: [Shop Backoffice]
+      summary: Créer un article
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/ShopItemPayload" } },
+            },
+        }
+      responses: { "201": { description: Créé } }
+  /shop/backoffice/items/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      tags: [Shop Backoffice]
+      summary: Mettre à jour un article
+      responses: { "200": { description: Mis à jour } }
+    delete:
+      tags: [Shop Backoffice]
+      summary: Désactiver un article (soft delete)
+      responses: { "204": { description: Désactivé } }
+  /shop/backoffice/bundles:
+    post:
+      {
+        tags: [Shop Backoffice],
+        summary: Créer un bundle,
+        responses: { "201": { description: Créé } },
+      }
+  /shop/backoffice/bundles/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      {
+        tags: [Shop Backoffice],
+        summary: Mettre à jour un bundle,
+        responses: { "200": { description: Mis à jour } },
+      }
+    delete:
+      {
+        tags: [Shop Backoffice],
+        summary: Désactiver un bundle,
+        responses: { "204": { description: Désactivé } },
+      }
+  /shop/backoffice/rewards:
+    patch:
+      tags: [Shop Backoffice]
+      summary: Mettre à jour les paramètres de récompenses
+      requestBody:
+        {
+          content:
+            {
+              application/json:
+                { schema: { $ref: "#/components/schemas/RewardsConfig" } },
+            },
+        }
+      responses: { "200": { description: Mis à jour } }
+
+  # ---------------- Moderation ----------------
+  /moderation/reports:
+    get:
+      {
+        tags: [Moderation],
+        summary: Liste des signalements (+ résumé),
+        responses: { "200": { description: Signalements } },
+      }
+    post:
+      tags: [Moderation]
+      summary: Créer un signalement
+      responses: { "201": { description: Créé } }
+  /moderation/reports/{id}/status:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      {
+        tags: [Moderation],
+        summary: Changer le statut d'un signalement,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/reports/{id}/resolve:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Résoudre un signalement,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/reports/{id}/assign:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Assigner un signalement,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/content:
+    get:
+      {
+        tags: [Moderation],
+        summary: File de contenus à modérer (+ résumé),
+        responses: { "200": { description: Contenus } },
+      }
+  /moderation/content/{id}/review:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Passer un contenu en revue,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/content/{id}/hide:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Masquer un contenu,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/content/{id}/restore:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Restaurer un contenu,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/sanctions:
+    get:
+      {
+        tags: [Moderation],
+        summary: Liste des sanctions (+ résumé),
+        responses: { "200": { description: Sanctions } },
+      }
+  /moderation/sanctions/{id}/activate:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Activer une sanction,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/sanctions/{id}/revoke:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Révoquer une sanction,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/appeals:
+    get:
+      {
+        tags: [Moderation],
+        summary: Liste des appels (+ résumé),
+        responses: { "200": { description: Appels } },
+      }
+  /moderation/appeals/{id}/accept:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Accepter un appel,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/appeals/{id}/reject:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      {
+        tags: [Moderation],
+        summary: Rejeter un appel,
+        responses: { "200": { description: OK } },
+      }
+  /moderation/audit:
+    get:
+      {
+        tags: [Moderation],
+        summary: Journal d'audit de modération,
+        responses: { "200": { description: Audit } },
+      }
+
+  # ---------------- Backoffice ----------------
+  /backoffice/dashboard:
+    get:
+      tags: [Backoffice]
+      summary: Snapshot KPIs + distribution des rangs + top maps/créateurs + activité
+      parameters:
+        - {
+            name: period,
+            in: query,
+            schema: { type: string, enum: ["7d", "30d", "90d"], default: "7d" },
+          }
+      responses:
+        "200": { description: Dashboard }
+  /backoffice/matchmaking:
+    get:
+      {
+        tags: [Backoffice],
+        summary: Modes de matchmaking + audit + résumé,
+        responses: { "200": { description: Matchmaking } },
+      }
+  /backoffice/matchmaking/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    patch:
+      tags: [Backoffice]
+      summary: Mettre à jour un mode de matchmaking
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                maxWaitTimeSec: { type: integer }
+                mmrWindow: { type: integer }
+                teamSize: { type: integer }
+      responses: { "200": { description: Mis à jour } }
+
+  # ---------------- Users ----------------
+  /users:
+    get:
+      tags: [Users]
+      summary: Lister les utilisateurs (admin)
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - {
+            name: role,
+            in: query,
+            schema: { type: string, enum: [player, staff, admin] },
+          }
+        - { name: status, in: query, schema: { type: integer } }
+        - { name: deleted, in: query, schema: { type: boolean } }
+      responses:
+        "200": { description: Utilisateurs }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Users]
+      summary: Créer/synchroniser un utilisateur depuis PocketBase
+      responses: { "201": { description: Créé } }
+  /users/{id}:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get:
+      tags: [Users]
+      summary: Profil (admin ou soi-même)
+      responses:
+        "200":
+          {
+            description: Profil,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/User" } },
+              },
+          }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Users]
+      summary: Mettre à jour le profil
+      responses: { "200": { description: Mis à jour } }
+  /users/{id}/avatar:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Users],
+        summary: Uploader un avatar,
+        responses: { "200": { description: OK } },
+      }
+    get:
+      {
+        tags: [Users],
+        summary: URL de l'avatar,
+        responses: { "200": { description: URL } },
+      }
+  /users/{id}/password:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Users],
+        summary: Changer le mot de passe,
+        responses: { "200": { description: OK } },
+      }
+  /users/{id}/delete:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    post:
+      {
+        tags: [Users],
+        summary: Supprimer le compte (soft delete),
+        responses: { "200": { description: OK } },
+      }
+
+  # ---------------- Competitive ----------------
+  /mmr:
+    get:
+      tags: [Competitive]
+      summary: MMR courant + historique
+      parameters:
+        - { name: pocketbaseUserId, in: query, schema: { type: string } }
+        - { name: modeId, in: query, schema: { type: integer } }
+      responses: { "200": { description: MMR } }
+  /ranks/{id}/rank:
+    parameters:
+      [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get:
+      tags: [Competitive]
+      summary: Rang / division / XP du joueur
+      parameters: [{ name: modeId, in: query, schema: { type: integer } }]
+      responses: { "200": { description: Rang } }
+  /game-modes:
+    get:
+      {
+        tags: [Competitive],
+        summary: Liste des modes de jeu,
+        responses: { "200": { description: Modes } },
+      }
+  /matches:
+    get:
+      tags: [Competitive]
+      summary: Historique de matchs
+      parameters:
+        - { name: userId, in: query, schema: { type: integer } }
+        - { name: modeId, in: query, schema: { type: integer } }
+        - {
+            name: result,
+            in: query,
+            schema: { type: string, enum: [win, loss, draw] },
+          }
+        - { name: dateFrom, in: query, schema: { type: string, format: date } }
+        - { name: dateTo, in: query, schema: { type: string, format: date } }
+        - { name: limit, in: query, schema: { type: integer } }
+        - { name: offset, in: query, schema: { type: integer } }
+      responses: { "200": { description: Matchs } }
+
+  # ---------------- Admin ----------------
+  /admin/mmr/season-reset:
+    post:
+      tags: [Admin]
+      summary: Reset de saison MMR (admin)
+      parameters:
+        - {
+            name: mode_id,
+            in: query,
+            required: true,
+            schema: { type: integer },
+          }
+        - { name: base, in: query, schema: { type: integer } }
+      responses:
+        "200": { description: Reset effectué }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/export/{entity}:
+    parameters:
+      - {
+          name: entity,
+          in: path,
+          required: true,
+          schema: { type: string, enum: [users, matches, maps, transactions] },
+        }
+      - { name: start, in: query, schema: { type: string, format: date } }
+      - { name: end, in: query, schema: { type: string, format: date } }
+    get:
+      tags: [Admin]
+      summary: Export CSV d'une entité
+      responses:
+        "200": { description: CSV, content: { text/csv: {} } }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /audit/season-resets:
+    get:
+      tags: [Admin]
+      summary: Journal des resets de saison
+      responses: { "200": { description: Logs } }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT émis par PocketBase.
+
+  responses:
+    BadRequest:
+      description: Requête invalide
+      content:
+        { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    NotFound:
+      description: Ressource introuvable
+      content:
+        { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    Forbidden:
+      description: Accès refusé (rôle insuffisant)
+      content:
+        { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message: { type: string }
+            code: { type: string }
+            details: { type: object, nullable: true }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [player, staff, admin] }
+        region: { type: string, nullable: true }
+        bio: { type: string, nullable: true }
+        language: { type: string, nullable: true }
+        status: { type: integer }
+
+    MapTag:
+      type: object
+      properties:
+        id: { type: integer }
+        slug: { type: string }
+        label_fr: { type: string }
+        label_en: { type: string }
+
+    MapStats:
+      type: object
+      properties:
+        score: { type: number }
+        likes_count: { type: integer }
+        dislikes_count: { type: integer }
+        favorites_count: { type: integer }
+        tests_count: { type: integer }
+        retention: { type: number }
+        last_activity_at: { type: string, format: date-time }
+
+    MapList:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [draft, beta, stable] }
+        moderation_status:
+          { type: string, enum: [visible, hidden, removed, review] }
+        featured: { type: boolean }
+        current_version_number: { type: integer }
+        versions_count: { type: integer }
+        tags: { type: array, items: { $ref: "#/components/schemas/MapTag" } }
+        stats: { $ref: "#/components/schemas/MapStats" }
+        user_vote: { type: string, nullable: true, enum: [like, dislike] }
+        is_favorite: { type: boolean }
+
+    GridData:
+      type: object
+      properties:
+        grid_size: { type: integer, example: 14 }
+        version: { type: integer }
+        blocks:
+          type: array
+          items:
+            type: object
+            properties:
+              x: { type: integer }
+              y: { type: integer }
+              type:
+                { type: string, enum: [empty, wall, floor, spawn, objective] }
+              rotation: { type: integer }
+
+    MapDetail:
+      allOf:
+        - $ref: "#/components/schemas/MapList"
+        - type: object
+          properties:
+            grid_data: { $ref: "#/components/schemas/GridData" }
+            versions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  version_number: { type: integer }
+                  release_notes: { type: string, nullable: true }
+                  created_at: { type: string, format: date-time }
+
+    CreateMap:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, beta, stable] }
+        grid_data: { $ref: "#/components/schemas/GridData" }
+        tag_ids: { type: array, items: { type: integer } }
+        release_notes: { type: string }
+
+    UpdateMap:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [draft, beta, stable] }
+        grid_data: { $ref: "#/components/schemas/GridData" }
+        tag_ids: { type: array, items: { type: integer } }
+        release_notes:
+          { type: string, description: "Si fourni, crée une nouvelle version." }
+
+    Wallet:
+      type: object
+      properties:
+        soft: { type: integer }
+        hard: { type: integer }
+
+    ShopItem:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string, enum: [cosmetic, pack, pass, boost] }
+        rarity: { type: string, enum: [common, rare, epic, legendary] }
+        slot: { type: string, nullable: true }
+        currency: { type: string, enum: [soft, hard] }
+        price: { type: integer }
+        imageSeed: { type: string }
+        isFeatured: { type: boolean }
+        isNew: { type: boolean }
+        available: { type: boolean }
+        sales7d: { type: integer }
+
+    ShopItemPayload:
+      type: object
+      required: [name, category, rarity, currency, price, imageSeed]
+      properties:
+        name: { type: string }
+        category: { type: string, enum: [cosmetic, pack, pass, boost] }
+        rarity: { type: string, enum: [common, rare, epic, legendary] }
+        slot: { type: string, nullable: true }
+        currency: { type: string, enum: [soft, hard] }
+        price: { type: integer }
+        imageSeed: { type: string }
+        isFeatured: { type: boolean }
+        isNew: { type: boolean }
+        available: { type: boolean }
+
+    RewardsConfig:
+      type: object
+      properties:
+        xpWin: { type: integer }
+        xpLoss: { type: integer }
+        softWin: { type: integer }
+        softLoss: { type: integer }
+        dailyQuestSoft: { type: integer }
+        levelUpHard: { type: integer }
+
+    ShopState:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ShopItem" } }
+        bundles: { type: array, items: { type: object } }
+        wallet: { $ref: "#/components/schemas/Wallet" }
+        inventory: { type: array, items: { type: object } }
+        equipped:
+          {
+            type: object,
+            additionalProperties: { type: integer, nullable: true },
+          }
