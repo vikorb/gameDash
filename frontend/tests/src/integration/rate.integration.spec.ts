@@ -1,12 +1,37 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchMatchHistory } from '../../../src/services/matches'
-import { useRateStore } from '../../../src/stores/rateStore'
+// Bloquer toute la chaîne d'imports qui remonte vers api.ts
+vi.mock('@/services/pocketbase', () => ({
+  pb: { authStore: { token: '' } },
+  authService: {
+    isAuthenticated: () => true,
+    getUser: () => ({ id: 'u1', username: 'alice' }),
+  },
+}))
 
+vi.mock('@/api', () => ({
+  default: {
+    get: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
+  },
+}))
+
+vi.mock('@/stores/mapsStore', () => ({
+  useMapsStore: () => ({ maps: [] }),
+}))
+
+// Mock du service matches — via @/ pour correspondre à ce que rateStore importe
 vi.mock('@/services/matches', () => ({
   fetchMatchHistory: vi.fn(),
 }))
+
+// Imports APRÈS les mocks
+import { fetchMatchHistory } from '@/services/matches'
+import { useRateStore } from '@/stores/rateStore'
 
 const mockFetchMatchHistory = vi.mocked(fetchMatchHistory)
 
@@ -21,12 +46,7 @@ describe('Rate Integration', () => {
       .mockResolvedValueOnce({ matches: [], total: 4, limit: 1, offset: 0 })
       .mockResolvedValueOnce({ matches: [], total: 3, limit: 1, offset: 0 })
       .mockResolvedValueOnce({
-        matches: [
-          { nb_kills: 2 },
-          { nb_kills: 4 },
-          { nb_kills: 5 },
-          { nb_kills: 3 },
-        ] as never,
+        matches: [{ nb_kills: 2 }, { nb_kills: 4 }, { nb_kills: 5 }, { nb_kills: 3 }] as never,
         total: 4,
         limit: 100,
         offset: 0,

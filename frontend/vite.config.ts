@@ -24,9 +24,10 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    allowedHosts: true,
     proxy: {
       '/api': {
-        target: 'http://gamedash_back:3000',
+        target: process.env.BACKEND_URL || 'http://gamedash_back:3000',
         changeOrigin: true,
         secure: false,
       },

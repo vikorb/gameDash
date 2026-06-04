@@ -1,24 +1,39 @@
 vi.mock('@/views/home/PlayerCompetitiveCard.vue', () => ({
-  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card-mock" />' })
+  default: defineComponent({
+    name: 'PlayerCompetitiveCard',
+    template: '<div class="player-competitive-card-mock" />',
+  }),
 }))
 vi.mock('@/views/home/HomeTopRow.vue', () => ({
-  default: defineComponent({ name: 'HomeTopRow', template: '<div class="home-top-row" />' })
+  default: defineComponent({ name: 'HomeTopRow', template: '<div class="home-top-row" />' }),
 }))
 vi.mock('@/views/home/PlayerPlayButton.vue', () => ({
-  default: defineComponent({ name: 'PlayerPlayButton', template: '<button class="player-play-button-mock" />' })
+  default: defineComponent({
+    name: 'PlayerPlayButton',
+    template: '<button class="player-play-button-mock" />',
+  }),
 }))
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string) => key })
+  useI18n: () => ({ t: (key: string) => key }),
+}))
+
+vi.mock('@/services/gameMode', () => ({
+  fetchGameModes: vi.fn(() =>
+    Promise.resolve([
+      { id: 1, name: 'Classé', is_active: true, created_at: '', updated_at: '' },
+      { id: 2, name: 'Normal', is_active: true, created_at: '', updated_at: '' },
+    ]),
+  ),
 }))
 
 vi.mock('vue-router', () => ({
   RouterLink: {
     name: 'RouterLink',
     props: ['to'],
-    template: '<a :href="to"><slot /></a>'
+    template: '<a :href="to"><slot /></a>',
   },
   useRouter: () => ({ push: vi.fn(), resolve: vi.fn() }),
-  useRoute: () => ({ path: '/' })
+  useRoute: () => ({ path: '/' }),
 }))
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -73,13 +88,22 @@ vi.mock('@/views/home/HomeHeaderSection.vue', () => ({
   }),
 }))
 vi.mock('@/components/player-dashboard/PlayerShopCard.vue', () => ({
-  default: defineComponent({ name: 'PlayerShopCard', template: '<div class="player-shop-card" />' })
+  default: defineComponent({
+    name: 'PlayerShopCard',
+    template: '<div class="player-shop-card" />',
+  }),
 }))
 vi.mock('@/components/player-dashboard/PlayerCompetitiveCard.vue', () => ({
-  default: defineComponent({ name: 'PlayerCompetitiveCard', template: '<div class="player-competitive-card" />' })
+  default: defineComponent({
+    name: 'PlayerCompetitiveCard',
+    template: '<div class="player-competitive-card" />',
+  }),
 }))
 vi.mock('@/components/player-dashboard/PlayerRankCard.vue', () => ({
-  default: defineComponent({ name: 'PlayerRankCard', template: '<div class="player-rank-card" />' })
+  default: defineComponent({
+    name: 'PlayerRankCard',
+    template: '<div class="player-rank-card" />',
+  }),
 }))
 
 vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({

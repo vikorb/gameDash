@@ -1,0 +1,425 @@
+# Base de données — GameDash
+
+Schéma de la base relationnelle (PostgreSQL), versionné par **migrations Knex** et modélisé sur **dbdiagram.io**.
+
+- 🔗 Diagramme dbdiagram : https://dbdiagram.io/d/gameDash-6950178f39fa3db27ba3cd58
+- Source de vérité du schéma : ce document (DBML ci-dessous) + les migrations `backend/src/database/migrations/`.
+
+> ℹ️ **Authentification** : l'identité, les mots de passe et les sessions sont gérés par **PocketBase**. Côté PostgreSQL, `users` porte le profil enrichi et le lien `pocketbase_user_id` (les entités `sessions` / `auth_identities` traduisent le modèle conceptuel, assuré en pratique par PocketBase).
+>
+> ℹ️ **Contrainte projet** : faute du jeu réel (non fourni), ce schéma a été conçu par hypothèse comme une base « standard » pour un jeu compétitif (Elo/MMR, matchmaking, maps versionnées type Git, économie, audit & modération).
+
+---
+
+## 1. Diagramme entité-relation (aperçu)
+
+Vue simplifiée des entités principales et de leurs relations (attributs réduits pour la lisibilité — schéma complet dans le DBML §2).
+
+```mermaid
+erDiagram
+    users ||--o{ auth_identities : "possède"
+    users ||--o{ sessions : "ouvre"
+    users ||--o{ player_mmr : "a"
+    users ||--o{ mmr_history : "génère"
+    users ||--o{ match_players : "joue"
+    users ||--|| player_progress : "progresse"
+    users ||--o{ wallets : "détient"
+    users ||--o{ inventory_items : "possède"
+    users ||--o{ equipped_items : "équipe"
+    users ||--o{ transactions : "effectue"
+    users ||--o{ maps : "crée"
+    users ||--o{ sanctions : "subit"
+
+    game_modes ||--|| matchmaking_settings : "paramètre"
+    game_modes ||--o{ queue_entries : "file"
+    game_modes ||--o{ matches : "héberge"
+    game_modes ||--o{ player_mmr : "scope"
+    game_modes ||--o{ rank_rules : "borne"
+
+    matches ||--o{ match_players : "réunit"
+    rank_rules }o--|| rank_tiers : "tier"
+    rank_rules }o--|| rank_divisions : "division"
+
+    currencies ||--o{ wallets : "libelle"
+    shop_items ||--o{ shop_item_prices : "tarifie"
+    shop_items ||--o{ inventory_items : "instancie"
+    currencies ||--o{ transactions : "devise"
+
+    maps ||--o{ map_versions : "versionne"
+    maps ||--o{ map_tags : "tague"
+    tags ||--o{ map_tags : "classe"
+    maps ||--o{ map_screenshots : "illustre"
+    maps ||--o{ map_tests : "testée"
+    maps ||--o{ map_votes : "votée"
+    maps ||--o{ map_favorites : "favorisée"
+    maps ||--o{ map_reports : "signalée"
+    maps ||--|| map_stats : "agrège"
+    map_versions ||--o{ map_versions : "parent"
+
+    users ||--o{ audit_logs : "acteur"
+```
+
+---
+
+## 2. Schéma DBML (à coller dans dbdiagram.io)
+
+```dbml
+// GameDash — schéma de base de données (dbdiagram.io)
+
+Table users {
+  id bigint [pk, increment]
+  email varchar [not null, unique]
+  username varchar [not null, unique]
+  role varchar [not null, default: 'player']      // player | staff | admin
+  avatar_url varchar
+  region varchar
+  bio text
+  language varchar                                 // fr | en
+  matchmaking_pref json
+  status varchar [not null, default: 'offline']    // offline | online | in_queue | in_match
+  is_banned bool [not null, default: false]
+  pocketbase_user_id varchar [unique]              // lien identité PocketBase
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp
+}
+
+Table auth_identities {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  provider varchar [not null]                      // local | steam | discord
+  provider_user_id varchar [not null]
+  metadata json
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  Indexes { (provider, provider_user_id) [unique] }
+}
+
+Table sessions {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  refresh_token_hash varchar [not null]
+  expires_at timestamp [not null]
+  revoked_at timestamp
+  created_at timestamp [not null]
+}
+
+// --- Modes de jeu & matchmaking ---
+Table game_modes {
+  id bigint [pk, increment]
+  code varchar [not null, unique]                  // ranked | unranked | fun
+  name varchar [not null]
+  is_ranked bool [not null, default: false]
+  is_active bool [not null, default: true]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+}
+
+Table matchmaking_settings {
+  id bigint [pk, increment]
+  mode_id bigint [not null, unique]
+  max_wait_seconds int [not null, default: 120]
+  mmr_max_gap int [not null, default: 200]
+  team_size int [not null, default: 1]
+  is_active bool [not null, default: true]
+}
+
+Table queue_entries {
+  id bigint [pk, increment]
+  mode_id bigint [not null]
+  user_id bigint [not null]
+  status varchar [not null, default: 'queued']     // queued | matched | cancelled
+  enqueued_at timestamp [not null]
+  dequeued_at timestamp
+}
+
+Table matches {
+  id bigint [pk, increment]
+  mode_id bigint [not null]
+  status varchar [not null, default: 'completed']  // created | running | completed | cancelled
+  started_at timestamp
+  ended_at timestamp
+  algorithm_version varchar
+  seed int
+  created_at timestamp [not null]
+}
+
+Table match_players {
+  id bigint [pk, increment]
+  match_id bigint [not null]
+  user_id bigint [not null]
+  team int [not null, default: 1]
+  result varchar                                   // win | loss | draw
+  mmr_before int
+  mmr_after int
+  mmr_delta int
+  Indexes { (match_id, user_id) [unique] }
+}
+
+// --- MMR & rangs ---
+Table player_mmr {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  mode_id bigint [not null]
+  mmr int [not null, default: 1000]
+  Indexes { (user_id, mode_id) [unique] }
+}
+
+Table mmr_history {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  mode_id bigint [not null]
+  match_id bigint
+  mmr_before int [not null]
+  mmr_after int [not null]
+  delta int [not null]
+  event_type varchar                               // ex. SEASON_RESET
+  created_at timestamp [not null]
+}
+
+Table rank_tiers     { id bigint [pk, increment]  name varchar [not null, unique]  display_order int [not null] }
+Table rank_divisions { id bigint [pk, increment]  name varchar [not null, unique]  display_order int [not null] }
+Table rank_rules {
+  id bigint [pk, increment]
+  mode_id bigint [not null]
+  min_mmr int [not null]
+  max_mmr int
+  tier_id bigint [not null]
+  division_id bigint [not null]
+}
+
+// --- Progression ---
+Table player_progress {
+  id bigint [pk, increment]
+  user_id bigint [not null, unique]
+  level int [not null, default: 1]
+  xp int [not null, default: 0]
+}
+Table level_rewards {
+  id bigint [pk, increment]
+  level int [not null]
+  reward_type varchar [not null]                   // currency | item
+  currency_id bigint
+  item_id bigint
+  quantity int [not null, default: 1]
+}
+
+// --- Économie / boutique / inventaire ---
+Table currencies { id bigint [pk, increment]  code varchar [not null, unique]  name varchar [not null] }  // soft | hard
+Table wallets {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  currency_id bigint [not null]
+  balance bigint [not null, default: 0]
+  Indexes { (user_id, currency_id) [unique] }
+}
+Table shop_items {
+  id bigint [pk, increment]
+  type varchar [not null]
+  sku varchar [not null, unique]
+  name varchar [not null]
+  description text
+  icon_url varchar
+  is_active bool [not null, default: true]
+  created_at timestamp [not null]
+}
+Table shop_item_prices {
+  id bigint [pk, increment]
+  shop_item_id bigint [not null]
+  currency_id bigint [not null]
+  price bigint [not null]
+  Indexes { (shop_item_id, currency_id) [unique] }
+}
+Table inventory_items {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  item_id bigint [not null]
+  quantity int [not null, default: 1]
+  Indexes { (user_id, item_id) [unique] }
+}
+Table equipped_items {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  slot varchar [not null]
+  item_id bigint [not null]
+  Indexes { (user_id, slot) [unique] }
+}
+Table transactions {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  transaction_type varchar [not null]              // purchase | refund | grant | payment_sim
+  shop_item_id bigint
+  currency_id bigint [not null]
+  amount bigint [not null]                          // +crédit / -débit
+  unit_price bigint
+  quantity int
+  external_payment_ref varchar
+  status varchar [not null, default: 'succeeded']
+  metadata json
+  created_at timestamp [not null]
+}
+
+// --- Maps UGC (versionnées type Git) ---
+Table maps {
+  id bigint [pk, increment]
+  creator_id bigint [not null]
+  title varchar [not null]
+  description text
+  status varchar [not null, default: 'draft']       // draft | beta | stable
+  moderation_status varchar [not null, default: 'visible']
+  current_version_id bigint
+  last_published_at timestamp
+  created_at timestamp [not null]
+  deleted_at timestamp
+  Indexes { (creator_id, created_at) ; (status, moderation_status) }
+}
+Table map_versions {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  parent_version_id bigint                          // version précédente (parent type Git)
+  version_number int [not null]
+  author_id bigint [not null]
+  release_notes text [not null]                     // message de commit
+  diff_added json [not null]
+  diff_removed json [not null]
+  diff_modified json
+  snapshot_url varchar
+  checksum varchar
+  Indexes { (map_id, version_number) [unique] }
+}
+Table tags { id bigint [pk, increment]  name varchar [not null, unique] }
+Table map_tags { map_id bigint [not null]  tag_id bigint [not null]  Indexes { (map_id, tag_id) [unique] } }
+Table map_screenshots {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  version_id bigint
+  url varchar [not null]
+  position int [not null, default: 0]
+}
+Table map_tests {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  user_id bigint [not null]
+  tested_at timestamp [not null]
+}
+Table map_votes {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  user_id bigint [not null]
+  vote smallint [not null]                          // -1 dislike / +1 like
+  Indexes { (map_id, user_id) [unique] }
+}
+Table map_favorites {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  user_id bigint [not null]
+  Indexes { (map_id, user_id) [unique] }
+}
+Table map_reports {
+  id bigint [pk, increment]
+  map_id bigint [not null]
+  reporter_id bigint [not null]
+  reason varchar [not null]
+  details text
+  status varchar [not null, default: 'open']        // open | in_review | resolved | rejected
+  handled_by bigint
+  handled_at timestamp
+}
+Table map_stats {
+  map_id bigint [pk]
+  tests_count int [not null, default: 0]
+  votes_count int [not null, default: 0]
+  likes_count int [not null, default: 0]
+  dislikes_count int [not null, default: 0]
+  score float [not null, default: 0]
+  last_activity_at timestamp
+}
+
+// --- Modération & audit ---
+Table sanctions {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  type varchar [not null]                           // suspension | ban
+  reason varchar [not null]
+  started_at timestamp [not null]
+  ends_at timestamp                                 // null => permanent
+  created_by bigint [not null]
+  revoked_at timestamp
+  revoked_by bigint
+}
+Table audit_logs {
+  id bigint [pk, increment]
+  actor_user_id bigint
+  action varchar [not null]                         // PURCHASE | SANCTION_CREATE | MMR_UPDATE | MAP_PUBLISH | SETTINGS_UPDATE
+  entity_type varchar
+  entity_id bigint
+  ip varchar
+  user_agent varchar
+  payload json
+  created_at timestamp [not null]
+}
+
+// --- Relations ---
+Ref: auth_identities.user_id > users.id
+Ref: sessions.user_id > users.id
+Ref: matchmaking_settings.mode_id > game_modes.id
+Ref: queue_entries.mode_id > game_modes.id
+Ref: queue_entries.user_id > users.id
+Ref: matches.mode_id > game_modes.id
+Ref: match_players.match_id > matches.id
+Ref: match_players.user_id > users.id
+Ref: player_mmr.user_id > users.id
+Ref: player_mmr.mode_id > game_modes.id
+Ref: mmr_history.user_id > users.id
+Ref: mmr_history.mode_id > game_modes.id
+Ref: mmr_history.match_id > matches.id
+Ref: rank_rules.mode_id > game_modes.id
+Ref: rank_rules.tier_id > rank_tiers.id
+Ref: rank_rules.division_id > rank_divisions.id
+Ref: player_progress.user_id > users.id
+Ref: level_rewards.currency_id > currencies.id
+Ref: level_rewards.item_id > shop_items.id
+Ref: wallets.user_id > users.id
+Ref: wallets.currency_id > currencies.id
+Ref: shop_item_prices.shop_item_id > shop_items.id
+Ref: shop_item_prices.currency_id > currencies.id
+Ref: inventory_items.user_id > users.id
+Ref: inventory_items.item_id > shop_items.id
+Ref: equipped_items.user_id > users.id
+Ref: equipped_items.item_id > shop_items.id
+Ref: transactions.user_id > users.id
+Ref: transactions.shop_item_id > shop_items.id
+Ref: transactions.currency_id > currencies.id
+Ref: maps.creator_id > users.id
+Ref: maps.current_version_id > map_versions.id
+Ref: map_versions.map_id > maps.id
+Ref: map_versions.parent_version_id > map_versions.id
+Ref: map_versions.author_id > users.id
+Ref: map_tags.map_id > maps.id
+Ref: map_tags.tag_id > tags.id
+Ref: map_screenshots.map_id > maps.id
+Ref: map_screenshots.version_id > map_versions.id
+Ref: map_tests.map_id > maps.id
+Ref: map_tests.user_id > users.id
+Ref: map_votes.map_id > maps.id
+Ref: map_votes.user_id > users.id
+Ref: map_favorites.map_id > maps.id
+Ref: map_favorites.user_id > users.id
+Ref: map_reports.map_id > maps.id
+Ref: map_reports.reporter_id > users.id
+Ref: map_reports.handled_by > users.id
+Ref: map_stats.map_id > maps.id
+Ref: sanctions.user_id > users.id
+Ref: sanctions.created_by > users.id
+Ref: sanctions.revoked_by > users.id
+Ref: audit_logs.actor_user_id > users.id
+```
+
+---
+
+## 3. Choix de conception
+
+- **Maps versionnées « type Git »** : chaque `map_versions` référence sa version parente et stocke des _diffs_ (`diff_added` / `diff_removed` / `diff_modified`), avec snapshots périodiques optionnels (`snapshot_url`) pour accélérer la reconstruction.
+- **Statistiques dénormalisées** (`map_stats`) pour des listings et classements performants.
+- **Journalisation transverse** (`audit_logs`) des actions critiques : achats, sanctions, mises à jour MMR, publications de maps, changements de paramètres.
+- **Cycle de vie des données** : non persistées entre deux `docker compose down -v` ; migrations + seeds rejouées à chaque démarrage pour un jeu de données propre et identique.

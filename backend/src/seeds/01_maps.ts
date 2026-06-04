@@ -391,6 +391,14 @@ export async function seed(knex: Knex): Promise<void> {
     }
   }
 
+  await knex.raw(`
+    SELECT setval(
+      pg_get_serial_sequence('users', 'id'),
+      GREATEST((SELECT COALESCE(MAX(id), 1) FROM users), 1),
+      true
+    )
+  `);
+
   // ── 2. Tags ───────────────────────────────────────────────────────────────
   const tagIdList = await insertReturningIds(knex, "map_tags", TAGS, "map_tags");
 
