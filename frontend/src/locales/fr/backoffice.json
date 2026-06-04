@@ -114,6 +114,7 @@
         "title": "Distribution des rangs",
         "subtitle": "Répartition de la population sur la ladder compétitive.",
         "totalPlayers": "{count} joueurs classés",
+        "manage": "Gérer",
         "labels": {
           "bronze": "Bronze",
           "silver": "Silver",
@@ -150,6 +151,19 @@
           "sanction": "{actor} a sanctionné {target}"
         }
       }
+    },
+    "ranks": {
+      "badge": "Compétitif",
+      "title": "Gestion des rangs & divisions",
+      "subtitle": "Vue structurée des paliers de rang et des divisions associées, avec style dashboard orienté live ops.",
+      "actions": {
+        "backToDashboard": "Retour au dashboard"
+      },
+      "summary": {
+        "totalRanks": "Rangs",
+        "totalDivisions": "Divisions"
+      },
+      "divisionCount": "{count} divisions"
     },
     "matchmaking": {
       "badge": "Live ops",

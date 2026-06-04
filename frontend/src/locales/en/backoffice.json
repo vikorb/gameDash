@@ -114,6 +114,7 @@
         "title": "Rank distribution",
         "subtitle": "Player spread across the competitive ladder.",
         "totalPlayers": "{count} ranked players",
+        "manage": "Manage",
         "labels": {
           "bronze": "Bronze",
           "silver": "Silver",
@@ -150,6 +151,19 @@
           "sanction": "{actor} sanctioned {target}"
         }
       }
+    },
+    "ranks": {
+      "badge": "Competitive",
+      "title": "Ranks & divisions management",
+      "subtitle": "Structured overview of rank tiers and linked divisions with a live-ops dashboard style.",
+      "actions": {
+        "backToDashboard": "Back to dashboard"
+      },
+      "summary": {
+        "totalRanks": "Ranks",
+        "totalDivisions": "Divisions"
+      },
+      "divisionCount": "{count} divisions"
     },
     "matchmaking": {
       "badge": "Live ops",

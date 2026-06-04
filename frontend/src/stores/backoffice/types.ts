@@ -55,3 +55,20 @@ export type BackofficeMatchmakingSummary = {
   lastUpdateAt: string
   lastUpdateActor: string
 }
+
+export type BackofficeRankDivision = {
+  id: number
+  name: string
+  order: number
+  minXp: number
+  maxXp: number
+}
+
+export type BackofficeRankWithDivisions = {
+  id: number
+  name: string
+  minXp: number
+  maxXp: number
+  divisionCount: number
+  divisions: BackofficeRankDivision[]
+}

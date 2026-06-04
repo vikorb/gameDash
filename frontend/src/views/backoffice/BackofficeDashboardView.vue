@@ -84,13 +84,18 @@
               <h2 class="surface-title">{{ t('backoffice.dashboard.ranks.title') }}</h2>
               <p class="surface-subtitle">{{ t('backoffice.dashboard.ranks.subtitle') }}</p>
             </div>
-            <span class="meta-item">
-              {{
-                t('backoffice.dashboard.ranks.totalPlayers', {
-                  count: totalRankedPlayers.toLocaleString(locale),
-                })
-              }}
-            </span>
+            <div class="surface-header__actions">
+              <span class="meta-item">
+                {{
+                  t('backoffice.dashboard.ranks.totalPlayers', {
+                    count: totalRankedPlayers.toLocaleString(locale),
+                  })
+                }}
+              </span>
+              <button type="button" class="btn btn--ghost btn--surface" @click="goToRankManagement">
+                {{ t('backoffice.dashboard.ranks.manage') }}
+              </button>
+            </div>
           </div>
 
           <div class="rank-chart">
@@ -341,6 +346,10 @@ function goBackToBackoffice() {
 
 function resetPeriod() {
   selectedPeriod.value = '7d'
+}
+
+function goToRankManagement() {
+  router.push('/backoffice/ranks')
 }
 
 function getRankLabel(key: RankKey) {
@@ -765,6 +774,20 @@ onMounted(() => {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
+}
+
+.surface-header__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn--surface {
+  min-height: 36px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.8rem;
 }
 
 .surface-title {

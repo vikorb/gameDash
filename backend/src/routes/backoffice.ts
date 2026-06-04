@@ -158,6 +158,56 @@ export function createBackofficeRouter(db: Knex) {
     }),
   );
 
+  router.get(
+    "/ranks",
+    asyncRoute(async (_req, res) => {
+      const ranksRows = await db("ranks")
+        .select("id", "name", "min_xp", "max_xp", "division_count")
+        .orderBy("min_xp", "asc");
+
+      const divisionRows = await db("rank_divisions")
+        .select("id", "rank_id", "name", "min_xp", "max_xp", "order")
+        .orderBy("min_xp", "asc")
+        .orderBy("order", "desc");
+
+      const ranks = ranksRows.map((rank) => {
+        const rankId = Number(rank.id);
+        const rankMinXp = Number(rank.min_xp ?? 0);
+        const rankMaxXp = Number(rank.max_xp ?? 0);
+
+        const divisions = divisionRows
+          .filter((division) => {
+            const divisionRankId = division.rank_id !== null ? Number(division.rank_id) : null;
+            if (divisionRankId !== null) {
+              return divisionRankId === rankId;
+            }
+
+            const divisionMinXp = Number(division.min_xp ?? 0);
+            const divisionMaxXp = Number(division.max_xp ?? 0);
+            return divisionMinXp >= rankMinXp && divisionMaxXp <= rankMaxXp;
+          })
+          .map((division) => ({
+            id: Number(division.id),
+            name: String(division.name),
+            order: Number(division.order ?? 0),
+            minXp: Number(division.min_xp ?? 0),
+            maxXp: Number(division.max_xp ?? 0),
+          }));
+
+        return {
+          id: rankId,
+          name: String(rank.name),
+          minXp: rankMinXp,
+          maxXp: rankMaxXp,
+          divisionCount: Number(rank.division_count ?? divisions.length),
+          divisions,
+        };
+      });
+
+      res.json({ ranks });
+    }),
+  );
+
   router.patch(
     "/matchmaking/:id",
     asyncRoute(async (req, res) => {
