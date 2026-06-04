@@ -9,11 +9,23 @@
         </div>
 
         <div class="ranks-hero__actions">
-          <button type="button" class="ranks-create-btn" @click="openCreateDialog">
-            {{ t('backoffice.ranks.actions.create') }}
+          <button
+            type="button"
+            class="icon-btn icon-btn--create icon-btn--hero"
+            :title="t('backoffice.ranks.actions.create')"
+            :aria-label="t('backoffice.ranks.actions.create')"
+            @click="openCreateDialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiPlus" /></svg>
           </button>
-          <button type="button" class="ranks-back-btn" @click="goToDashboard">
-            {{ t('backoffice.ranks.actions.backToDashboard') }}
+          <button
+            type="button"
+            class="icon-btn icon-btn--back icon-btn--hero"
+            :title="t('backoffice.ranks.actions.backToDashboard')"
+            :aria-label="t('backoffice.ranks.actions.backToDashboard')"
+            @click="goToDashboard"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiArrowLeft" /></svg>
           </button>
         </div>
       </header>
@@ -30,69 +42,97 @@
       </section>
 
       <section class="ranks-grid">
-        <article
-          v-for="rank in localRanks"
-          :key="rank.id"
-          :class="['rank-card', `rank-card--${getRankTone(rank.name)}`]"
-        >
-          <header class="rank-card__header">
-            <div>
-              <h2 class="rank-card__title">{{ rank.name }}</h2>
-              <p class="rank-card__xp">
-                XP {{ rank.minXp.toLocaleString(locale) }} - {{ rank.maxXp.toLocaleString(locale) }}
-              </p>
-            </div>
-
-            <div class="rank-card__actions">
-              <span class="rank-card__count">
-                {{ t('backoffice.ranks.divisionCount', { count: rank.divisions.length }) }}
-              </span>
+        <ul class="rank-list">
+          <li
+            v-for="rank in localRanks"
+            :key="rank.id"
+            :class="['rank-item', `rank-item--${getRankTone(rank.name)}`]"
+          >
+            <div class="rank-item__header">
               <button
                 type="button"
-                class="rank-action-btn rank-action-btn--create"
-                @click="openCreateDivisionDialog(rank.id)"
+                class="rank-toggle"
+                :aria-expanded="isExpanded(rank.id)"
+                @click="toggleRank(rank.id)"
               >
-                {{ t('backoffice.ranks.actions.createDivision') }}
-              </button>
-              <button type="button" class="rank-action-btn rank-action-btn--edit" @click="openEditDialog(rank)">
-                {{ t('backoffice.ranks.actions.edit') }}
-              </button>
-              <button type="button" class="rank-action-btn rank-action-btn--delete" @click="deleteRank(rank.id)">
-                {{ t('backoffice.ranks.actions.delete') }}
-              </button>
-            </div>
-          </header>
-
-          <ul class="division-list">
-            <li v-for="division in rank.divisions" :key="division.id" class="division-row">
-              <div class="division-row__left">
-                <span class="division-row__order">#{{ division.order }}</span>
-                <span class="division-row__name">{{ division.name }}</span>
-              </div>
-              <div class="division-row__right">
-                <span class="division-row__xp">
-                  {{ division.minXp.toLocaleString(locale) }} - {{ division.maxXp.toLocaleString(locale) }} XP
+                <svg :class="['rank-toggle__icon', { 'rank-toggle__icon--open': isExpanded(rank.id) }]" viewBox="0 0 24 24" aria-hidden="true">
+                  <path :d="mdiChevronDown" />
+                </svg>
+                <span class="rank-toggle__title">{{ rank.name }}</span>
+                <span class="rank-toggle__meta">
+                  XP {{ rank.minXp.toLocaleString(locale) }} - {{ rank.maxXp.toLocaleString(locale) }}
                 </span>
-                <div class="division-row__actions">
-                  <button
-                    type="button"
-                    class="rank-action-btn rank-action-btn--edit"
-                    @click="openEditDivisionDialog(rank.id, division)"
-                  >
-                    {{ t('backoffice.ranks.actions.editDivision') }}
-                  </button>
-                  <button
-                    type="button"
-                    class="rank-action-btn rank-action-btn--delete"
-                    @click="deleteDivision(rank.id, division.id)"
-                  >
-                    {{ t('backoffice.ranks.actions.deleteDivision') }}
-                  </button>
-                </div>
+              </button>
+
+              <div class="rank-item__actions">
+                <span class="rank-card__count">
+                  {{ t('backoffice.ranks.divisionCount', { count: rank.divisions.length }) }}
+                </span>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--create"
+                  :title="t('backoffice.ranks.actions.createDivision')"
+                  :aria-label="t('backoffice.ranks.actions.createDivision')"
+                  @click.stop="openCreateDivisionDialog(rank.id)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiPlus" /></svg>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--edit"
+                  :title="t('backoffice.ranks.actions.edit')"
+                  :aria-label="t('backoffice.ranks.actions.edit')"
+                  @click.stop="openEditDialog(rank)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiPencil" /></svg>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--delete"
+                  :title="t('backoffice.ranks.actions.delete')"
+                  :aria-label="t('backoffice.ranks.actions.delete')"
+                  @click.stop="deleteRank(rank.id)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiTrashCanOutline" /></svg>
+                </button>
               </div>
-            </li>
-          </ul>
-        </article>
+            </div>
+
+            <ul v-if="isExpanded(rank.id)" class="division-list">
+              <li v-for="division in rank.divisions" :key="division.id" class="division-row">
+                <div class="division-row__left">
+                  <span class="division-row__order">#{{ division.order }}</span>
+                  <span class="division-row__name">{{ division.name }}</span>
+                </div>
+                <div class="division-row__right">
+                  <span class="division-row__xp">
+                    {{ division.minXp.toLocaleString(locale) }} - {{ division.maxXp.toLocaleString(locale) }} XP
+                  </span>
+                  <div class="division-row__actions">
+                    <button
+                      type="button"
+                      class="icon-btn icon-btn--edit"
+                      :title="t('backoffice.ranks.actions.editDivision')"
+                      :aria-label="t('backoffice.ranks.actions.editDivision')"
+                      @click="openEditDivisionDialog(rank.id, division)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiPencil" /></svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn icon-btn--delete"
+                      :title="t('backoffice.ranks.actions.deleteDivision')"
+                      :aria-label="t('backoffice.ranks.actions.deleteDivision')"
+                      @click="deleteDivision(rank.id, division.id)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path :d="mdiTrashCanOutline" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </li>
+        </ul>
       </section>
 
       <div v-if="dialogOpen" class="rank-dialog-backdrop" @click.self="closeDialog">
@@ -162,6 +202,7 @@
 </template>
 
 <script setup lang="ts">
+import { mdiArrowLeft, mdiChevronDown, mdiPencil, mdiPlus, mdiTrashCanOutline } from '@mdi/js'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -189,6 +230,7 @@ const dialogEntity = ref<'rank' | 'division'>('rank')
 const editingRankId = ref<number | null>(null)
 const divisionRankId = ref<number | null>(null)
 const editingDivisionId = ref<number | null>(null)
+const expandedRankIds = ref<number[]>([])
 const formError = ref('')
 const rankForm = ref({
   name: '',
@@ -216,6 +258,19 @@ const normalizedTones = computed(() => ({
 function getRankTone(rankName: string) {
   const key = rankName.trim().toLowerCase()
   return normalizedTones.value[key as keyof typeof normalizedTones.value] ?? 'master'
+}
+
+function isExpanded(rankId: number) {
+  return expandedRankIds.value.includes(rankId)
+}
+
+function toggleRank(rankId: number) {
+  if (expandedRankIds.value.includes(rankId)) {
+    expandedRankIds.value = expandedRankIds.value.filter((id) => id !== rankId)
+    return
+  }
+
+  expandedRankIds.value = [...expandedRankIds.value, rankId]
 }
 
 const totalDivisionsLocal = computed(() =>
@@ -253,6 +308,8 @@ watch(
       ...rank,
       divisions: rank.divisions.map((division) => ({ ...division })),
     }))
+
+    expandedRankIds.value = []
   },
   { immediate: true },
 )
@@ -611,38 +668,40 @@ onMounted(() => {
   max-width: 700px;
 }
 
-.ranks-back-btn {
-  min-height: 42px;
+.icon-btn {
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(88, 101, 242, 0.35);
+  border: 1px solid rgba(252, 239, 225, 0.16);
+  background: rgba(18, 24, 38, 0.45);
+  color: var(--color-cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.icon-btn--hero {
+  width: 42px;
+  height: 42px;
+}
+
+.icon-btn--back {
+  border-color: rgba(88, 101, 242, 0.35);
   background: rgba(88, 101, 242, 0.22);
   color: #e7e9ff;
-  font-weight: 800;
-  padding: 0.72rem 1rem;
-  cursor: pointer;
-  transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
-}
-
-.ranks-create-btn {
-  min-height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(67, 181, 129, 0.44);
-  background: rgba(67, 181, 129, 0.2);
-  color: #c7ffe3;
-  font-weight: 800;
-  padding: 0.72rem 1rem;
-  cursor: pointer;
-  transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
-}
-
-.ranks-create-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-}
-
-.ranks-back-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
 }
 
 .ranks-summary {
@@ -671,33 +730,77 @@ onMounted(() => {
 
 .ranks-grid {
   margin-top: 1rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
 }
 
-.rank-card {
-  border-radius: 20px;
+.rank-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.rank-item {
+  border-radius: 16px;
   border: 1px solid rgba(252, 239, 225, 0.1);
   background: linear-gradient(170deg, rgba(54, 57, 63, 0.95), rgba(30, 31, 34, 0.98));
-  box-shadow: 0 16px 36px -24px rgba(0, 0, 0, 0.82);
-  padding: 1.1rem;
+  box-shadow: 0 12px 24px -18px rgba(0, 0, 0, 0.8);
+  padding: 0.7rem;
 }
 
-.rank-card__header {
+.rank-item__header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 0.7rem;
-  margin-bottom: 0.85rem;
 }
 
-.rank-card__actions {
+.rank-item__actions {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.rank-toggle {
+  border: none;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.2rem 0.1rem;
+  cursor: pointer;
+}
+
+.rank-toggle__icon {
+  width: 18px;
+  height: 18px;
+  color: rgba(252, 239, 225, 0.66);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.rank-toggle__icon path {
+  fill: currentColor;
+}
+
+.rank-toggle__icon--open {
+  transform: rotate(180deg);
+}
+
+.rank-toggle__title {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--color-cream);
+}
+
+.rank-toggle__meta {
+  font-size: 0.8rem;
+  color: rgba(252, 239, 225, 0.6);
 }
 
 .rank-card__title {
@@ -722,35 +825,18 @@ onMounted(() => {
   color: rgba(252, 239, 225, 0.72);
 }
 
-.rank-action-btn {
-  min-height: 32px;
-  border-radius: 10px;
-  border: 1px solid rgba(252, 239, 225, 0.16);
-  background: rgba(18, 24, 38, 0.45);
-  color: var(--color-cream);
-  font-size: 0.76rem;
-  font-weight: 800;
-  padding: 0.45rem 0.65rem;
-  cursor: pointer;
-  transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
-}
-
-.rank-action-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-}
-
-.rank-action-btn--edit {
+.icon-btn--edit {
   border-color: rgba(88, 101, 242, 0.42);
   background: rgba(88, 101, 242, 0.2);
 }
 
-.rank-action-btn--create {
+.icon-btn--create {
   border-color: rgba(67, 181, 129, 0.44);
   background: rgba(67, 181, 129, 0.2);
+  color: #c7ffe3;
 }
 
-.rank-action-btn--delete {
+.icon-btn--delete {
   border-color: rgba(237, 66, 69, 0.44);
   background: rgba(237, 66, 69, 0.2);
 }
@@ -814,31 +900,31 @@ onMounted(() => {
   gap: 0.35rem;
 }
 
-.rank-card--bronze {
+.rank-item--bronze {
   border-color: rgba(176, 135, 88, 0.4);
 }
 
-.rank-card--silver {
+.rank-item--silver {
   border-color: rgba(216, 222, 234, 0.36);
 }
 
-.rank-card--gold {
+.rank-item--gold {
   border-color: rgba(241, 194, 90, 0.42);
 }
 
-.rank-card--platinum {
+.rank-item--platinum {
   border-color: rgba(96, 214, 196, 0.4);
 }
 
-.rank-card--diamond {
+.rank-item--diamond {
   border-color: rgba(116, 169, 255, 0.4);
 }
 
-.rank-card--master {
+.rank-item--master {
   border-color: rgba(255, 106, 168, 0.4);
 }
 
-.rank-card--grandmaster {
+.rank-item--grandmaster {
   border-color: rgba(255, 79, 79, 0.44);
 }
 
@@ -942,13 +1028,17 @@ onMounted(() => {
     width: 100%;
   }
 
-  .ranks-create-btn,
-  .ranks-back-btn {
-    width: 100%;
+  .rank-item__actions {
+    justify-content: flex-start;
   }
 
-  .rank-card__actions {
-    justify-content: flex-start;
+  .rank-item__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rank-item__actions {
+    width: 100%;
   }
 
   .division-row {
