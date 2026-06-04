@@ -161,9 +161,14 @@
         "create": "Créer",
         "edit": "Modifier",
         "delete": "Supprimer",
+        "createDivision": "Créer division",
+        "editDivision": "Modifier division",
+        "deleteDivision": "Supprimer division",
         "cancel": "Annuler",
         "saveCreate": "Créer le rang",
-        "saveEdit": "Enregistrer"
+        "saveEdit": "Enregistrer",
+        "saveCreateDivision": "Créer la division",
+        "saveEditDivision": "Enregistrer la division"
       },
       "summary": {
         "totalRanks": "Rangs",
@@ -175,9 +180,15 @@
         "minXp": "XP minimum",
         "maxXp": "XP maximum",
         "divisions": "Nombre de divisions",
+        "divisionName": "Nom de la division",
+        "divisionOrder": "Ordre de la division",
+        "divisionMinXp": "XP minimum division",
+        "divisionMaxXp": "XP maximum division",
         "errors": {
           "nameRequired": "Le nom du rang est requis.",
-          "invalidRange": "La plage XP est invalide (max < min)."
+          "invalidRange": "La plage XP est invalide (max < min).",
+          "divisionNameRequired": "Le nom de la division est requis.",
+          "invalidDivisionOrder": "L'ordre de division doit etre superieur ou egal a 1."
         }
       }
     },

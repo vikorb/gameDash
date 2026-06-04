@@ -161,9 +161,14 @@
         "create": "Create",
         "edit": "Edit",
         "delete": "Delete",
+        "createDivision": "Create division",
+        "editDivision": "Edit division",
+        "deleteDivision": "Delete division",
         "cancel": "Cancel",
         "saveCreate": "Create rank",
-        "saveEdit": "Save"
+        "saveEdit": "Save",
+        "saveCreateDivision": "Create division",
+        "saveEditDivision": "Save division"
       },
       "summary": {
         "totalRanks": "Ranks",
@@ -175,9 +180,15 @@
         "minXp": "Minimum XP",
         "maxXp": "Maximum XP",
         "divisions": "Division count",
+        "divisionName": "Division name",
+        "divisionOrder": "Division order",
+        "divisionMinXp": "Division minimum XP",
+        "divisionMaxXp": "Division maximum XP",
         "errors": {
           "nameRequired": "Rank name is required.",
-          "invalidRange": "Invalid XP range (max < min)."
+          "invalidRange": "Invalid XP range (max < min).",
+          "divisionNameRequired": "Division name is required.",
+          "invalidDivisionOrder": "Division order must be greater than or equal to 1."
         }
       }
     },

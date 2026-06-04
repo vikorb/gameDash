@@ -47,6 +47,13 @@
               <span class="rank-card__count">
                 {{ t('backoffice.ranks.divisionCount', { count: rank.divisions.length }) }}
               </span>
+              <button
+                type="button"
+                class="rank-action-btn rank-action-btn--create"
+                @click="openCreateDivisionDialog(rank.id)"
+              >
+                {{ t('backoffice.ranks.actions.createDivision') }}
+              </button>
               <button type="button" class="rank-action-btn rank-action-btn--edit" @click="openEditDialog(rank)">
                 {{ t('backoffice.ranks.actions.edit') }}
               </button>
@@ -62,9 +69,27 @@
                 <span class="division-row__order">#{{ division.order }}</span>
                 <span class="division-row__name">{{ division.name }}</span>
               </div>
-              <span class="division-row__xp">
-                {{ division.minXp.toLocaleString(locale) }} - {{ division.maxXp.toLocaleString(locale) }} XP
-              </span>
+              <div class="division-row__right">
+                <span class="division-row__xp">
+                  {{ division.minXp.toLocaleString(locale) }} - {{ division.maxXp.toLocaleString(locale) }} XP
+                </span>
+                <div class="division-row__actions">
+                  <button
+                    type="button"
+                    class="rank-action-btn rank-action-btn--edit"
+                    @click="openEditDivisionDialog(rank.id, division)"
+                  >
+                    {{ t('backoffice.ranks.actions.editDivision') }}
+                  </button>
+                  <button
+                    type="button"
+                    class="rank-action-btn rank-action-btn--delete"
+                    @click="deleteDivision(rank.id, division.id)"
+                  >
+                    {{ t('backoffice.ranks.actions.deleteDivision') }}
+                  </button>
+                </div>
+              </div>
             </li>
           </ul>
         </article>
@@ -73,32 +98,50 @@
       <div v-if="dialogOpen" class="rank-dialog-backdrop" @click.self="closeDialog">
         <section class="rank-dialog" role="dialog" aria-modal="true">
           <h2 class="rank-dialog__title">
-            {{
-              dialogMode === 'create'
-                ? t('backoffice.ranks.actions.create')
-                : t('backoffice.ranks.actions.edit')
-            }}
+            {{ dialogTitle }}
           </h2>
 
-          <div class="rank-dialog__fields">
+          <div v-if="dialogEntity === 'rank'" class="rank-dialog__fields">
             <label class="field-row">
               <span>{{ t('backoffice.ranks.form.name') }}</span>
-              <input v-model="form.name" type="text" maxlength="64" />
+              <input v-model="rankForm.name" type="text" maxlength="64" />
             </label>
 
             <label class="field-row">
               <span>{{ t('backoffice.ranks.form.minXp') }}</span>
-              <input v-model.number="form.minXp" type="number" min="0" />
+              <input v-model.number="rankForm.minXp" type="number" min="0" />
             </label>
 
             <label class="field-row">
               <span>{{ t('backoffice.ranks.form.maxXp') }}</span>
-              <input v-model.number="form.maxXp" type="number" min="0" />
+              <input v-model.number="rankForm.maxXp" type="number" min="0" />
             </label>
 
             <label class="field-row">
               <span>{{ t('backoffice.ranks.form.divisions') }}</span>
-              <input v-model.number="form.divisionCount" type="number" min="1" max="10" />
+              <input v-model.number="rankForm.divisionCount" type="number" min="1" max="10" />
+            </label>
+          </div>
+
+          <div v-else class="rank-dialog__fields">
+            <label class="field-row">
+              <span>{{ t('backoffice.ranks.form.divisionName') }}</span>
+              <input v-model="divisionForm.name" type="text" maxlength="64" />
+            </label>
+
+            <label class="field-row">
+              <span>{{ t('backoffice.ranks.form.divisionOrder') }}</span>
+              <input v-model.number="divisionForm.order" type="number" min="1" max="10" />
+            </label>
+
+            <label class="field-row">
+              <span>{{ t('backoffice.ranks.form.divisionMinXp') }}</span>
+              <input v-model.number="divisionForm.minXp" type="number" min="0" />
+            </label>
+
+            <label class="field-row">
+              <span>{{ t('backoffice.ranks.form.divisionMaxXp') }}</span>
+              <input v-model.number="divisionForm.maxXp" type="number" min="0" />
             </label>
           </div>
 
@@ -108,12 +151,8 @@
             <button type="button" class="rank-dialog-btn rank-dialog-btn--ghost" @click="closeDialog">
               {{ t('backoffice.ranks.actions.cancel') }}
             </button>
-            <button type="button" class="rank-dialog-btn rank-dialog-btn--primary" @click="saveRank">
-              {{
-                dialogMode === 'create'
-                  ? t('backoffice.ranks.actions.saveCreate')
-                  : t('backoffice.ranks.actions.saveEdit')
-              }}
+            <button type="button" class="rank-dialog-btn rank-dialog-btn--primary" @click="saveDialog">
+              {{ dialogCta }}
             </button>
           </div>
         </section>
@@ -128,7 +167,11 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import { type BackofficeRankWithDivisions, useBackofficeRanksStore } from '@/stores/backoffice'
+import {
+  type BackofficeRankDivision,
+  type BackofficeRankWithDivisions,
+  useBackofficeRanksStore,
+} from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
 
 const router = useRouter()
@@ -142,13 +185,22 @@ const { ranks } = storeToRefs(ranksStore)
 const localRanks = ref<BackofficeRankWithDivisions[]>([])
 const dialogOpen = ref(false)
 const dialogMode = ref<'create' | 'edit'>('create')
+const dialogEntity = ref<'rank' | 'division'>('rank')
 const editingRankId = ref<number | null>(null)
+const divisionRankId = ref<number | null>(null)
+const editingDivisionId = ref<number | null>(null)
 const formError = ref('')
-const form = ref({
+const rankForm = ref({
   name: '',
   minXp: 0,
   maxXp: 1000,
   divisionCount: 3,
+})
+const divisionForm = ref({
+  name: '',
+  order: 1,
+  minXp: 0,
+  maxXp: 1000,
 })
 
 const normalizedTones = computed(() => ({
@@ -170,6 +222,30 @@ const totalDivisionsLocal = computed(() =>
   localRanks.value.reduce((sum, rank) => sum + rank.divisions.length, 0),
 )
 
+const dialogTitle = computed(() => {
+  if (dialogEntity.value === 'division') {
+    return dialogMode.value === 'create'
+      ? t('backoffice.ranks.actions.createDivision')
+      : t('backoffice.ranks.actions.editDivision')
+  }
+
+  return dialogMode.value === 'create'
+    ? t('backoffice.ranks.actions.create')
+    : t('backoffice.ranks.actions.edit')
+})
+
+const dialogCta = computed(() => {
+  if (dialogEntity.value === 'division') {
+    return dialogMode.value === 'create'
+      ? t('backoffice.ranks.actions.saveCreateDivision')
+      : t('backoffice.ranks.actions.saveEditDivision')
+  }
+
+  return dialogMode.value === 'create'
+    ? t('backoffice.ranks.actions.saveCreate')
+    : t('backoffice.ranks.actions.saveEdit')
+})
+
 watch(
   ranks,
   (value) => {
@@ -181,27 +257,43 @@ watch(
   { immediate: true },
 )
 
-function resetForm() {
-  form.value = {
+function resetRankForm() {
+  rankForm.value = {
     name: '',
     minXp: 0,
     maxXp: 1000,
     divisionCount: 3,
   }
+}
+
+function resetDivisionForm() {
+  divisionForm.value = {
+    name: '',
+    order: 1,
+    minXp: 0,
+    maxXp: 1000,
+  }
+}
+
+function resetForms() {
+  resetRankForm()
+  resetDivisionForm()
   formError.value = ''
 }
 
 function openCreateDialog() {
+  dialogEntity.value = 'rank'
   dialogMode.value = 'create'
   editingRankId.value = null
-  resetForm()
+  resetForms()
   dialogOpen.value = true
 }
 
 function openEditDialog(rank: BackofficeRankWithDivisions) {
+  dialogEntity.value = 'rank'
   dialogMode.value = 'edit'
   editingRankId.value = rank.id
-  form.value = {
+  rankForm.value = {
     name: rank.name,
     minXp: rank.minXp,
     maxXp: rank.maxXp,
@@ -211,8 +303,44 @@ function openEditDialog(rank: BackofficeRankWithDivisions) {
   dialogOpen.value = true
 }
 
+function openCreateDivisionDialog(rankId: number) {
+  const rank = localRanks.value.find((item) => item.id === rankId)
+  if (!rank) return
+
+  dialogEntity.value = 'division'
+  dialogMode.value = 'create'
+  divisionRankId.value = rankId
+  editingDivisionId.value = null
+  divisionForm.value = {
+    name: `Division ${rank.divisions.length + 1}`,
+    order: rank.divisions.length + 1,
+    minXp: rank.minXp,
+    maxXp: rank.maxXp,
+  }
+  formError.value = ''
+  dialogOpen.value = true
+}
+
+function openEditDivisionDialog(rankId: number, division: BackofficeRankDivision) {
+  dialogEntity.value = 'division'
+  dialogMode.value = 'edit'
+  divisionRankId.value = rankId
+  editingDivisionId.value = division.id
+  divisionForm.value = {
+    name: division.name,
+    order: division.order,
+    minXp: division.minXp,
+    maxXp: division.maxXp,
+  }
+  formError.value = ''
+  dialogOpen.value = true
+}
+
 function closeDialog() {
   dialogOpen.value = false
+  divisionRankId.value = null
+  editingDivisionId.value = null
+  editingRankId.value = null
 }
 
 function buildDivisions(minXp: number, maxXp: number, divisionCount: number, startId: number) {
@@ -235,13 +363,13 @@ function buildDivisions(minXp: number, maxXp: number, divisionCount: number, sta
 }
 
 function saveRank() {
-  const trimmedName = form.value.name.trim()
+  const trimmedName = rankForm.value.name.trim()
   if (!trimmedName) {
     formError.value = t('backoffice.ranks.form.errors.nameRequired')
     return
   }
 
-  if (form.value.maxXp < form.value.minXp) {
+  if (rankForm.value.maxXp < rankForm.value.minXp) {
     formError.value = t('backoffice.ranks.form.errors.invalidRange')
     return
   }
@@ -255,18 +383,18 @@ function saveRank() {
   if (dialogMode.value === 'create') {
     const newRankId = maxRankId + 1
     const newDivisions = buildDivisions(
-      form.value.minXp,
-      form.value.maxXp,
-      form.value.divisionCount,
+      rankForm.value.minXp,
+      rankForm.value.maxXp,
+      rankForm.value.divisionCount,
       maxDivisionId + 1,
     )
 
     localRanks.value.push({
       id: newRankId,
       name: trimmedName,
-      minXp: form.value.minXp,
-      maxXp: form.value.maxXp,
-      divisionCount: form.value.divisionCount,
+      minXp: rankForm.value.minXp,
+      maxXp: rankForm.value.maxXp,
+      divisionCount: rankForm.value.divisionCount,
       divisions: newDivisions,
     })
   } else {
@@ -279,18 +407,18 @@ function saveRank() {
       if (rank.id !== targetId) return rank
 
       const divisions = buildDivisions(
-        form.value.minXp,
-        form.value.maxXp,
-        form.value.divisionCount,
+        rankForm.value.minXp,
+        rankForm.value.maxXp,
+        rankForm.value.divisionCount,
         maxDivisionId + 1,
       )
 
       return {
         ...rank,
         name: trimmedName,
-        minXp: form.value.minXp,
-        maxXp: form.value.maxXp,
-        divisionCount: form.value.divisionCount,
+        minXp: rankForm.value.minXp,
+        maxXp: rankForm.value.maxXp,
+        divisionCount: rankForm.value.divisionCount,
         divisions,
       }
     })
@@ -299,8 +427,112 @@ function saveRank() {
   closeDialog()
 }
 
+function saveDivision() {
+  const rankId = divisionRankId.value
+  if (rankId === null) return
+
+  const trimmedName = divisionForm.value.name.trim()
+  if (!trimmedName) {
+    formError.value = t('backoffice.ranks.form.errors.divisionNameRequired')
+    return
+  }
+
+  if (divisionForm.value.maxXp < divisionForm.value.minXp) {
+    formError.value = t('backoffice.ranks.form.errors.invalidRange')
+    return
+  }
+
+  if (divisionForm.value.order < 1) {
+    formError.value = t('backoffice.ranks.form.errors.invalidDivisionOrder')
+    return
+  }
+
+  const maxDivisionId = localRanks.value.reduce(
+    (maxId, rank) => Math.max(maxId, ...rank.divisions.map((division) => division.id), 0),
+    0,
+  )
+
+  localRanks.value = localRanks.value.map((rank) => {
+    if (rank.id !== rankId) return rank
+
+    if (dialogMode.value === 'create') {
+      const nextDivision: BackofficeRankDivision = {
+        id: maxDivisionId + 1,
+        name: trimmedName,
+        order: Math.max(1, divisionForm.value.order),
+        minXp: divisionForm.value.minXp,
+        maxXp: divisionForm.value.maxXp,
+      }
+
+      const divisions = [...rank.divisions, nextDivision]
+        .sort((a, b) => b.order - a.order)
+        .map((division, index) => ({ ...division, order: divisionsOrder(rank.divisions.length + 1, index) }))
+
+      return {
+        ...rank,
+        divisionCount: divisions.length,
+        divisions,
+      }
+    }
+
+    const targetDivisionId = editingDivisionId.value
+    const divisions = rank.divisions.map((division) => {
+      if (division.id !== targetDivisionId) return division
+      return {
+        ...division,
+        name: trimmedName,
+        order: Math.max(1, divisionForm.value.order),
+        minXp: divisionForm.value.minXp,
+        maxXp: divisionForm.value.maxXp,
+      }
+    })
+
+    const sortedDivisions = [...divisions]
+      .sort((a, b) => b.order - a.order)
+      .map((division, index) => ({ ...division, order: divisionsOrder(divisions.length, index) }))
+
+    return {
+      ...rank,
+      divisionCount: sortedDivisions.length,
+      divisions: sortedDivisions,
+    }
+  })
+
+  closeDialog()
+}
+
+function divisionsOrder(total: number, index: number) {
+  return Math.max(1, total - index)
+}
+
 function deleteRank(rankId: number) {
   localRanks.value = localRanks.value.filter((rank) => rank.id !== rankId)
+}
+
+function deleteDivision(rankId: number, divisionId: number) {
+  localRanks.value = localRanks.value.map((rank) => {
+    if (rank.id !== rankId) return rank
+
+    const remaining = rank.divisions
+      .filter((division) => division.id !== divisionId)
+      .sort((a, b) => b.order - a.order)
+      .map((division, index) => ({ ...division, order: divisionsOrder(rank.divisions.length - 1, index) }))
+
+    return {
+      ...rank,
+      divisionCount: remaining.length,
+      divisions: remaining,
+    }
+  })
+}
+
+function saveDialog() {
+  if (dialogEntity.value === 'division') {
+    saveDivision()
+    return
+  }
+
+  saveRank()
 }
 
 function goToDashboard() {
@@ -513,6 +745,11 @@ onMounted(() => {
   background: rgba(88, 101, 242, 0.2);
 }
 
+.rank-action-btn--create {
+  border-color: rgba(67, 181, 129, 0.44);
+  background: rgba(67, 181, 129, 0.2);
+}
+
 .rank-action-btn--delete {
   border-color: rgba(237, 66, 69, 0.44);
   background: rgba(237, 66, 69, 0.2);
@@ -562,6 +799,19 @@ onMounted(() => {
   color: rgba(252, 239, 225, 0.64);
   font-weight: 700;
   text-align: right;
+}
+
+.division-row__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.division-row__actions {
+  display: inline-flex;
+  gap: 0.35rem;
 }
 
 .rank-card--bronze {
@@ -704,6 +954,10 @@ onMounted(() => {
   .division-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .division-row__right {
+    justify-content: flex-start;
   }
 
   .division-row__xp {

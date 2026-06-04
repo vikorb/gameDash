@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.app.json",
+  "include": ["../env.d.ts", "src/**/*"],
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["node", "jsdom", "vitest/globals"]
+  }
+}
