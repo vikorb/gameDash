@@ -22,6 +22,7 @@ type SeedUserRow = {
 };
 
 const DEFAULT_PASSWORD = 'SeedUser123!';
+const TEST_PASSWORD = '123Azerty*';
 
 const buildIdentities = (): SeedUserIdentity[] => {
   const users: SeedUserIdentity[] = [
@@ -30,6 +31,18 @@ const buildIdentities = (): SeedUserIdentity[] => {
       username: 'seed_admin',
       password: DEFAULT_PASSWORD,
       role: 'admin',
+    },
+    {
+      email: 'test_admin@test.com',
+      username: 'test_admin',
+      password: TEST_PASSWORD,
+      role: 'admin',
+    },
+    {
+      email: 'test@test.com',
+      username: 'test_user',
+      password: TEST_PASSWORD,
+      role: 'player',
     },
   ];
 
@@ -71,7 +84,9 @@ const buildPostgresRows = (identities: Array<SeedUserIdentity & { pocketbase_use
           ? 'Moderator seed account'
           : 'Player seed account',
     language: index % 3 === 0 ? 'en' : 'fr',
-    matchmaking_pref: { mode: identity.role === 'player' ? 'casual' : identity.role === 'moderator' ? 'ranked' : 'all' },
+    matchmaking_pref: {
+      mode: identity.role === 'player' ? 'casual' : identity.role === 'moderator' ? 'ranked' : 'all',
+    },
   }));
 };
 
@@ -84,6 +99,10 @@ type PocketBaseAuthResponse = {
 };
 
 type PocketBaseCreateResponse = {
+  id?: string;
+};
+
+type PocketBaseUpdateResponse = {
   id?: string;
 };
 
@@ -100,7 +119,7 @@ const requestJson = async <T>(url: string, init?: RequestInit): Promise<T> => {
   const data = text ? (JSON.parse(text) as T) : ({} as T);
 
   if (!response.ok) {
-    throw new Error(`PocketBase request failed (${response.status} ${response.statusText}) on ${url}`);
+    throw new Error(`PocketBase request failed (${response.status} ${response.statusText}) on ${url}: ${text}`);
   }
 
   return data;
@@ -141,7 +160,7 @@ const findPocketBaseUserIdByEmail = async (baseUrl: string, token: string, email
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
 
   return result.items?.[0]?.id ?? null;
@@ -169,10 +188,41 @@ const createPocketBaseUser = async (baseUrl: string, token: string, identity: Se
   return created.id;
 };
 
+const updatePocketBaseUser = async (
+  baseUrl: string,
+  token: string,
+  pocketbaseUserId: string,
+  identity: SeedUserIdentity,
+): Promise<string> => {
+  const updated = await requestJson<PocketBaseUpdateResponse>(
+    `${baseUrl}/api/collections/users/records/${pocketbaseUserId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email: identity.email,
+        username: identity.username,
+        password: identity.password,
+        passwordConfirm: identity.password,
+      }),
+    },
+  );
+
+  if (!updated.id) {
+    throw new Error(`PocketBase user update failed for ${identity.email}`);
+  }
+
+  return updated.id;
+};
+
 const ensurePocketBaseUser = async (baseUrl: string, token: string, identity: SeedUserIdentity): Promise<string> => {
   const existingId = await findPocketBaseUserIdByEmail(baseUrl, token, identity.email);
+
   if (existingId) {
-    return existingId;
+    return updatePocketBaseUser(baseUrl, token, existingId, identity);
   }
 
   return createPocketBaseUser(baseUrl, token, identity);
@@ -205,8 +255,6 @@ export async function seed(knex: Knex): Promise<void> {
     linkedUsers.push({ ...identity, pocketbase_user_id });
   }
 
-  // type RankRow et ranks supprimés (plus utilisés)
-
   const users = buildPostgresRows(linkedUsers);
 
   await knex('users')
@@ -217,22 +265,46 @@ export async function seed(knex: Knex): Promise<void> {
       email: knex.ref('excluded.email'),
       role: knex.ref('excluded.role'),
       status: 1,
+      region: knex.ref('excluded.region'),
+      bio: knex.ref('excluded.bio'),
+      language: knex.ref('excluded.language'),
+      matchmaking_pref: knex.ref('excluded.matchmaking_pref'),
       updated_at: knex.fn.now(),
     });
 
   await knex.raw(`
-    SELECT setval(pg_get_serial_sequence('users', 'id'), GREATEST((SELECT COALESCE(max(id), 1) FROM users), 1))
+    SELECT setval(
+      pg_get_serial_sequence('users', 'id'),
+      GREATEST((SELECT COALESCE(MAX(id), 1) FROM users), 1),
+      true
+    )
   `);
-  
-  const dbUsers: { id: number }[] = await knex('users').select('id');
+
+  const pocketbaseUserIds = linkedUsers.map((user) => user.pocketbase_user_id);
+  const dbUsers: { id: number }[] = await knex('users').whereIn('pocketbase_user_id', pocketbaseUserIds).select('id');
   const gameModes: { id: number }[] = await knex('game_modes').select('id');
-  const userRanks = [];
+
+  const dbUserIds = dbUsers.map((user) => user.id);
+
+  if (dbUserIds.length > 0) {
+    await knex('user_ranks').whereIn('user_id', dbUserIds).del();
+  }
+
+  const userRanks: Array<{ user_id: number; game_modes_id: number; xp: number }> = [];
+
   for (const user of dbUsers) {
     for (const mode of gameModes) {
-      userRanks.push({ user_id: user.id, game_modes_id: mode.id, xp: Math.floor(Math.random() * 10000) });
+      userRanks.push({
+        user_id: user.id,
+        game_modes_id: mode.id,
+        xp: Math.floor(Math.random() * 10000),
+      });
     }
   }
+
   if (userRanks.length > 0) {
     await knex('user_ranks').insert(userRanks);
   }
+
+  console.log(`✅ Seed users terminée : ${linkedUsers.length} utilisateurs synchronisés avec PocketBase/PostgreSQL.`);
 }

@@ -28,7 +28,36 @@ services:
       POCKETBASE_ADMIN_EMAIL: ${POCKETBASE_ADMIN_EMAIL}
       POCKETBASE_ADMIN_PASSWORD: ${POCKETBASE_ADMIN_PASSWORD}
       POCKETBASE_ENCRYPTION_KEY: ${POCKETBASE_ENCRYPTION_KEY}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1:8090/api/health || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
+
+  seed:
+    build: ./backend
+    container_name: gamedash_seed
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NODE_ENV: ${NODE_ENV}
+      POCKETBASE_URL: http://pocketbase:8090
+      POCKETBASE_ADMIN_EMAIL: ${POCKETBASE_ADMIN_EMAIL}
+      POCKETBASE_ADMIN_PASSWORD: ${POCKETBASE_ADMIN_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      pocketbase:
+        condition: service_healthy
+    command: sh -c "npx knex migrate:latest && npx knex seed:run"
+    restart: "no"
 
   backend:
     build: ./backend
@@ -40,13 +69,20 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       PORT: ${PORT}
       NODE_ENV: ${NODE_ENV}
+      POCKETBASE_URL: http://pocketbase:8090
+      POCKETBASE_ADMIN_EMAIL: ${POCKETBASE_ADMIN_EMAIL}
+      POCKETBASE_ADMIN_PASSWORD: ${POCKETBASE_ADMIN_PASSWORD}
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
+      pocketbase:
+        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
     restart: on-failure
-    
+
   frontend:
     build: ./frontend
     container_name: gamedash_front
