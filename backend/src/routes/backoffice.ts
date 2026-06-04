@@ -1,6 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import type { Knex } from "knex";
 
+import { isDemoModeActive, setDemoModeActive } from "../utils/demoMode";
+
 type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
 const asyncRoute = (handler: AsyncHandler) => (req: Request, res: Response, next: NextFunction) => {
@@ -202,6 +204,27 @@ export function createBackofficeRouter(db: Knex) {
         auditTrail: auditRows.map(mapAudit),
       });
     }),
+  );
+
+  router.get(
+    "/matchmaking/demo-mode",
+    asyncRoute(async (req, res) => {
+      const enabled = await isDemoModeActive();
+      res.json({ enabled });
+    })
+  );
+
+  router.post(
+    "/matchmaking/demo-mode",
+    asyncRoute(async (req, res) => {
+      const { enabled } = req.body || {};
+      if (typeof enabled !== "boolean") {
+        res.status(400).json({ message: "Missing or invalid enabled flag" });
+        return;
+      }
+      await setDemoModeActive(enabled);
+      res.json({ enabled });
+    })
   );
 
   return router;

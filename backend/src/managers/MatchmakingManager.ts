@@ -1,86 +1,77 @@
 import { Server } from 'socket.io';
 import { Player } from '../types/player';
-import { createGame } from '../utils/matchmaking';
+import { MatchmakingRoom } from '../types/MatchmakingRoom';
+import { isDemoModeActive } from '../utils/demoMode';
+import { startDemoRoom, launchGame } from '../utils/gameSimulator';
+import { broadcastRoomUpdate } from '../utils/roomMatcher';
+import { runMatchmakingTick } from '../utils/tickHelper';
 
 export class MatchmakingManager {
-    private players: Player[] = [];
-    private io: Server;
-    private matchmakingInterval: NodeJS.Timeout | null = null;
+  public players: Player[] = [];
+  public rooms: MatchmakingRoom[] = [];
+  private io: Server;
+  private interval: NodeJS.Timeout | null = null;
 
-    constructor(io: Server) {
-        this.io = io;
+  constructor(io: Server) { this.io = io; }
+
+  public startLoop() {
+    if (!this.interval) this.interval = setInterval(() => this.tick(), 3000);
+  }
+
+  public stopLoop() {
+    if (this.interval) { clearInterval(this.interval); this.interval = null; }
+  }
+
+  public async addPlayer(player: Player) {
+    if (this.players.some(p => p.id === player.id)) return;
+    const active = await isDemoModeActive();
+    if (active) {
+      setTimeout(() => startDemoRoom(player, this.io, this.rooms), 3000);
+    } else {
+      player.enterQueue();
+      this.players.push(player);
     }
+  }
 
-    public startLoop() {
-        if (this.matchmakingInterval) return;
-        this.matchmakingInterval = setInterval(() => this.tick(), 3000); // Poll every 3 seconds
-        console.log('[MatchmakingManager] Loop started.');
+  public removePlayer(userId: string | number) {
+    this.players = this.players.filter(p => p.id !== userId);
+    this.handlePlayerLeave(userId);
+  }
+
+  public removePlayerBySocket(socketId: string) {
+    this.players = this.players.filter(pl => pl.socketId !== socketId);
+    const room = this.rooms.find(r => r.getAllPlayers().some(pl => pl.socketId === socketId));
+    if (room) {
+      const pl = room.getAllPlayers().find(player => player.socketId === socketId);
+      if (pl) this.handlePlayerLeave(pl.id);
     }
+  }
 
-    public stopLoop() {
-        if (this.matchmakingInterval) {
-            clearInterval(this.matchmakingInterval);
-            this.matchmakingInterval = null;
-        }
-    }
+  public playerReady(playerId: string | number, roomId: string) {
+    const room = this.rooms.find(r => r.id === roomId);
+    if (!room) return;
+    room.readyStates[playerId] = true;
+    broadcastRoomUpdate(room, this.io);
+    const allReady = room.getAllPlayers().every(p => room.readyStates[p.id]);
+    if (allReady) launchGame(room, this.io, this.rooms);
+  }
 
-    public addPlayer(player: Player) {
-        if (this.players.some(p => p.id === player.id)) {
-            return;
-        }
-        player.enterQueue();
-        this.players.push(player);
-        console.log(`[Queue] Player ${player.name} added. Total in queue: ${this.players.length}`);
-    }
+  public handlePlayerLeave(playerId: string | number) {
+    const room = this.rooms.find(r => r.getAllPlayers().some(p => p.id === playerId));
+    if (!room) return;
 
-    public removePlayer(userId: string | number) {
-        this.players = this.players.filter(p => p.id !== userId);
-        console.log(`[Queue] Player removed. Total in queue: ${this.players.length}`);
-    }
+    if (room.readyTimeout) { clearTimeout(room.readyTimeout); room.readyTimeout = null; }
+    if (room.gameTimeout) { clearTimeout(room.gameTimeout); room.gameTimeout = null; }
 
-    public removePlayerBySocket(socketId: string) {
-        const initialLength = this.players.length;
-        this.players = this.players.filter(p => p.socketId !== socketId);
-        if (this.players.length < initialLength) {
-            console.log(`[Queue] Player removed via Socket disconnect. Total in queue: ${this.players.length}`);
-        }
-    }
+    room.teamA = room.teamA.filter(p => p.id !== playerId);
+    room.teamB = room.teamB.filter(p => p.id !== playerId);
+    room.status = 'searching';
+    delete room.readyStates[playerId];
 
-    private async tick() {
-        if (this.players.length === 0) return;
+    broadcastRoomUpdate(room, this.io);
+  }
 
-        // In a real scenario, you probably want to partition players by game modes 
-        // For now, we simulate one master queue and one roomId.
-        const roomId = `room_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-
-        // createGame requires teamSize and numTeams; using defaults 4 and 2.
-        const result = await createGame(this.players, roomId, 4, 2);
-        
-        if (result) {
-            const playersInGame = result.teams.flat();
-            const playerIdsInGame = playersInGame.map(p => p.id);
-            
-            // Remove successful players from the queue
-            this.players = this.players.filter(p => !playerIdsInGame.includes(p.id));
-
-            console.log(`[Queue] Room ${roomId} created! Remaining in queue: ${this.players.length}`);
-
-            // Group players into a Socket.io room to isolate their future communication
-            for (const player of playersInGame) {
-                if (player.socketId) {
-                    const socket = this.io.sockets.sockets.get(player.socketId);
-                    if (socket) {
-                        socket.join(roomId);
-                    }
-                }
-            }
-            
-            // Broadcast the Match Found event
-            this.io.to(roomId).emit('match_found', {
-                roomId,
-                game: result,
-                message: "Room successfully created!"
-            });
-        }
-    }
+  private tick() {
+    runMatchmakingTick(this, this.io);
+  }
 }

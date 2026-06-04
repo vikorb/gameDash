@@ -8,6 +8,7 @@ import { runSeasonReset } from "@/services/seasonReset";
 import { badRequest } from "@/utils/httpError";
 import { ensureAdmin, isRecord } from "@/utils/users";
 import { parsePositiveInt } from "@/utils/validators";
+import { isDemoModeActive, setDemoModeActive } from "@/utils/demoMode";
 
 const router = Router();
 
@@ -260,6 +261,27 @@ router.get(
 
     return res.status(200).send(csvPayload);
   }),
+);
+
+router.get(
+  "/demo-mode",
+  asyncHandler(async (req, res) => {
+    const enabled = await isDemoModeActive();
+    return res.status(200).json({ enabled });
+  })
+);
+
+router.post(
+  "/demo-mode",
+  asyncHandler(async (req, res) => {
+    const { enabled } = req.body || {};
+    if (typeof enabled !== "boolean") {
+      throw badRequest("Missing or invalid enabled flag", "VALIDATION_ERROR");
+    }
+    await setDemoModeActive(enabled);
+    const updated = await isDemoModeActive();
+    return res.status(200).json({ enabled: updated });
+  })
 );
 
 export default router;

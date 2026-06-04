@@ -21,10 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useUserStore } from '@/stores/userStore'
-import { socket } from '@/services/socket'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+
 import BaseCard from '@/components/ui/BaseCard.vue'
+import { socket } from '@/services/socket'
+import { useUserStore } from '@/stores/userStore'
 
 type BackendPlayer = {
   id: number | string
@@ -71,7 +72,7 @@ onMounted(() => {
 
   if (pocketbaseUserId) {
     // We hardcode modeId to 1 for this prototype
-    socket.emit('simulate_matchmaking', { pocketbaseUserId, modeId: 1 })
+    socket.emit('join_queue', { pocketbaseUserId, modeId: 1 })
   } else {
     console.error("No Pocketbase User ID available to join queue.")
   }

@@ -72,6 +72,8 @@
         </article>
       </section>
 
+      <BackofficeDemoModeCard />
+
       <section class="modes-grid">
         <article
           v-for="mode in modes"
@@ -311,6 +313,8 @@ import {
   useBackofficeMatchmakingStore,
 } from '@/stores/backoffice'
 import { useUserStore } from '@/stores/userStore'
+
+import BackofficeDemoModeCard from './BackofficeDemoModeCard.vue'
 
 type ModeKey = BackofficeMatchmakingModeKey
 type FeedbackType = 'success' | 'warning' | 'error'
