@@ -3,7 +3,7 @@ import type { Knex } from "knex";
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable("users", (table) => {
     table.bigIncrements("id").primary();
-    table.string("pocketbase_user_id", 64).notNullable().unique();
+    table.string("pocketbase_user_id", 64).unique();
     table.string("username", 255);
     table.string("email", 255);
     table.string("role").notNullable().defaultTo("player");
