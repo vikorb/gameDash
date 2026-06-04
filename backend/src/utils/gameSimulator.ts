@@ -12,7 +12,6 @@ const createBot = (idx: number) => new Player(
 export function startDemoRoom(player: Player, io: Server, rooms: MatchmakingRoom[]) {
   const room = new MatchmakingRoom(`demo_${Date.now()}`);
   room.status = 'searching';
-  room.teamA.push(player);
   player.roomId = room.id;
   player.status = 'waiting';
   rooms.push(room);
@@ -20,23 +19,27 @@ export function startDemoRoom(player: Player, io: Server, rooms: MatchmakingRoom
   const socket = io.sockets.sockets.get(player.socketId || '');
   if (socket) socket.join(room.id);
 
-  const addBot = (idx: number) => {
-    const bot = createBot(idx);
-    bot.roomId = room.id;
-    (room.teamA.length < 4 ? room.teamA : room.teamB).push(bot);
+  const add = (p: Player) => {
+    const a = room.teamA.length < 4, b = room.teamB.length < 4;
+    (a && b ? (Math.random() < 0.5 ? room.teamA : room.teamB) : (a ? room.teamA : room.teamB)).push(p);
   };
 
-  for (let i = 0; i < 5; i++) addBot(i);
+  add(player);
+  for (let i = 0; i < 5; i++) {
+    const bot = createBot(i);
+    bot.roomId = room.id;
+    add(bot);
+  }
   broadcastRoomUpdate(room, io);
 
   setTimeout(() => {
     if (!rooms.includes(room) || room.status !== 'searching') return;
-    addBot(5);
+    const b5 = createBot(5); b5.roomId = room.id; add(b5);
     broadcastRoomUpdate(room, io);
 
     setTimeout(() => {
       if (!rooms.includes(room) || room.status !== 'searching') return;
-      addBot(6);
+      const b6 = createBot(6); b6.roomId = room.id; add(b6);
       room.status = 'ready_check';
       room.readyCheckStartTime = Date.now();
       broadcastRoomUpdate(room, io);
@@ -47,9 +50,7 @@ export function startDemoRoom(player: Player, io: Server, rooms: MatchmakingRoom
           if (!rooms.includes(room) || room.status !== 'ready_check') return;
           room.readyStates[bot.id] = true;
           broadcastRoomUpdate(room, io);
-          if (room.getAllPlayers().every(p => room.readyStates[p.id])) {
-            launchGame(room, io, rooms);
-          }
+          if (room.getAllPlayers().every(p => room.readyStates[p.id])) launchGame(room, io, rooms);
         }, 5000 + Math.random() * 10000);
       });
     }, 2000);
@@ -69,7 +70,8 @@ export function launchGame(room: MatchmakingRoom, io: Server, rooms: Matchmaking
         teamAPlayers: room.teamA, teamBPlayers: room.teamB
       });
       io.to(room.id).emit('game_ended', { roomId: room.id, winner, rewards: res?.rewardsGranted || {} });
-    } catch {
+    } catch (err) {
+      console.error('[launchGame] saveFinishedMatch failed:', err);
       io.to(room.id).emit('game_ended', { roomId: room.id, winner, rewards: {} });
     }
     room.getAllPlayers().forEach(p => p.endGame());
