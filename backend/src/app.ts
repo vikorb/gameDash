@@ -27,6 +27,10 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "http://localhost:4173",
   "http://127.0.0.1:4173",
+  "http://gamedash-supdevinci-2026.germanywestcentral.azurecontainer.io:5173",
+  "http://gamedash-supdevinci-2026.germanywestcentral.azurecontainer.io:4173",
+  "http://gamedash-supdevinci-2026.germanywestcentral.azurecontainer.io:8090",
+  "http://gamedash-supdevinci-2026.germanywestcentral.azurecontainer.io:3000",
 ];
 
 app.use(
