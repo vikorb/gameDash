@@ -157,13 +157,29 @@
       "title": "Gestion des rangs & divisions",
       "subtitle": "Vue structurée des paliers de rang et des divisions associées, avec style dashboard orienté live ops.",
       "actions": {
-        "backToDashboard": "Retour au dashboard"
+        "backToDashboard": "Retour au dashboard",
+        "create": "Créer",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "cancel": "Annuler",
+        "saveCreate": "Créer le rang",
+        "saveEdit": "Enregistrer"
       },
       "summary": {
         "totalRanks": "Rangs",
         "totalDivisions": "Divisions"
       },
-      "divisionCount": "{count} divisions"
+      "divisionCount": "{count} divisions",
+      "form": {
+        "name": "Nom du rang",
+        "minXp": "XP minimum",
+        "maxXp": "XP maximum",
+        "divisions": "Nombre de divisions",
+        "errors": {
+          "nameRequired": "Le nom du rang est requis.",
+          "invalidRange": "La plage XP est invalide (max < min)."
+        }
+      }
     },
     "matchmaking": {
       "badge": "Live ops",

@@ -157,13 +157,29 @@
       "title": "Ranks & divisions management",
       "subtitle": "Structured overview of rank tiers and linked divisions with a live-ops dashboard style.",
       "actions": {
-        "backToDashboard": "Back to dashboard"
+        "backToDashboard": "Back to dashboard",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "saveCreate": "Create rank",
+        "saveEdit": "Save"
       },
       "summary": {
         "totalRanks": "Ranks",
         "totalDivisions": "Divisions"
       },
-      "divisionCount": "{count} divisions"
+      "divisionCount": "{count} divisions",
+      "form": {
+        "name": "Rank name",
+        "minXp": "Minimum XP",
+        "maxXp": "Maximum XP",
+        "divisions": "Division count",
+        "errors": {
+          "nameRequired": "Rank name is required.",
+          "invalidRange": "Invalid XP range (max < min)."
+        }
+      }
     },
     "matchmaking": {
       "badge": "Live ops",
