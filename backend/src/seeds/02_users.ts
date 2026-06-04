@@ -1,6 +1,6 @@
-import { Knex } from 'knex';
+import { Knex } from "knex";
 
-type SeedRole = 'admin' | 'moderator' | 'player';
+type SeedRole = "admin" | "moderator" | "player";
 
 type SeedUserIdentity = {
   email: string;
@@ -13,7 +13,7 @@ type SeedUserRow = {
   pocketbase_user_id: string;
   username: string;
   email: string;
-  role: 'admin' | 'moderator' | 'player';
+  role: "admin" | "moderator" | "player";
   status: number;
   region: string | null;
   bio: string | null;
@@ -21,71 +21,83 @@ type SeedUserRow = {
   matchmaking_pref: unknown;
 };
 
-const DEFAULT_PASSWORD = 'SeedUser123!';
-const TEST_PASSWORD = '123Azerty*';
+const DEFAULT_PASSWORD = "SeedUser123!";
+const TEST_PASSWORD = "123Azerty*";
 
 const buildIdentities = (): SeedUserIdentity[] => {
   const users: SeedUserIdentity[] = [
     {
-      email: 'seed.admin@gamedash.local',
-      username: 'seed_admin',
+      email: "seed.admin@gamedash.local",
+      username: "seed_admin",
       password: DEFAULT_PASSWORD,
-      role: 'admin',
+      role: "admin",
     },
     {
-      email: 'test_admin@test.com',
-      username: 'test_admin',
+      email: "test_admin@test.com",
+      username: "test_admin",
       password: TEST_PASSWORD,
-      role: 'admin',
+      role: "admin",
     },
     {
-      email: 'test@test.com',
-      username: 'test_user',
+      email: "test@test.com",
+      username: "test_user",
       password: TEST_PASSWORD,
-      role: 'player',
+      role: "player",
     },
   ];
 
   for (let i = 1; i <= 3; i += 1) {
-    const idx = String(i).padStart(3, '0');
+    const idx = String(i).padStart(3, "0");
     users.push({
       email: `seed.moderator.${idx}@gamedash.local`,
       username: `seed_moderator_${idx}`,
       password: DEFAULT_PASSWORD,
-      role: 'moderator',
+      role: "moderator",
     });
   }
 
   for (let i = 1; i <= 60; i += 1) {
-    const idx = String(i).padStart(3, '0');
+    const idx = String(i).padStart(3, "0");
     users.push({
       email: `seed.player.${idx}@gamedash.local`,
       username: `seed_player_${idx}`,
       password: DEFAULT_PASSWORD,
-      role: 'player',
+      role: "player",
     });
   }
 
   return users;
 };
 
-const buildPostgresRows = (identities: Array<SeedUserIdentity & { pocketbase_user_id: string }>): SeedUserRow[] => {
+const buildPostgresRows = (
+  identities: Array<SeedUserIdentity & { pocketbase_user_id: string }>,
+): SeedUserRow[] => {
   return identities.map((identity, index) => ({
     pocketbase_user_id: identity.pocketbase_user_id,
     username: identity.username,
     email: identity.email,
     role: identity.role,
     status: 1,
-    region: identity.role === 'player' ? (index % 2 === 0 ? 'eu-west' : 'us-east') : 'eu-west',
+    region:
+      identity.role === "player"
+        ? index % 2 === 0
+          ? "eu-west"
+          : "us-east"
+        : "eu-west",
     bio:
-      identity.role === 'admin'
-        ? 'Admin seed account'
-        : identity.role === 'moderator'
-          ? 'Moderator seed account'
-          : 'Player seed account',
-    language: index % 3 === 0 ? 'en' : 'fr',
+      identity.role === "admin"
+        ? "Admin seed account"
+        : identity.role === "moderator"
+          ? "Moderator seed account"
+          : "Player seed account",
+    language: index % 3 === 0 ? "en" : "fr",
     matchmaking_pref: {
-      mode: identity.role === 'player' ? 'casual' : identity.role === 'moderator' ? 'ranked' : 'all',
+      mode:
+        identity.role === "player"
+          ? "casual"
+          : identity.role === "moderator"
+            ? "ranked"
+            : "all",
     },
   }));
 };
@@ -108,9 +120,15 @@ type PocketBaseUpdateResponse = {
 
 const getPocketBaseBaseUrls = (): string[] => {
   const fromEnv = process.env.POCKETBASE_URL?.trim();
-  const candidates = [fromEnv, 'http://pocketbase:8090', 'http://localhost:8090'];
+  const candidates = [
+    fromEnv,
+    "http://pocketbase:8090",
+    "http://localhost:8090",
+  ];
 
-  return candidates.filter((value): value is string => typeof value === 'string' && value.length > 0);
+  return candidates.filter(
+    (value): value is string => typeof value === "string" && value.length > 0,
+  );
 };
 
 const requestJson = async <T>(url: string, init?: RequestInit): Promise<T> => {
@@ -119,40 +137,54 @@ const requestJson = async <T>(url: string, init?: RequestInit): Promise<T> => {
   const data = text ? (JSON.parse(text) as T) : ({} as T);
 
   if (!response.ok) {
-    throw new Error(`PocketBase request failed (${response.status} ${response.statusText}) on ${url}: ${text}`);
+    throw new Error(
+      `PocketBase request failed (${response.status} ${response.statusText}) on ${url}: ${text}`,
+    );
   }
 
   return data;
 };
 
-const authenticatePocketBaseAdmin = async (baseUrl: string): Promise<string> => {
-  const identity = process.env.POCKETBASE_ADMIN_EMAIL ?? 'admin@example.com';
-  const password = process.env.POCKETBASE_ADMIN_PASSWORD ?? 'admin123456';
+const authenticatePocketBaseAdmin = async (
+  baseUrl: string,
+): Promise<string> => {
+  const identity = process.env.POCKETBASE_ADMIN_EMAIL ?? "admin@example.com";
+  const password = process.env.POCKETBASE_ADMIN_PASSWORD ?? "admin123456";
 
   const body = JSON.stringify({ identity, password });
 
-  const auth = await requestJson<PocketBaseAuthResponse>(`${baseUrl}/api/collections/_superusers/auth-with-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  }).catch(() => null);
+  const auth = await requestJson<PocketBaseAuthResponse>(
+    `${baseUrl}/api/collections/_superusers/auth-with-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    },
+  ).catch(() => null);
 
   if (auth?.token) return auth.token;
 
-  const fallbackAuth = await requestJson<PocketBaseAuthResponse>(`${baseUrl}/api/admins/auth-with-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  });
+  const fallbackAuth = await requestJson<PocketBaseAuthResponse>(
+    `${baseUrl}/api/admins/auth-with-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    },
+  );
 
   if (!fallbackAuth.token) {
-    throw new Error('Unable to authenticate as PocketBase admin');
+    throw new Error("Unable to authenticate as PocketBase admin");
   }
 
   return fallbackAuth.token;
 };
 
-const findPocketBaseUserIdByEmail = async (baseUrl: string, token: string, email: string): Promise<string | null> => {
+const findPocketBaseUserIdByEmail = async (
+  baseUrl: string,
+  token: string,
+  email: string,
+): Promise<string | null> => {
   const filter = encodeURIComponent(`email="${email}"`);
   const result = await requestJson<PocketBaseListResponse>(
     `${baseUrl}/api/collections/users/records?filter=${filter}&perPage=1&page=1`,
@@ -166,20 +198,27 @@ const findPocketBaseUserIdByEmail = async (baseUrl: string, token: string, email
   return result.items?.[0]?.id ?? null;
 };
 
-const createPocketBaseUser = async (baseUrl: string, token: string, identity: SeedUserIdentity): Promise<string> => {
-  const created = await requestJson<PocketBaseCreateResponse>(`${baseUrl}/api/collections/users/records`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+const createPocketBaseUser = async (
+  baseUrl: string,
+  token: string,
+  identity: SeedUserIdentity,
+): Promise<string> => {
+  const created = await requestJson<PocketBaseCreateResponse>(
+    `${baseUrl}/api/collections/users/records`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email: identity.email,
+        username: identity.username,
+        password: identity.password,
+        passwordConfirm: identity.password,
+      }),
     },
-    body: JSON.stringify({
-      email: identity.email,
-      username: identity.username,
-      password: identity.password,
-      passwordConfirm: identity.password,
-    }),
-  });
+  );
 
   if (!created.id) {
     throw new Error(`PocketBase user creation failed for ${identity.email}`);
@@ -197,9 +236,9 @@ const updatePocketBaseUser = async (
   const updated = await requestJson<PocketBaseUpdateResponse>(
     `${baseUrl}/api/collections/users/records/${pocketbaseUserId}`,
     {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
@@ -218,8 +257,16 @@ const updatePocketBaseUser = async (
   return updated.id;
 };
 
-const ensurePocketBaseUser = async (baseUrl: string, token: string, identity: SeedUserIdentity): Promise<string> => {
-  const existingId = await findPocketBaseUserIdByEmail(baseUrl, token, identity.email);
+const ensurePocketBaseUser = async (
+  baseUrl: string,
+  token: string,
+  identity: SeedUserIdentity,
+): Promise<string> => {
+  const existingId = await findPocketBaseUserIdByEmail(
+    baseUrl,
+    token,
+    identity.email,
+  );
 
   if (existingId) {
     return updatePocketBaseUser(baseUrl, token, existingId, identity);
@@ -236,7 +283,9 @@ export async function seed(knex: Knex): Promise<void> {
   let adminToken: string | null = null;
 
   for (const candidateUrl of pocketBaseUrls) {
-    const token = await authenticatePocketBaseAdmin(candidateUrl).catch(() => null);
+    const token = await authenticatePocketBaseAdmin(candidateUrl).catch(
+      () => null,
+    );
     if (!token) continue;
 
     pocketBaseUrl = candidateUrl;
@@ -245,33 +294,29 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   if (!pocketBaseUrl || !adminToken) {
-    throw new Error(`Unable to reach PocketBase on: ${pocketBaseUrls.join(', ')}`);
+    throw new Error(
+      `Unable to reach PocketBase on: ${pocketBaseUrls.join(", ")}`,
+    );
   }
 
-  const linkedUsers: Array<SeedUserIdentity & { pocketbase_user_id: string }> = [];
+  const linkedUsers: Array<SeedUserIdentity & { pocketbase_user_id: string }> =
+    [];
 
   for (const identity of identities) {
-    const pocketbase_user_id = await ensurePocketBaseUser(pocketBaseUrl, adminToken, identity);
+    const pocketbase_user_id = await ensurePocketBaseUser(
+      pocketBaseUrl,
+      adminToken,
+      identity,
+    );
     linkedUsers.push({ ...identity, pocketbase_user_id });
   }
 
   const users = buildPostgresRows(linkedUsers);
 
-  await knex('users')
-    .insert(users)
-    .onConflict('pocketbase_user_id')
-    .merge({
-      username: knex.ref('excluded.username'),
-      email: knex.ref('excluded.email'),
-      role: knex.ref('excluded.role'),
-      status: 1,
-      region: knex.ref('excluded.region'),
-      bio: knex.ref('excluded.bio'),
-      language: knex.ref('excluded.language'),
-      matchmaking_pref: knex.ref('excluded.matchmaking_pref'),
-      updated_at: knex.fn.now(),
-    });
-
+  // FIX : resynchroniser la sequence AVANT l'insert.
+  // 01_maps a deja cree des users (createurs) avec des id explicites sans avancer
+  // la sequence ; sans ce setval prealable, les id auto-generes ici entrent en
+  // collision avec eux -> "duplicate key violates users_pkey".
   await knex.raw(`
     SELECT setval(
       pg_get_serial_sequence('users', 'id'),
@@ -280,17 +325,38 @@ export async function seed(knex: Knex): Promise<void> {
     )
   `);
 
+  await knex("users")
+    .insert(users)
+    .onConflict("pocketbase_user_id")
+    .merge({
+      username: knex.ref("excluded.username"),
+      email: knex.ref("excluded.email"),
+      role: knex.ref("excluded.role"),
+      status: 1,
+      region: knex.ref("excluded.region"),
+      bio: knex.ref("excluded.bio"),
+      language: knex.ref("excluded.language"),
+      matchmaking_pref: knex.ref("excluded.matchmaking_pref"),
+      updated_at: knex.fn.now(),
+    });
+
   const pocketbaseUserIds = linkedUsers.map((user) => user.pocketbase_user_id);
-  const dbUsers: { id: number }[] = await knex('users').whereIn('pocketbase_user_id', pocketbaseUserIds).select('id');
-  const gameModes: { id: number }[] = await knex('game_modes').select('id');
+  const dbUsers: { id: number }[] = await knex("users")
+    .whereIn("pocketbase_user_id", pocketbaseUserIds)
+    .select("id");
+  const gameModes: { id: number }[] = await knex("game_modes").select("id");
 
   const dbUserIds = dbUsers.map((user) => user.id);
 
   if (dbUserIds.length > 0) {
-    await knex('user_ranks').whereIn('user_id', dbUserIds).del();
+    await knex("user_ranks").whereIn("user_id", dbUserIds).del();
   }
 
-  const userRanks: Array<{ user_id: number; game_modes_id: number; xp: number }> = [];
+  const userRanks: Array<{
+    user_id: number;
+    game_modes_id: number;
+    xp: number;
+  }> = [];
 
   for (const user of dbUsers) {
     for (const mode of gameModes) {
@@ -303,8 +369,10 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   if (userRanks.length > 0) {
-    await knex('user_ranks').insert(userRanks);
+    await knex("user_ranks").insert(userRanks);
   }
 
-  console.log(`✅ Seed users terminée : ${linkedUsers.length} utilisateurs synchronisés avec PocketBase/PostgreSQL.`);
+  console.log(
+    `✅ Seed users terminée : ${linkedUsers.length} utilisateurs synchronisés avec PocketBase/PostgreSQL.`,
+  );
 }
