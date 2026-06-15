@@ -114,6 +114,9 @@
         "title": "Distribution des rangs",
         "subtitle": "Répartition de la population sur la ladder compétitive.",
         "totalPlayers": "{count} joueurs classés",
+        "modeFilter": {
+          "all": "Tous les modes"
+        },
         "manage": "Gérer",
         "labels": {
           "bronze": "Bronze",

@@ -18,6 +18,8 @@ export type BackofficeTrend = {
 
 export type BackofficeDashboardData = {
   period: BackofficePeriodValue
+  selectedModeId: number | null
+  rankModes: Array<{ id: number; name: string }>
   snapshot: BackofficePeriodSnapshot
   trends: Record<keyof BackofficePeriodSnapshot, BackofficeTrend>
   rankDistribution: Array<{ key: BackofficeRankKey; count: number; percentage: number }>

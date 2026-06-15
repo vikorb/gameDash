@@ -92,6 +92,12 @@
                   })
                 }}
               </span>
+              <select v-model="selectedRankMode" class="rank-mode-select">
+                <option value="all">{{ t('backoffice.dashboard.ranks.modeFilter.all') }}</option>
+                <option v-for="mode in rankModes" :key="mode.id" :value="String(mode.id)">
+                  {{ mode.name }}
+                </option>
+              </select>
               <button type="button" class="btn btn--ghost btn--surface" @click="goToRankManagement">
                 {{ t('backoffice.dashboard.ranks.manage') }}
               </button>
@@ -253,11 +259,12 @@ const router = useRouter()
 const userStore = useUserStore()
 const dashboardStore = useBackofficeDashboardStore()
 const { profile } = storeToRefs(userStore)
-const { snapshot, trends, rankDistribution, topMaps, topCreators, recentActivity } =
+const { snapshot, trends, rankModes, rankDistribution, topMaps, topCreators, recentActivity } =
   storeToRefs(dashboardStore)
 const { t, locale } = useI18n({ useScope: 'global' })
 
 const selectedPeriod = ref<PeriodValue>('7d')
+const selectedRankMode = ref<string>('all')
 
 const periodOptions = computed(() => [
   { value: '7d' as const, label: t('backoffice.dashboard.period.options.7d') },
@@ -337,7 +344,17 @@ const totalRankedPlayers = computed(() =>
 )
 
 watch(selectedPeriod, (period) => {
-  void dashboardStore.fetchDashboard(period)
+  void dashboardStore.fetchDashboard(
+    period,
+    selectedRankMode.value === 'all' ? null : Number(selectedRankMode.value),
+  )
+})
+
+watch(selectedRankMode, (modeValue) => {
+  void dashboardStore.fetchDashboard(
+    selectedPeriod.value,
+    modeValue === 'all' ? null : Number(modeValue),
+  )
 })
 
 function goBackToBackoffice() {
@@ -788,6 +805,17 @@ onMounted(() => {
   min-height: 36px;
   padding: 0.55rem 0.8rem;
   font-size: 0.8rem;
+}
+
+.rank-mode-select {
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  background: rgba(18, 24, 38, 0.44);
+  color: var(--color-cream);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.45rem 0.55rem;
 }
 
 .surface-title {

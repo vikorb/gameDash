@@ -30,6 +30,8 @@ const emptyTrends: Record<keyof BackofficePeriodSnapshot, BackofficeTrend> = {
 function normalizeDashboard(payload: BackofficeDashboardData): BackofficeDashboardData {
   return {
     period: payload.period,
+    selectedModeId: payload.selectedModeId ?? null,
+    rankModes: Array.isArray(payload.rankModes) ? payload.rankModes : [],
     snapshot: { ...emptySnapshot, ...payload.snapshot },
     trends: { ...emptyTrends, ...payload.trends },
     rankDistribution: Array.isArray(payload.rankDistribution) ? payload.rankDistribution : [],
@@ -44,13 +46,13 @@ export const useBackofficeDashboardStore = defineStore('backoffice-dashboard', (
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  async function fetchDashboard(period: BackofficePeriodValue = '7d') {
+  async function fetchDashboard(period: BackofficePeriodValue = '7d', modeId?: number | null) {
     loading.value = true
     error.value = null
 
     try {
       const response = await apiRequest<BackofficeDashboardData>('/backoffice/dashboard', {
-        query: { period },
+        query: { period, modeId: modeId ?? undefined },
       })
 
       dashboard.value = normalizeDashboard(response)
@@ -64,6 +66,8 @@ export const useBackofficeDashboardStore = defineStore('backoffice-dashboard', (
 
   const snapshot = computed(() => dashboard.value?.snapshot ?? emptySnapshot)
   const trends = computed(() => dashboard.value?.trends ?? emptyTrends)
+  const rankModes = computed(() => dashboard.value?.rankModes ?? [])
+  const selectedModeId = computed(() => dashboard.value?.selectedModeId ?? null)
   const rankDistribution = computed(() => dashboard.value?.rankDistribution ?? [])
   const topMaps = computed(() => dashboard.value?.topMaps ?? [])
   const topCreators = computed(() => dashboard.value?.topCreators ?? [])
@@ -75,6 +79,8 @@ export const useBackofficeDashboardStore = defineStore('backoffice-dashboard', (
     error,
     snapshot,
     trends,
+    rankModes,
+    selectedModeId,
     rankDistribution,
     topMaps,
     topCreators,

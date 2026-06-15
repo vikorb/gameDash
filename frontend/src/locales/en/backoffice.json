@@ -114,6 +114,9 @@
         "title": "Rank distribution",
         "subtitle": "Player spread across the competitive ladder.",
         "totalPlayers": "{count} ranked players",
+        "modeFilter": {
+          "all": "All modes"
+        },
         "manage": "Manage",
         "labels": {
           "bronze": "Bronze",
