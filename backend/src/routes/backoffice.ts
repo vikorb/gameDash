@@ -41,6 +41,12 @@ type RankDistributionRow = { rank_key: unknown; count: unknown };
 type TopMapRow = { id: unknown; title: unknown; author: unknown; tests: unknown; rating: unknown };
 type TopCreatorRow = { id: unknown; name: unknown; maps_published: unknown; total_tests: unknown };
 type ActivityRow = { id: unknown; type: unknown; actor: unknown; target: unknown; timestamp: unknown };
+type FallbackActivityRow = {
+  type: "match" | "transaction" | "map" | "sanction";
+  actor: string;
+  target: string | null;
+  timestamp: string;
+};
 type RankRow = { id: unknown; name: unknown; min_xp: unknown; max_xp: unknown; division_count: unknown };
 type DivisionRow = { id: unknown; rank_id: unknown; name: unknown; min_xp: unknown; max_xp: unknown; order: unknown };
 
@@ -154,6 +160,102 @@ function normalizeRankKey(value: unknown) {
   return "master";
 }
 
+function periodToDays(period: string): number {
+  if (period === "30d") return 30;
+  if (period === "90d") return 90;
+  return 7;
+}
+
+function periodStartIso(period: string): string {
+  const days = periodToDays(period);
+  return new Date(Date.now() - days * 86_400_000).toISOString();
+}
+
+async function getFallbackActivityRows(db: Knex, sinceIso: string): Promise<FallbackActivityRow[]> {
+  const [hasMatches, hasMaps, hasShopTransactions, hasSanctions] = await Promise.all([
+    db.schema.hasTable("matches"),
+    db.schema.hasTable("maps"),
+    db.schema.hasTable("shop_transactions"),
+    db.schema.hasTable("moderation_sanctions"),
+  ]);
+
+  const matchPromise = hasMatches
+    ? db<{ id: unknown; played_at: unknown }>("matches")
+        .select("id", "played_at")
+        .where("played_at", ">=", sinceIso)
+        .orderBy("played_at", "desc")
+        .limit(400)
+    : Promise.resolve([] as Array<{ id: unknown; played_at: unknown }>);
+
+  const mapPromise = hasMaps
+    ? db<{ id: unknown; creator_id: unknown; title: unknown; created_at: unknown }>("maps")
+        .select("id", "creator_id", "title", "created_at")
+        .where("created_at", ">=", sinceIso)
+        .orderBy("created_at", "desc")
+        .limit(400)
+    : Promise.resolve([] as Array<{ id: unknown; creator_id: unknown; title: unknown; created_at: unknown }>);
+
+  const transactionPromise = hasShopTransactions
+    ? db<{ id: unknown; user_id: unknown; ref_name: unknown; created_at: unknown }>("shop_transactions")
+        .select("id", "user_id", "ref_name", "created_at")
+        .where("created_at", ">=", sinceIso)
+        .orderBy("created_at", "desc")
+        .limit(400)
+    : Promise.resolve([] as Array<{ id: unknown; user_id: unknown; ref_name: unknown; created_at: unknown }>);
+
+  const sanctionPromise = hasSanctions
+    ? db<{ id: unknown; created_by: unknown; target_name: unknown; created_at: unknown }>("moderation_sanctions")
+        .select("id", "created_by", "target_name", "created_at")
+        .where("created_at", ">=", sinceIso)
+        .orderBy("created_at", "desc")
+        .limit(400)
+    : Promise.resolve([] as Array<{ id: unknown; created_by: unknown; target_name: unknown; created_at: unknown }>);
+
+  const [matchRows, mapRows, transactionRows, sanctionRows] = await Promise.all([
+    matchPromise,
+    mapPromise,
+    transactionPromise,
+    sanctionPromise,
+  ]);
+
+  const rows: FallbackActivityRow[] = [
+    ...matchRows
+      .map((row) => ({
+        type: "match" as const,
+        actor: "System",
+        target: `Match #${Number(row.id)}`,
+        timestamp: asIso(row.played_at) ?? "",
+      }))
+      .filter((row) => row.timestamp),
+    ...transactionRows
+      .map((row) => ({
+        type: "transaction" as const,
+        actor: `User #${asString(row.user_id, "?")}`,
+        target: asString(row.ref_name) || `Tx #${Number(row.id)}`,
+        timestamp: asIso(row.created_at) ?? "",
+      }))
+      .filter((row) => row.timestamp),
+    ...mapRows
+      .map((row) => ({
+        type: "map" as const,
+        actor: `User #${asString(row.creator_id, "?")}`,
+        target: asString(row.title) || `Map #${Number(row.id)}`,
+        timestamp: asIso(row.created_at) ?? "",
+      }))
+      .filter((row) => row.timestamp),
+    ...sanctionRows
+      .map((row) => ({
+        type: "sanction" as const,
+        actor: asString(row.created_by, "Moderator"),
+        target: asString(row.target_name) || `Sanction #${Number(row.id)}`,
+        timestamp: asIso(row.created_at) ?? "",
+      }))
+      .filter((row) => row.timestamp),
+  ];
+
+  return rows.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
 export function createBackofficeRouter(db: Knex) {
   const router = Router();
 
@@ -186,7 +288,14 @@ export function createBackofficeRouter(db: Knex) {
       }
       const topMapRows = await db<TopMapRow>("backoffice_top_maps").select("*").orderBy("position", "asc");
       const topCreatorRows = await db<TopCreatorRow>("backoffice_top_creators").select("*").orderBy("position", "asc");
-      const activityRows = await db<ActivityRow>("backoffice_activity_events").select("*").orderBy("timestamp", "desc").limit(20);
+      const periodStart = periodStartIso(period);
+      const activityRows = await db<ActivityRow>("backoffice_activity_events")
+        .select("*")
+        .where("timestamp", ">=", periodStart)
+        .whereIn("type", ["match", "transaction", "map", "sanction"])
+        .orderBy("timestamp", "desc");
+
+      const fallbackRows = activityRows.length === 0 ? await getFallbackActivityRows(db, periodStart) : [];
 
       if (!snapshotRow) {
         res.status(404).json({ message: "Dashboard period not found" });
@@ -230,13 +339,22 @@ export function createBackofficeRouter(db: Knex) {
           mapsPublished: Number(row.maps_published ?? 0),
           totalTests: Number(row.total_tests ?? 0),
         })),
-        recentActivity: activityRows.map((row) => ({
-          id: Number(row.id),
-          type: asString(row.type),
-          actor: asString(row.actor),
-          target: asString(row.target),
-          timestamp: asIso(row.timestamp),
-        })),
+        recentActivity:
+          activityRows.length > 0
+            ? activityRows.map((row) => ({
+                id: Number(row.id),
+                type: asString(row.type),
+                actor: asString(row.actor),
+                target: asString(row.target),
+                timestamp: asIso(row.timestamp),
+              }))
+            : fallbackRows.map((row, index) => ({
+                id: index + 1,
+                type: row.type,
+                actor: row.actor,
+                target: row.target,
+                timestamp: row.timestamp,
+              })),
       });
     }),
   );
