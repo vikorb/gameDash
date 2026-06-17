@@ -8,3 +8,14 @@ const baseUrl = API_URL.replace('/api', '');
 export const socket: Socket = io(baseUrl, {
   autoConnect: false,
 });
+
+const originalEmit = socket.emit;
+socket.emit = function (event: string, ...args: unknown[]) {
+  if (event === 'join_queue' && args[0] && typeof args[0] === 'object') {
+    const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('selectedModeId') : null;
+    if (saved) {
+      (args[0] as Record<string, unknown>).modeId = Number(saved);
+    }
+  }
+  return originalEmit.apply(this, [event, ...args] as Parameters<typeof originalEmit>);
+};

@@ -43,7 +43,7 @@ export async function getPlayerForQueue(userId: number | string, modeId: number,
   const randomDivision = Math.floor(Math.random() * 4) + 1; // 1 to 4
 
   const player = new Player(
-    row.id,
+    Number(row.id),
     row.pocketbase_user_id,
     row.username,
     row.region,
@@ -55,6 +55,7 @@ export async function getPlayerForQueue(userId: number | string, modeId: number,
     'online'
   );
 
+  (player as any).gameModeId = modeId;
   if (socketId) player.socketId = socketId;
 
   return player;

@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 
 import { asyncHandler } from '@/middlewares/asyncHandler';
-import { getMatchHistory } from '@/services/match';
+import { getMatchHistory } from '@/services/matchHistory';
 import { badRequest } from '@/utils/httpError';
 
 const router = express.Router();

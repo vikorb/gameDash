@@ -1,8 +1,10 @@
-import { Socket, Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import db from '../database';
-import { getPlayerForQueue } from '../services/playerService';
 import { MatchmakingManager } from '../managers/MatchmakingManager';
+import { getPlayerForQueue } from '../services/playerService';
 import { isDemoModeActive, setDemoModeActive } from './demoMode';
+import { resolveMapVoting } from './mapVoting';
+import { broadcastRoomUpdate } from './roomMatcher';
 
 export function registerSocketHandlers(socket: Socket, io: Server, mmManager: MatchmakingManager) {
   socket.on('join_queue', async (data: { pocketbaseUserId?: string; modeId?: number }) => {
@@ -29,6 +31,16 @@ export function registerSocketHandlers(socket: Socket, io: Server, mmManager: Ma
     mmManager.playerReady(data.playerId, data.roomId);
   });
 
+  socket.on('cast_vote', (data: { roomId: string; playerId: string | number; mapId: number | null }) => {
+    const room = mmManager.rooms.find(r => r.id === data.roomId);
+    if (!room || room.status !== 'map_voting') return;
+    room.votes[data.playerId] = data.mapId;
+    broadcastRoomUpdate(room, io);
+
+    const allVoted = room.getAllPlayers().every(player => room.votes[player.id] !== undefined);
+    if (allVoted) resolveMapVoting(room, io, mmManager.rooms);
+  });
+
   socket.on('leave_room', (data: { roomId: string; playerId: string | number }) => {
     mmManager.handlePlayerLeave(data.playerId);
     socket.leave(data.roomId);
@@ -41,8 +53,12 @@ export function registerSocketHandlers(socket: Socket, io: Server, mmManager: Ma
   });
 
   socket.on('leave_queue', () => {
-    const inRoom = mmManager.rooms.some(r => r.getAllPlayers().some(p => p.socketId === socket.id));
-    if (!inRoom) mmManager.removePlayerBySocket(socket.id);
+    const room = mmManager.rooms.find(r => r.getAllPlayers().some(pl => pl.socketId === socket.id));
+    if (room && room.status !== 'searching') {
+      mmManager.players = mmManager.players.filter(pl => pl.socketId !== socket.id);
+    } else {
+      mmManager.removePlayerBySocket(socket.id);
+    }
   });
 
   socket.on('disconnect', () => {

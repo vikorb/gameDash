@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { fetchGameModes } from '@/services/gameMode'
 import { useUserStore } from '@/stores/userStore'
@@ -26,8 +26,17 @@ const modes = ref<GameMode[]>([])
 
 onMounted(async () => {
   modes.value = await fetchGameModes()
-  if (modes.value.length > 0 && modes.value[0]) {
+  const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('selectedModeId') : null
+  if (saved) {
+    selectedModeId.value = Number(saved)
+  } else if (modes.value.length > 0 && modes.value[0]) {
     selectedModeId.value = modes.value[0].id
+  }
+})
+
+watch(selectedModeId, (newVal) => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('selectedModeId', String(newVal))
   }
 })
 </script>

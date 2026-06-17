@@ -2,6 +2,10 @@
   <div class="loading-screen">
     <div class="spinner"></div>
     <h2 class="title">GAME IN PROGRESS</h2>
+    <div v-if="map" class="map-container">
+      <span class="map-label">PLAYING ON</span>
+      <span class="map-name">{{ map.title }}</span>
+    </div>
     <div class="progress-bar-container">
       <div class="progress-bar"></div>
     </div>
@@ -9,50 +13,22 @@
   </div>
 </template>
 
+<script setup lang="ts">
+defineProps<{
+  map?: { id: number; title: string } | null
+}>()
+</script>
+
 <style scoped>
-.loading-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-}
-.spinner {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 6px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #f18a5f;
-  animation: spin 1s linear infinite;
-}
-.title {
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #fff;
-  margin: 0;
-  text-shadow: 0 0 10px rgba(255,255,255,0.2);
-}
-.progress-bar-container {
-  width: 300px;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  background: #f18a5f;
-  border-radius: 4px;
-  animation: fill 10s linear forwards;
-}
-.description {
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #a0aec0;
-  letter-spacing: 1px;
-}
+.loading-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; }
+.spinner { width: 80px; height: 80px; border-radius: 50%; border: 6px solid rgba(255, 255, 255, 0.1); border-top-color: #f18a5f; animation: spin 1s linear infinite; }
+.title { font-size: 2.2rem; font-weight: 900; letter-spacing: 2px; color: #fff; margin: 0; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.map-container { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 0.6rem 2rem; border-radius: 10px; }
+.map-label { font-size: 0.7rem; font-weight: bold; color: #a0aec0; letter-spacing: 1.5px; }
+.map-name { font-size: 1.2rem; font-weight: 800; color: #f18a5f; text-shadow: 0 0 10px rgba(241, 138, 95, 0.2); }
+.progress-bar-container { width: 300px; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; }
+.progress-bar { height: 100%; width: 0%; background: #f18a5f; border-radius: 4px; animation: fill 10s linear forwards; }
+.description { font-size: 0.85rem; font-weight: bold; color: #a0aec0; letter-spacing: 1px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fill { to { width: 100%; } }
 </style>

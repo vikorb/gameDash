@@ -23,6 +23,9 @@ export function broadcastRoomUpdate(room: MatchmakingRoom, io: Server) {
     teamB: room.teamB.map(p => ({ id: p.id, name: p.name, rank: p.rank, division: p.division, mmr: p.mmr, pocketbase_user_id: p.pocketbase_user_id, status: p.status, socketId: p.socketId })),
     status: room.status,
     readyStates: room.readyStates,
-    readyCheckStartTime: room.readyCheckStartTime
+    readyCheckStartTime: room.readyCheckStartTime,
+    votes: room.votes,
+    voteMaps: room.voteMaps,
+    voteStartTime: room.voteStartTime
   });
 }

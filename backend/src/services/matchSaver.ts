@@ -4,12 +4,13 @@ import { Player } from '../types/player';
 export async function saveFinishedMatch(params: {
   gameModeId: number; winnerTeamName: 'Team A' | 'Team B';
   teamAPlayers: Player[]; teamBPlayers: Player[];
+  mapId?: number;
 }) {
-  const { gameModeId, winnerTeamName, teamAPlayers, teamBPlayers } = params;
+  const { gameModeId, winnerTeamName, teamAPlayers, teamBPlayers, mapId } = params;
   const rewards = await db('shop_economy_rewards').first() || { xp_win: 150, xp_loss: 50, soft_win: 100, soft_loss: 25 };
 
   return await db.transaction(async (trx) => {
-    const [match] = await trx('matches').insert({ game_mode_id: gameModeId, status: 'completed' }).returning('*');
+    const [match] = await trx('matches').insert({ game_mode_id: gameModeId, status: 'completed', map_id: mapId || null }).returning('*');
     const [teamA] = await trx('match_teams').insert({ match_id: match.id, name: 'Team A', result: winnerTeamName === 'Team A' ? 'win' : 'loss' }).returning('*');
     const [teamB] = await trx('match_teams').insert({ match_id: match.id, name: 'Team B', result: winnerTeamName === 'Team B' ? 'win' : 'loss' }).returning('*');
     await trx('matches').where({ id: match.id }).update({ winner_team_id: winnerTeamName === 'Team A' ? teamA.id : teamB.id });
