@@ -89,6 +89,45 @@
         "subtitle": "Une courbe par type: match, transaction, map, sanction",
         "noData": "Pas assez de données pour tracer le graphique."
       },
+      "averageMmr": {
+        "title": "MMR moyen des joueurs dans le temps",
+        "subtitle": "Suivi global de la moyenne MMR par jour, avec filtres par mode et période.",
+        "empty": "Pas assez de données pour afficher ce graphique.",
+        "error": "Impossible de charger la moyenne MMR.",
+        "legend": {
+          "averageMmr": "MMR moyen",
+          "median": "Médiane"
+        },
+        "filters": {
+          "allModes": "Tous les modes",
+          "mode": "Mode",
+          "period": "Période",
+          "customRange": "Plage personnalisée"
+        }
+      },
+      "shopPurchases": {
+        "title": "Achats boutique des joueurs",
+        "subtitle": "Volume quotidien des achats en étoiles et en cash sur la période sélectionnée.",
+        "empty": "Pas assez de données pour afficher ce graphique.",
+        "error": "Impossible de charger les achats boutique.",
+        "badgeUnit": "achats",
+        "legend": {
+          "total": "Total",
+          "soft": "Achats en étoiles",
+          "hard": "Achats en cash"
+        },
+        "filters": {
+          "period": "Période",
+          "customRange": "Plage personnalisée"
+        },
+        "axis": {
+          "y": "Nombre d'achats"
+        },
+        "currencies": {
+          "soft": "étoiles",
+          "hard": "cash"
+        }
+      },
       "quickLinks": {
         "title": "Accès rapides admin",
         "dashboard": "Dashboard backoffice",

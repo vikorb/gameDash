@@ -89,6 +89,45 @@
         "subtitle": "One line per type: match, transaction, map, sanction",
         "noData": "Not enough data to draw the chart."
       },
+      "averageMmr": {
+        "title": "Average player MMR over time",
+        "subtitle": "Global day-by-day average MMR trend with mode and date filters.",
+        "empty": "Not enough data to display this chart.",
+        "error": "Unable to load average MMR.",
+        "legend": {
+          "averageMmr": "Average MMR",
+          "median": "Median"
+        },
+        "filters": {
+          "allModes": "All modes",
+          "mode": "Mode",
+          "period": "Period",
+          "customRange": "Custom range"
+        }
+      },
+      "shopPurchases": {
+        "title": "Player shop purchases",
+        "subtitle": "Daily purchase volume (stars and cash) for the selected period.",
+        "empty": "Not enough data to display this chart.",
+        "error": "Unable to load shop purchases.",
+        "badgeUnit": "purchases",
+        "legend": {
+          "total": "Total",
+          "soft": "Star purchases",
+          "hard": "Cash purchases"
+        },
+        "filters": {
+          "period": "Period",
+          "customRange": "Custom range"
+        },
+        "axis": {
+          "y": "Purchase count"
+        },
+        "currencies": {
+          "soft": "stars",
+          "hard": "cash"
+        }
+      },
       "quickLinks": {
         "title": "Admin quick links",
         "dashboard": "Backoffice dashboard",

@@ -1,5 +1,10 @@
 <template>
   <section class="admin-home">
+    <div class="admin-home__charts-grid">
+      <AdminAverageMMRChart />
+      <AdminShopPurchasesChart />
+    </div>
+
     <article class="hub-hero">
       <div class="hub-hero__head">
         <h2>{{ t('home.admin.quickLinks.title') }}</h2>
@@ -34,78 +39,23 @@
         </div>
       </div>
     </article>
-
-    <section class="hub-grid">
-      <RouterLink
-        v-for="card in moduleCards"
-        :key="card.titleKey"
-        :to="card.to"
-        class="hub-card"
-      >
-        <div class="hub-card__top">
-          <h3 class="hub-card__title">{{ t(card.titleKey) }}</h3>
-          <span class="hub-card__metric">{{ card.metric }}</span>
-        </div>
-        <p class="hub-card__text">{{ t(card.textKey) }}</p>
-        <span class="hub-card__cta">{{ t('home.admin.actions.openDashboard') }}</span>
-      </RouterLink>
-    </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { useBackofficeDashboardStore } from '@/stores/backoffice/dashboard'
-import { useModerationAuditStore } from '@/stores/moderation'
+import AdminAverageMMRChart from '@/views/home/AdminAverageMMRChart.vue'
+import AdminShopPurchasesChart from '@/views/home/AdminShopPurchasesChart.vue'
 
 const dashboardStore = useBackofficeDashboardStore()
-const auditStore = useModerationAuditStore()
 const { t } = useI18n({ useScope: 'global' })
 
-const moduleCards = computed(() => [
-  {
-    to: '/backoffice/dashboard',
-    titleKey: 'home.admin.quickLinks.dashboard',
-    textKey: 'home.admin.hub.cards.dashboard',
-    metric: dashboardStore.snapshot.activeUsers,
-  },
-  {
-    to: '/backoffice/matchmaking',
-    titleKey: 'home.admin.quickLinks.matchmaking',
-    textKey: 'home.admin.hub.cards.matchmaking',
-    metric: dashboardStore.snapshot.matchesPerDay,
-  },
-  {
-    to: '/backoffice/economy',
-    titleKey: 'home.admin.quickLinks.economy',
-    textKey: 'home.admin.hub.cards.economy',
-    metric: dashboardStore.snapshot.transactionsPerDay,
-  },
-  {
-    to: '/moderation/users',
-    titleKey: 'home.admin.quickLinks.users',
-    textKey: 'home.admin.hub.cards.users',
-    metric: dashboardStore.snapshot.activeUsers,
-  },
-  {
-    to: '/moderation/reports',
-    titleKey: 'home.admin.quickLinks.reports',
-    textKey: 'home.admin.hub.cards.reports',
-    metric: dashboardStore.snapshot.pendingReports,
-  },
-  {
-    to: '/moderation/audit',
-    titleKey: 'home.admin.actions.openAudit',
-    textKey: 'home.admin.hub.cards.audit',
-    metric: auditStore.auditEntries.length,
-  },
-])
-
 onMounted(async () => {
-  await Promise.allSettled([dashboardStore.fetchDashboard('30d'), auditStore.fetchAuditEntries()])
+  await dashboardStore.fetchDashboard('30d')
 })
 </script>
 
@@ -182,63 +132,6 @@ onMounted(async () => {
   font-weight: 900;
 }
 
-.hub-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-}
-
-.hub-card {
-  padding: 0.85rem;
-  border-radius: 15px;
-  border: 1px solid rgba(252, 239, 225, 0.12);
-  background: linear-gradient(180deg, rgba(72, 84, 108, 0.75), rgba(35, 40, 56, 0.93));
-  text-decoration: none;
-  display: grid;
-  gap: 0.5rem;
-  transition:
-    transform 0.16s ease,
-    border-color 0.16s ease;
-}
-
-.hub-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(242, 139, 91, 0.56);
-}
-
-.hub-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
-}
-
-.hub-card__title {
-  margin: 0;
-  color: var(--color-cream);
-  font-size: 0.94rem;
-  font-weight: 800;
-}
-
-.hub-card__metric {
-  color: var(--color-primary-strong);
-  font-size: 0.82rem;
-  font-weight: 900;
-}
-
-.hub-card__text {
-  margin: 0;
-  color: rgba(252, 239, 225, 0.7);
-  font-size: 0.79rem;
-  min-height: 2.2em;
-}
-
-.hub-card__cta {
-  color: var(--color-primary-strong);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
 .state-text {
   margin: 0;
   color: rgba(252, 239, 225, 0.72);
@@ -249,18 +142,18 @@ onMounted(async () => {
   color: #f6b3b3;
 }
 
+.admin-home__charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
 @media (max-width: 980px) {
   .hub-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .hub-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .hub-grid {
+  .admin-home__charts-grid {
     grid-template-columns: 1fr;
   }
 }
