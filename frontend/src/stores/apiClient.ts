@@ -23,7 +23,10 @@ function getApiBaseUrl() {
 
 function buildUrl(path: string, query?: ApiRequestOptions['query']) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  const url = new URL(`${getApiBaseUrl()}${normalizedPath}`)
+  const base = getApiBaseUrl()
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+
+  const url = new URL(`${base}${normalizedPath}`, origin)
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
