@@ -14,4 +14,4 @@ EXPOSE 8090
 
 VOLUME ["/pb_data"]
 
-CMD ["/bin/sh", "-c", "./pocketbase serve --dir=/pb_data --http=0.0.0.0:8090 & sleep 10 && ./init-pocketbase.sh; wait"]
+CMD ["/bin/sh", "-c", "./pocketbase superuser upsert \"$POCKETBASE_ADMIN_EMAIL\" \"$POCKETBASE_ADMIN_PASSWORD\" --dir=/pb_data; ./pocketbase serve --dir=/pb_data --http=0.0.0.0:8090 & sleep 10 && ./init-pocketbase.sh; wait"]
