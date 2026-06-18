@@ -79,6 +79,13 @@ cp .env.example .env
 - `POCKETBASE_ADMIN_PASSWORD` : Mot de passe admin (min 8 caractères)
 - `POCKETBASE_ENCRYPTION_KEY` : Clé secrète (min 32 caractères)
 
+Configuration des missions quotidiennes :
+
+- `DAILY_TASKS_COUNT` : nombre de missions du jour affichées (par défaut 3), sélectionnées automatiquement chaque jour.
+- `DAILY_TASKS_RANK_SCALING_ENABLED` : active l'adaptation de la difficulté des objectifs selon le rang du joueur.
+- `DAILY_TASK_DIFFICULTY_STEP` : incrément de difficulté par palier de rang (ex: `0.15` = +15% par rang).
+- `DAILY_TASK_DIFFICULTY_MAX_MULTIPLIER` : plafond du multiplicateur de difficulté (ex: `2` = maximum x2).
+
 3. Installer les dépendances (pour l'outillage local : husky, eslint)
 
 ```bash

@@ -1,10 +1,13 @@
 <template>
   <div class="tasks-view">
-    <div class="tasks-header">
-      <h1 class="tasks-title">Historique des matchs</h1>
-    </div>
+    <MissionsRewardsPanel
+      :user-id="postgresUserId"
+      :mode-id="selectedModeId"
+      :modes="modes"
+      @update:mode-id="onMissionModeUpdate"
+    />
 
-    <MissionsRewardsPanel :user-id="postgresUserId" />
+    <h1 class="tasks-title">Historique des matchs</h1>
 
     <div class="tasks-filters">
       <div class="filter-group filter-group--mode">
@@ -78,6 +81,17 @@ function onModeSelectorUpdate(val: number | string) {
   selectedModeId.value = selectedModeId.value === nextModeId ? undefined : nextModeId
 }
 
+function onMissionModeUpdate(modeId: number | undefined) {
+  selectedModeId.value = modeId
+}
+
+function ensureModeSelected() {
+  const firstMode = modes.value[0]
+  if (!firstMode) return
+  if (selectedModeId.value !== undefined) return
+  selectedModeId.value = Number(firstMode.id)
+}
+
 const selectedResult = computed({
   get: () => store.selectedResult,
   set: (val) => { if (postgresUserId.value) store.setResult(postgresUserId.value, val) },
@@ -110,11 +124,13 @@ function onPageSizeChange(value: number) {
 
 onMounted(async () => {
   modes.value = await fetchGameModes()
+  ensureModeSelected()
   if (postgresUserId.value) await store.fetch(postgresUserId.value)
 })
 
 watch(() => postgresUserId.value, async (id) => {
   if (id) {
+    ensureModeSelected()
     store.reset()
     await store.fetch(id)
   }
@@ -127,13 +143,9 @@ watch(() => postgresUserId.value, async (id) => {
   color: var(--color-cream);
 }
 
-.tasks-header {
-  margin-bottom: 1rem;
-}
-
 .tasks-title {
   font-size: 1.6rem;
-  margin: 0;
+  margin: 0 0 1rem;
 }
 
 .tasks-filters {

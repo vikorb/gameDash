@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 type UserRow = { id: number };
+type GameModeRow = { id: number };
 type TaskRow = { id: number; target_value: number };
 
 const TARGET_EMAIL = 'test@test.com';
@@ -17,6 +18,9 @@ function completedAtIso(dayDate: string, hourUTC: number): string {
 }
 
 export async function seed(knex: Knex): Promise<void> {
+  const seedMode = await knex<GameModeRow>('game_modes').first('id').orderBy('id', 'asc');
+  const gameModeId = seedMode?.id ?? 0;
+
   const user = await knex<UserRow>('users').where('email', TARGET_EMAIL).first('id');
 
   if (!user) {
@@ -43,13 +47,14 @@ export async function seed(knex: Knex): Promise<void> {
       await knex('user_task_progress')
         .insert({
           user_id: user.id,
+          game_mode_id: gameModeId,
           task_id: task.id,
           day_date: dayDate,
           progress_value: task.target_value,
           completed_at: completedAtIso(dayDate, 12 + index),
           claimed_at: null,
         })
-        .onConflict(['user_id', 'task_id', 'day_date'])
+        .onConflict(['user_id', 'game_mode_id', 'task_id', 'day_date'])
         .merge({
           progress_value: task.target_value,
           completed_at: completedAtIso(dayDate, 12 + index),

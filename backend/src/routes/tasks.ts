@@ -44,10 +44,25 @@ type RewardItemDTO = {
 };
 
 type TaskProgressRow = {
+  game_mode_id: number;
   task_id: number;
   progress_value: number;
   completed_at: string | null;
   day_date: string;
+  target_value_snapshot: number | null;
+};
+
+type UserRankDifficultyRow = {
+  xp: number;
+  rank_id: number | null;
+};
+
+type RankTierRow = {
+  id: number;
+};
+
+type GameModeNameRow = {
+  name: string;
 };
 
 type MetricsRow = {
@@ -161,10 +176,23 @@ const METRIC_KEYS: MetricKey[] = [
   'total_xp',
 ];
 
+const DEFAULT_DAILY_TASKS_COUNT = 3;
+const DEFAULT_DAILY_DIFFICULTY_STEP = 0.15;
+const DEFAULT_DAILY_DIFFICULTY_MAX_MULTIPLIER = 2;
+
 function parseUserId(value: unknown): number {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw badRequest('Missing or invalid userId', 'VALIDATION_ERROR', { field: 'userId' });
+  }
+  return parsed;
+}
+
+function parseModeId(value: unknown): number {
+  if (value === undefined || value === null || value === '') return 0;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw badRequest('Invalid modeId', 'VALIDATION_ERROR', { field: 'modeId' });
   }
   return parsed;
 }
@@ -205,6 +233,112 @@ function asNumber(value: string | number | null | undefined): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function resolveDailyDifficultyStep(): number {
+  const raw = Number(process.env.DAILY_TASK_DIFFICULTY_STEP ?? DEFAULT_DAILY_DIFFICULTY_STEP);
+  if (!Number.isFinite(raw) || raw < 0) return DEFAULT_DAILY_DIFFICULTY_STEP;
+  return raw;
+}
+
+function resolveDailyDifficultyMaxMultiplier(): number {
+  const raw = Number(process.env.DAILY_TASK_DIFFICULTY_MAX_MULTIPLIER ?? DEFAULT_DAILY_DIFFICULTY_MAX_MULTIPLIER);
+  if (!Number.isFinite(raw) || raw < 1) return DEFAULT_DAILY_DIFFICULTY_MAX_MULTIPLIER;
+  return raw;
+}
+
+function scaleTaskTarget(baseTarget: number, multiplier: number): number {
+  return Math.max(1, Math.ceil(baseTarget * multiplier));
+}
+
+function buildTaskTitle(metricKey: MetricKey, target: number, modeName?: string | null): string {
+  const modeSuffix = modeName ? ` en ${modeName}` : '';
+
+  switch (metricKey) {
+    case 'play_matches':
+      return target > 1 ? `Joue ${target} parties${modeSuffix}` : `Joue 1 partie${modeSuffix}`;
+    case 'win_matches':
+      return target > 1 ? `Gagne ${target} parties${modeSuffix}` : `Gagne 1 partie${modeSuffix}`;
+    case 'total_kills':
+      return target > 1 ? `Fais ${target} kills${modeSuffix}` : `Fais 1 kill${modeSuffix}`;
+    case 'total_xp':
+      return target > 1 ? `Gagne ${target} XP${modeSuffix}` : `Gagne 1 XP${modeSuffix}`;
+    default:
+      return `Mission quotidienne${modeSuffix}`;
+  }
+}
+
+async function getUserDailyDifficultyMultiplier(userId: number, modeId: number): Promise<number> {
+  const enabled = parseBoolean(process.env.DAILY_TASKS_RANK_SCALING_ENABLED) ?? true;
+  if (!enabled) return 1;
+
+  const bestRankQuery = db('user_ranks as ur')
+    .leftJoin('ranks as r', function joinRank() {
+      this.on('r.min_xp', '<=', 'ur.xp').andOn('r.max_xp', '>=', 'ur.xp');
+    })
+    .where('ur.user_id', userId)
+    .orderBy('ur.xp', 'desc');
+
+  if (modeId > 0) {
+    bestRankQuery.andWhere('ur.game_modes_id', modeId);
+  }
+
+  const bestRank = await bestRankQuery
+    .select<UserRankDifficultyRow[]>('ur.xp as xp', 'r.id as rank_id')
+    .first();
+
+  if (!bestRank) return 1;
+
+  const rankTiers = await db<RankTierRow>('ranks').select('id').orderBy('min_xp', 'asc');
+  if (rankTiers.length === 0) return 1;
+
+  let rankIndex = 1;
+  if (bestRank.rank_id) {
+    const found = rankTiers.findIndex((tier) => tier.id === bestRank.rank_id);
+    rankIndex = found >= 0 ? found + 1 : 1;
+  }
+
+  const step = resolveDailyDifficultyStep();
+  const maxMultiplier = resolveDailyDifficultyMaxMultiplier();
+  const multiplier = 1 + (rankIndex - 1) * step;
+  return Math.min(maxMultiplier, Math.max(1, multiplier));
+}
+
+function resolveDailyTaskCount(maxAvailable: number): number {
+  const raw = Number(process.env.DAILY_TASKS_COUNT ?? DEFAULT_DAILY_TASKS_COUNT);
+  const parsed = Number.isInteger(raw) && raw > 0 ? raw : DEFAULT_DAILY_TASKS_COUNT;
+  return Math.min(Math.max(parsed, 1), maxAvailable);
+}
+
+function hashDaySeed(dayDate: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < dayDate.length; i += 1) {
+    hash ^= dayDate.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function pickDailyTaskSet(tasks: TaskRow[], dayDate: string): TaskRow[] {
+  if (tasks.length <= 1) return tasks;
+
+  const targetCount = resolveDailyTaskCount(tasks.length);
+  if (targetCount >= tasks.length) return tasks;
+
+  const shuffled = [...tasks];
+  let seed = hashDaySeed(dayDate);
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const j = seed % (i + 1);
+    const tmp = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = tmp;
+  }
+
+  return shuffled
+    .slice(0, targetCount)
+    .sort((a, b) => a.display_order - b.display_order || a.id - b.id);
+}
+
 function metricValue(metricKey: MetricKey, metrics: Record<MetricKey, number>): number {
   return metrics[metricKey] ?? 0;
 }
@@ -242,14 +376,7 @@ async function loadRewardItems(rewardRows: RewardRow[]): Promise<Map<number, Rew
   return new Map(items.map((item) => [Number(item.id), toRewardItemDTO(item)]));
 }
 
-function rewardCurrencyLabel(type: string, amount: number): string {
-  if (type === 'xp') return `+${amount} XP`;
-  if (type === 'stars' || type === 'hard_currency') return `+${amount} étoiles`;
-  if (type === 'soft_currency') return `+${amount} étoiles`;
-  return `+${amount}`;
-}
-
-async function fetchDailyTasks(userId: number, dayDate: string): Promise<TaskResponseDTO[]> {
+async function fetchDailyTasks(userId: number, dayDate: string, modeId: number): Promise<TaskResponseDTO[]> {
   const tasks = await db<TaskRow>('tasks')
     .where({ is_active: true, is_daily: true })
     .andWhere((query) => {
@@ -263,7 +390,13 @@ async function fetchDailyTasks(userId: number, dayDate: string): Promise<TaskRes
 
   if (tasks.length === 0) return [];
 
-  const taskIds = tasks.map((task) => task.id);
+  const selectedTasks = pickDailyTaskSet(tasks, dayDate);
+  const difficultyMultiplier = await getUserDailyDifficultyMultiplier(userId, modeId);
+  const modeName = modeId > 0
+    ? (await db<GameModeNameRow>('game_modes').where('id', modeId).first('name'))?.name ?? null
+    : null;
+
+  const taskIds = selectedTasks.map((task) => task.id);
 
   const taskRewardRows = await db('task_rewards as tr')
     .join('rewards as r', 'r.id', 'tr.reward_id')
@@ -298,9 +431,10 @@ async function fetchDailyTasks(userId: number, dayDate: string): Promise<TaskRes
 
   const existingProgressRows = await db<TaskProgressRow>('user_task_progress')
     .where('user_id', userId)
+    .andWhere('game_mode_id', modeId)
     .where('day_date', dayDate)
     .whereIn('task_id', taskIds)
-    .select('task_id', 'progress_value', 'completed_at', 'day_date');
+    .select('game_mode_id', 'task_id', 'progress_value', 'completed_at', 'day_date', 'target_value_snapshot');
 
   const progressByTask = new Map(existingProgressRows.map((row) => [row.task_id, row]));
 
@@ -308,6 +442,11 @@ async function fetchDailyTasks(userId: number, dayDate: string): Promise<TaskRes
     .join('matches as m', 'm.id', 'mp.match_id')
     .where('mp.user_id', userId)
     .whereRaw('DATE(m.played_at) = ?', [dayDate])
+    .modify((query) => {
+      if (modeId > 0) {
+        query.andWhere('m.game_mode_id', modeId);
+      }
+    })
     .select<MetricsRow>(
       db.raw('COUNT(mp.id)::int as played_matches'),
       db.raw("SUM(CASE WHEN mp.result = 'win' THEN 1 ELSE 0 END)::int as won_matches"),
@@ -326,35 +465,41 @@ async function fetchDailyTasks(userId: number, dayDate: string): Promise<TaskRes
   const nowIso = new Date().toISOString();
   const responses: TaskResponseDTO[] = [];
 
-  for (const task of tasks) {
+  for (const task of selectedTasks) {
     const computedProgress = metricValue(task.metric_key, metrics);
     const existing = progressByTask.get(task.id);
+    const targetValue = existing?.target_value_snapshot && existing.target_value_snapshot > 0
+      ? existing.target_value_snapshot
+      : scaleTaskTarget(task.target_value, difficultyMultiplier);
     const progressValue = Math.max(existing?.progress_value ?? 0, computedProgress);
-    const completed = progressValue >= task.target_value;
+    const completed = progressValue >= targetValue;
     const completedAt = completed ? existing?.completed_at ?? nowIso : null;
 
     await db('user_task_progress')
       .insert({
         user_id: userId,
+        game_mode_id: modeId,
         task_id: task.id,
         day_date: dayDate,
         progress_value: progressValue,
         completed_at: completedAt,
+        target_value_snapshot: targetValue,
       })
-      .onConflict(['user_id', 'task_id', 'day_date'])
+      .onConflict(['user_id', 'game_mode_id', 'task_id', 'day_date'])
       .merge({
         progress_value: progressValue,
         completed_at: completedAt,
+        target_value_snapshot: targetValue,
         updated_at: nowIso,
       });
 
     responses.push({
       id: task.id,
       code: task.code,
-      title: task.title,
+      title: buildTaskTitle(task.metric_key, targetValue, modeName),
       description: task.description,
       metricKey: task.metric_key,
-      target: task.target_value,
+      target: targetValue,
       progress: progressValue,
       completed,
       completedAt,
@@ -413,11 +558,13 @@ router.get(
   '/daily',
   asyncHandler(async (req: Request, res: Response) => {
     const userId = parseUserId(req.query.userId);
+    const modeId = parseModeId(req.query.modeId);
     const dayDate = todayDateUTC();
-    const tasks = await fetchDailyTasks(userId, dayDate);
+    const tasks = await fetchDailyTasks(userId, dayDate, modeId);
 
     return res.status(200).json({
       dayDate,
+      modeId,
       tasks,
     });
   }),
@@ -427,14 +574,23 @@ router.get(
   '/history',
   asyncHandler(async (req: Request, res: Response) => {
     const userId = parseUserId(req.query.userId);
+    const modeId = parseModeId(req.query.modeId);
     const limitDays = Number(req.query.limitDays ?? 15);
     const safeLimitDays = Number.isInteger(limitDays) && limitDays > 0 && limitDays <= 90 ? limitDays : 15;
+    const modeName = modeId > 0
+      ? (await db<GameModeNameRow>('game_modes').where('id', modeId).first('name'))?.name ?? null
+      : null;
 
     const rows = await db('user_task_progress as utp')
       .join('tasks as t', 't.id', 'utp.task_id')
       .leftJoin('task_rewards as tr', 'tr.task_id', 't.id')
       .leftJoin('rewards as r', 'r.id', 'tr.reward_id')
       .where('utp.user_id', userId)
+      .modify((query) => {
+        if (modeId > 0) {
+          query.andWhere('utp.game_mode_id', modeId);
+        }
+      })
       .select<HistoryRow[]>(
         'utp.day_date',
         'utp.task_id',
@@ -442,7 +598,7 @@ router.get(
         't.title',
         't.description',
         't.metric_key',
-        't.target_value',
+        db.raw('COALESCE(utp.target_value_snapshot, t.target_value) as target_value'),
         't.display_order',
         'utp.progress_value',
         'utp.completed_at',
@@ -473,12 +629,12 @@ router.get(
         dayTasks.set(taskKey, {
           id: row.task_id,
           code: row.code,
-          title: row.title,
+          title: buildTaskTitle(row.metric_key, row.target_value, modeName),
           description: row.description,
           metricKey: row.metric_key,
           target: row.target_value,
           progress: row.progress_value,
-          completed: row.progress_value >= row.target_value,
+          completed: Boolean(row.completed_at),
           completedAt: row.completed_at,
           dayDate: dayKey,
           rewards: [],
@@ -573,7 +729,7 @@ router.put(
       throw badRequest('Reward not found', 'REWARD_NOT_FOUND', { rewardId });
     }
 
-    return res.status(200).json({ reward: updated[0] });
+    return res.status(200).json({ reward: updated[0] as RewardAdminRow });
   }),
 );
 
@@ -686,7 +842,7 @@ router.put(
       });
     }
 
-    return res.status(200).json({ task: updated[0] });
+    return res.status(200).json({ task: updated[0] as TaskRow });
   }),
 );
 

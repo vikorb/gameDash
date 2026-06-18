@@ -1,6 +1,7 @@
 import type { Knex } from 'knex';
 
 type UserRow = { id: number; email: string };
+type GameModeRow = { id: number };
 
 type TaskRow = {
   id: number;
@@ -28,6 +29,9 @@ function progressForTask(task: TaskRow): number {
 }
 
 export async function seed(knex: Knex): Promise<void> {
+  const seedMode = await knex<GameModeRow>('game_modes').first('id').orderBy('id', 'asc');
+  const gameModeId = seedMode?.id ?? 0;
+
   const playerUsers = await knex<UserRow>('users')
     .where('role', 'player')
     .select('id', 'email')
@@ -57,6 +61,7 @@ export async function seed(knex: Knex): Promise<void> {
 
       const rows = tasks.map((task) => ({
         user_id: player.id,
+        game_mode_id: gameModeId,
         task_id: task.id,
         day_date: dayDate,
         progress_value: progressForTask(task),
@@ -67,7 +72,7 @@ export async function seed(knex: Knex): Promise<void> {
 
       await knex('user_task_progress')
         .insert(rows)
-        .onConflict(['user_id', 'task_id', 'day_date'])
+        .onConflict(['user_id', 'game_mode_id', 'task_id', 'day_date'])
         .merge({
           progress_value: knex.ref('excluded.progress_value'),
           completed_at: knex.ref('excluded.completed_at'),

@@ -1,92 +1,109 @@
 <template>
   <section class="missions-panel" aria-label="Missions et recompenses">
     <header class="missions-header">
-      <h2 class="missions-title">Missions du jour</h2>
-      <p class="missions-subtitle">Termine ces objectifs pour recuperer tes recompenses.</p>
+      <div>
+        <h2 class="missions-title">Missions du jour</h2>
+        <p class="missions-subtitle">Termine ces objectifs pour recuperer tes recompenses.</p>
+        <p class="missions-rank-note">
+          Rang sur {{ selectedModeLabel }}: <strong>{{ rankDisplay }}</strong>
+        </p>
+        <p class="missions-rank-impact">La difficulte des objectifs suit ton rang sur ce mode.</p>
+      </div>
+      <div class="missions-mode-filter">
+        <label class="missions-mode-label">Mode de jeu</label>
+        <ModeSelector :modes="modes" :model-value="modeSelectorValue" @update:model-value="onModeSelectorUpdate" />
+      </div>
     </header>
 
     <div v-if="loading" class="missions-state">Chargement des missions...</div>
     <div v-else-if="error" class="missions-state missions-state--error">{{ error }}</div>
 
-    <div v-else class="missions-grid">
-      <article
-        v-for="mission in orderedDailyTasks"
-        :key="mission.id"
-        class="mission-card"
-        :class="{ 'mission-card--done': mission.completed }"
-      >
-        <div class="mission-top">
-          <h3 class="mission-name">{{ mission.title }}</h3>
-          <span class="mission-status">{{ mission.completed ? 'Completee' : 'En cours' }}</span>
+    <div v-else>
+      <Transition name="missions-swap" mode="out-in">
+        <div :key="`missions-${modeSelectorValue}`" class="missions-grid">
+          <article
+            v-for="mission in orderedDailyTasks"
+            :key="`${mission.id}-${modeSelectorValue}`"
+            class="mission-card"
+            :class="{ 'mission-card--done': mission.completed }"
+          >
+            <div class="mission-top">
+              <h3 class="mission-name">{{ mission.title }}</h3>
+              <span class="mission-status">{{ mission.completed ? 'Completee' : 'En cours' }}</span>
+            </div>
+
+            <p v-if="mission.description" class="mission-description">{{ mission.description }}</p>
+
+            <div class="mission-progress-row">
+              <div class="mission-progress-track">
+                <div class="mission-progress-fill" :style="{ width: `${progressPercent(mission)}%` }" />
+              </div>
+              <span class="mission-progress-text">{{ mission.progress }} / {{ mission.target }}</span>
+            </div>
+
+            <p class="mission-reward">Recompense: {{ formatRewards(mission.rewards) }}</p>
+          </article>
+
+          <div v-if="orderedDailyTasks.length === 0" class="missions-state">Aucune mission du jour active.</div>
         </div>
-
-        <p v-if="mission.description" class="mission-description">{{ mission.description }}</p>
-
-        <div class="mission-progress-row">
-          <div class="mission-progress-track">
-            <div class="mission-progress-fill" :style="{ width: `${progressPercent(mission)}%` }" />
-          </div>
-          <span class="mission-progress-text">{{ mission.progress }} / {{ mission.target }}</span>
-        </div>
-
-        <p class="mission-reward">Recompense: {{ formatRewards(mission.rewards) }}</p>
-      </article>
-
-      <div v-if="orderedDailyTasks.length === 0" class="missions-state">Aucune mission du jour active.</div>
+      </Transition>
     </div>
-
-    <details class="history-block" :open="completedTasks.length > 0">
-      <summary>
-        Missions terminees
-        <span class="history-count">{{ completedTasks.length }}</span>
-      </summary>
-      <div v-if="completedTasks.length === 0" class="history-empty">Aucune mission terminee.</div>
-      <ul v-else class="history-list">
-        <li
-          v-for="mission in completedTasks"
-          :key="mission.dayDate + '-' + mission.id"
-          class="history-item history-item--done"
-        >
-          <div>
-            <strong>{{ mission.title }}</strong>
-            <p class="history-meta">{{ formatDate(mission.dayDate) }} • {{ mission.progress }} / {{ mission.target }}</p>
-            <p class="history-reward">{{ formatRewards(mission.rewards) }}</p>
-          </div>
-          <span class="history-status">Terminee</span>
-        </li>
-      </ul>
-    </details>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
-import type { DailyTask, TaskReward } from '@/services/tasks'
-import { fetchDailyTasks, fetchTaskHistory } from '@/services/tasks'
+import api from '@/api'
+import ModeSelector from '@/components/game-mode/ModeSelector.vue'
+import { type DailyTask, fetchDailyTasks, type TaskReward } from '@/services/tasks'
+import type { RankData } from '@/stores/rankStore'
+import type { GameMode } from '@/types/gameMode'
 
 const props = defineProps<{
   userId?: number
+  modeId?: number
+  modes: GameMode[]
+}>()
+
+const emit = defineEmits<{
+  (event: 'update:modeId', value: number | undefined): void
 }>()
 
 const loading = ref(false)
 const error = ref<string | null>(null)
 const dayDate = ref<string | null>(null)
 const dailyTasks = ref<DailyTask[]>([])
-const history = ref<Array<{ dayDate: string; tasks: DailyTask[] }>>([])
+const rankLoading = ref(false)
+const rankError = ref<string | null>(null)
+const rankData = ref<RankData | null>(null)
+
+const modeSelectorValue = computed<number | string>(() => props.modeId ?? 0)
+
+const modes = computed(() => props.modes)
+
+const selectedModeLabel = computed(() => {
+  if (!props.modeId) return 'Tous les modes'
+  return props.modes.find((mode) => Number(mode.id) === Number(props.modeId))?.name ?? `Mode ${props.modeId}`
+})
+
+const rankDisplay = computed(() => {
+  if (rankLoading.value) return 'Chargement du rang...'
+  if (rankError.value) return 'Rang indisponible'
+  if (!rankData.value) return 'Aucun rang disponible'
+  if (rankData.value.division) return `${rankData.value.rank} ${rankData.value.division}`
+  return rankData.value.rank
+})
+
+function onModeSelectorUpdate(val: number | string) {
+  const nextModeId = Number(val)
+  const normalized = Number.isInteger(nextModeId) && nextModeId > 0 ? nextModeId : undefined
+  emit('update:modeId', props.modeId === normalized ? undefined : normalized)
+}
 
 function progressPercent(task: DailyTask) {
   if (!task.target) return 0
   return Math.min(100, Math.round((task.progress / task.target) * 100))
-}
-
-function formatDate(dateString: string): string {
-  try {
-    const date = new Date(dateString + 'T00:00:00')
-    return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' })
-  } catch {
-    return dateString
-  }
 }
 
 function rewardLabel(reward: TaskReward) {
@@ -107,18 +124,31 @@ const orderedDailyTasks = computed(() => {
   return [...dailyTasks.value].sort((a, b) => Number(a.completed) - Number(b.completed))
 })
 
-const completedTasks = computed(() => {
-  const today = dayDate.value
-  return history.value
-    .filter((day) => day.dayDate !== today)
-    .flatMap((day) => day.tasks.map((task) => ({ ...task, dayDate: day.dayDate })))
-    .filter((task) => task.completed)
-})
+async function loadRank() {
+  if (!props.userId) {
+    rankData.value = null
+    return
+  }
+
+  rankLoading.value = true
+  rankError.value = null
+
+  try {
+    let url = `/ranks/${props.userId}/rank`
+    if (props.modeId) url += `?modeId=${props.modeId}`
+    const { data } = await api.get<RankData>(url)
+    rankData.value = data
+  } catch {
+    rankData.value = null
+    rankError.value = 'Impossible de charger le rang.'
+  } finally {
+    rankLoading.value = false
+  }
+}
 
 async function loadTasks() {
   if (!props.userId) {
     dailyTasks.value = []
-    history.value = []
     return
   }
 
@@ -126,14 +156,10 @@ async function loadTasks() {
   error.value = null
 
   try {
-    const [daily, taskHistory] = await Promise.all([
-      fetchDailyTasks(props.userId),
-      fetchTaskHistory(props.userId, 30),
-    ])
+    const daily = await fetchDailyTasks(props.userId, props.modeId)
 
     dayDate.value = daily.dayDate
     dailyTasks.value = daily.tasks
-    history.value = taskHistory.history
   } catch {
     error.value = 'Impossible de charger les missions.'
   } finally {
@@ -141,12 +167,15 @@ async function loadTasks() {
   }
 }
 
-onMounted(loadTasks)
+onMounted(async () => {
+  await Promise.all([loadTasks(), loadRank()])
+})
 
 watch(
-  () => props.userId,
+  () => [props.userId, props.modeId],
   () => {
     void loadTasks()
+    void loadRank()
   }
 )
 </script>
@@ -161,7 +190,28 @@ watch(
 }
 
 .missions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
   margin-bottom: 0.75rem;
+}
+
+.missions-mode-filter {
+  min-width: 260px;
+}
+
+.missions-mode-filter :deep(.mode-selector) {
+  margin-bottom: 0;
+}
+
+.missions-mode-label {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
 }
 
 .missions-title {
@@ -174,6 +224,22 @@ watch(
   margin: 0.2rem 0 0;
   font-size: 0.88rem;
   opacity: 0.78;
+}
+
+.missions-rank-note {
+  margin: 0.45rem 0 0;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.missions-rank-note strong {
+  color: #f0c674;
+}
+
+.missions-rank-impact {
+  margin: 0.18rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.72;
 }
 
 .missions-grid {
@@ -263,77 +329,29 @@ watch(
   color: #f0c674;
 }
 
-.history-block {
-  margin-top: 0.65rem;
-  border: 1px solid #2a3a4e;
-  border-radius: 8px;
-  background: #0f1824;
+.missions-swap-enter-active,
+.missions-swap-leave-active {
+  transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
-.history-block > summary {
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.65rem 0.8rem;
-  font-weight: 600;
+.missions-swap-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
 }
 
-.history-block > summary::-webkit-details-marker {
-  display: none;
+.missions-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
-.history-count {
-  border: 1px solid #3d556e;
-  border-radius: 999px;
-  padding: 0.1rem 0.45rem;
-  font-size: 0.78rem;
-}
+@media (max-width: 880px) {
+  .missions-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.history-empty {
-  padding: 0 0.8rem 0.8rem;
-  opacity: 0.75;
-  font-size: 0.88rem;
-}
-
-.history-list {
-  margin: 0;
-  padding: 0 0.8rem 0.8rem;
-  list-style: none;
-  display: grid;
-  gap: 0.5rem;
-}
-
-.history-item {
-  border: 1px solid #2f4055;
-  border-radius: 8px;
-  padding: 0.55rem 0.65rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.history-item--done {
-  border-color: #2f7b50;
-}
-
-.history-meta {
-  margin: 0.2rem 0 0;
-  font-size: 0.78rem;
-  opacity: 0.8;
-}
-
-.history-reward {
-  margin: 0.25rem 0 0;
-  font-size: 0.78rem;
-  color: #f0c674;
-}
-
-.history-status {
-  font-size: 0.75rem;
-  opacity: 0.9;
-  text-transform: uppercase;
+  .missions-mode-filter {
+    min-width: 0;
+  }
 }
 </style>
