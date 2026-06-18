@@ -9,6 +9,7 @@ import {
   createPocketbaseUser,
   getPocketbaseUser,
   updatePocketbaseUser,
+  updatePocketbaseUserAsSuperuser,
   uploadPocketbaseAvatar,
 } from "@/utils/pocketBase";
 import {
@@ -272,6 +273,7 @@ router.get(
 
 router.post(
   "/:id",
+  authenticateUser,
   asyncHandler(async (req, res) => {
     const id = parseParamId(req.params.id);
 
@@ -284,6 +286,8 @@ router.post(
     if (!user) {
       throw notFound("Utilisateur introuvable", "USER_NOT_FOUND", { id });
     }
+
+    const authenticatedUser = ensureAdminOrSelf(req, user);
 
     const username = parseString(body.username, "username", {
       min: 1,
@@ -333,22 +337,70 @@ router.post(
       return res.status(200).json({ status: "no_changes", user });
     }
     
-    if (user.pocketbase_user_id && user.email && (email || username)) {
-      const currentPassword = parseString(
-        body.currentPassword,
-        "currentPassword",
-        { min: 1, max: 128 },
-      )!;
-      const { token: userToken } = await authPocketbaseUser(
-        user.email,
-        currentPassword,
-      );
+    const usernameChanged =
+      username !== undefined && username !== (user.username ?? undefined);
+    const emailChanged = email !== undefined && email !== (user.email ?? undefined);
+
+    if (user.pocketbase_user_id && (emailChanged || usernameChanged)) {
+      const authorizationHeader = req.header("authorization")?.trim() ?? "";
+      const bearerToken = authorizationHeader.toLowerCase().startsWith("bearer ")
+        ? authorizationHeader.slice(7).trim()
+        : authorizationHeader;
+
+      let pocketbaseToken =
+        bearerToken &&
+        authenticatedUser.pocketbase_user_id &&
+        authenticatedUser.pocketbase_user_id === user.pocketbase_user_id
+          ? bearerToken
+          : null;
+
+      if (!pocketbaseToken && user.email) {
+        const currentPassword = parseString(
+          body.currentPassword,
+          "currentPassword",
+          { min: 1, max: 128, optional: true },
+        );
+
+        if (currentPassword) {
+          const { token } = await authPocketbaseUser(user.email, currentPassword);
+          pocketbaseToken = token;
+        }
+      }
+
+      if (!pocketbaseToken) {
+        throw badRequest(
+          "Impossible de vérifier votre session PocketBase pour modifier l'identifiant ou l'email",
+          "PB_AUTH_REQUIRED",
+        );
+      }
 
       const pbBody: Record<string, string> = {};
-      if (email) pbBody.email = email;
-      if (username) pbBody.username = username;
+      if (emailChanged && email) pbBody.email = email;
+      if (usernameChanged && username) pbBody.username = username;
 
-      await updatePocketbaseUser(user.pocketbase_user_id, pbBody, userToken);
+      try {
+        if (emailChanged) {
+          // Email updates on auth collections can require elevated privileges depending on PB rules.
+          await updatePocketbaseUserAsSuperuser(user.pocketbase_user_id, pbBody);
+        } else {
+          await updatePocketbaseUser(
+            user.pocketbase_user_id,
+            pbBody,
+            pocketbaseToken,
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "PocketBase update failed";
+
+        if (message.includes("status\":400") || message.includes(" 400 ")) {
+          throw badRequest(
+            "Modification email/identifiant refusée par PocketBase. Vérifiez le format ou l'unicité de l'email.",
+            "POCKETBASE_VALIDATION_ERROR",
+          );
+        }
+
+        throw error;
+      }
     }
 
     const updatedRows = (await db<UserRow>("users")

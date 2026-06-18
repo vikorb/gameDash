@@ -18,6 +18,8 @@ services:
   pocketbase:
     build: ./pocketbase
     container_name: gamedash_pocketbase
+    ports:
+      - "8090:8090"
     volumes:
       - pocketbase_data:/pb_data
     environment:
@@ -74,9 +76,11 @@ services:
   frontend:
     build: ./frontend
     container_name: gamedash_front
+    ports:
+      - "5173:5173"
     environment:
-      VITE_API_URL: ${VITE_API_URL}
-      VITE_POCKETBASE_URL: ${VITE_POCKETBASE_URL}
+      VITE_API_URL: /api
+      VITE_POCKETBASE_URL: /pb
     depends_on:
       - backend
       - pocketbase

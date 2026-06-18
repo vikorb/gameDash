@@ -18,12 +18,50 @@ export class ApiRequestError extends Error {
 
 function getApiBaseUrl() {
   const configured = import.meta.env.VITE_API_URL as string | undefined
-  return (configured || DEFAULT_API_BASE_URL).replace(/\/$/, '')
+  return (configured || DEFAULT_API_BASE_URL).trim().replace(/\/$/, '')
+}
+
+function getBrowserOrigin() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin
+  }
+
+  return 'http://localhost'
+}
+
+function toAbsoluteApiBaseUrl(baseUrl: string): string {
+  const origin = getBrowserOrigin()
+
+  if (!baseUrl) {
+    return `${origin}/api/`
+  }
+
+  if (/^https?:\/\//i.test(baseUrl)) {
+    return `${baseUrl.replace(/\/+$/, '')}/`
+  }
+
+  if (baseUrl.startsWith('//')) {
+    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:'
+    return `${protocol}${baseUrl.replace(/\/+$/, '')}/`
+  }
+
+  if (baseUrl.startsWith('/')) {
+    return `${origin}${baseUrl.replace(/\/+$/, '')}/`
+  }
+
+  // Accept host/path forms like "localhost:3000/api" by prepending current protocol.
+  if (/^[a-zA-Z0-9.-]+(?::\d+)?(?:\/.*)?$/.test(baseUrl)) {
+    const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:'
+    return `${protocol}//${baseUrl.replace(/\/+$/, '')}/`
+  }
+
+  return `${origin}/${baseUrl.replace(/^\/+/, '').replace(/\/+$/, '')}/`
 }
 
 function buildUrl(path: string, query?: ApiRequestOptions['query']) {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-  const url = new URL(`${getApiBaseUrl()}${normalizedPath}`)
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path
+  const baseUrl = toAbsoluteApiBaseUrl(getApiBaseUrl())
+  const url = new URL(normalizedPath, baseUrl)
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {

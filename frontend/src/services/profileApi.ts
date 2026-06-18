@@ -140,8 +140,8 @@ export async function getUserProfileById(userId: number) {
 export async function updateUserProfile(
   userId: number,
   payload: {
-    username: string
-    email: string
+    username?: string
+    email?: string
     region?: string
     bio?: string
     language?: string
