@@ -341,14 +341,17 @@ router.post(
     if (Object.keys(updates).length === 0) {
       return res.status(200).json({ status: "no_changes", user });
     }
-    
+
     const usernameChanged =
       username !== undefined && username !== (user.username ?? undefined);
-    const emailChanged = email !== undefined && email !== (user.email ?? undefined);
+    const emailChanged =
+      email !== undefined && email !== (user.email ?? undefined);
 
     if (user.pocketbase_user_id && (emailChanged || usernameChanged)) {
       const authorizationHeader = req.header("authorization")?.trim() ?? "";
-      const bearerToken = authorizationHeader.toLowerCase().startsWith("bearer ")
+      const bearerToken = authorizationHeader
+        .toLowerCase()
+        .startsWith("bearer ")
         ? authorizationHeader.slice(7).trim()
         : authorizationHeader;
 
@@ -367,7 +370,10 @@ router.post(
         );
 
         if (currentPassword) {
-          const { token } = await authPocketbaseUser(user.email, currentPassword);
+          const { token } = await authPocketbaseUser(
+            user.email,
+            currentPassword,
+          );
           pocketbaseToken = token;
         }
       }
@@ -386,7 +392,10 @@ router.post(
       try {
         if (emailChanged) {
           // Email updates on auth collections can require elevated privileges depending on PB rules.
-          await updatePocketbaseUserAsSuperuserSafe(user.pocketbase_user_id, pbBody);
+          await updatePocketbaseUserAsSuperuserSafe(
+            user.pocketbase_user_id,
+            pbBody,
+          );
         } else {
           await updatePocketbaseUser(
             user.pocketbase_user_id,
@@ -395,12 +404,54 @@ router.post(
           );
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : "PocketBase update failed";
+        const status =
+          typeof error === "object" &&
+          error !== null &&
+          "status" in error &&
+          typeof (error as { status?: unknown }).status === "number"
+            ? (error as { status: number }).status
+            : null;
 
-        if (message.includes("status\":400") || message.includes(" 400 ")) {
+        const message =
+          error instanceof Error ? error.message : "PocketBase update failed";
+
+        if (
+          status === 400 ||
+          message.includes('status":400') ||
+          message.includes(" 400 ")
+        ) {
           throw badRequest(
             "Modification email/identifiant refusée par PocketBase. Vérifiez le format ou l'unicité de l'email.",
             "POCKETBASE_VALIDATION_ERROR",
+          );
+        }
+
+        if (
+          status === 404 ||
+          message.includes('status":404') ||
+          message.includes(" 404 ")
+        ) {
+          throw badRequest(
+            "Le compte PocketBase lié à cet utilisateur est introuvable. Vérifiez pocketbase_user_id.",
+            "POCKETBASE_USER_NOT_FOUND",
+            {
+              user_id: user.id,
+              pocketbase_user_id: user.pocketbase_user_id,
+            },
+          );
+        }
+
+        if (
+          status === 401 ||
+          status === 403 ||
+          message.includes('status":401') ||
+          message.includes('status":403') ||
+          message.includes(" 401 ") ||
+          message.includes(" 403 ")
+        ) {
+          throw badRequest(
+            "Authentification PocketBase invalide ou permissions insuffisantes.",
+            "POCKETBASE_AUTH_ERROR",
           );
         }
 
