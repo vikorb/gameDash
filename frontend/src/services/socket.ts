@@ -12,6 +12,7 @@ if (baseUrl.startsWith('/')) {
 
 export const socket: Socket = io(baseUrl, {
   autoConnect: false,
+  transports: ['websocket', 'polling'],
 });
 
 const originalEmit = socket.emit;

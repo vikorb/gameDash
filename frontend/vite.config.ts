@@ -42,6 +42,11 @@ export default defineConfig(() => {
         secure: false,
         rewrite: (path) => path.replace(/^\/pb/, ''),
       },
+      '/socket.io': {
+        target: 'http://backend:3000',
+        ws: true,
+        changeOrigin: true,
+      },
     },
     watch: {
       usePolling: true,
