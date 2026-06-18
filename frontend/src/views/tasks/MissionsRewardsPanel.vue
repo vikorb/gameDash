@@ -32,8 +32,6 @@
               <span class="mission-status">{{ mission.completed ? 'Completee' : 'En cours' }}</span>
             </div>
 
-            <p v-if="mission.description" class="mission-description">{{ mission.description }}</p>
-
             <div class="mission-progress-row">
               <div class="mission-progress-track">
                 <div class="mission-progress-fill" :style="{ width: `${progressPercent(mission)}%` }" />
@@ -194,11 +192,6 @@ watch(
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.missions-mode-filter {
-  min-width: 260px;
 }
 
 .missions-mode-filter :deep(.mode-selector) {
@@ -315,12 +308,6 @@ watch(
   opacity: 0.86;
   min-width: 58px;
   text-align: right;
-}
-
-.mission-description {
-  margin: 0 0 0.45rem;
-  font-size: 0.82rem;
-  opacity: 0.82;
 }
 
 .mission-reward {
