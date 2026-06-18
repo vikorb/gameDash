@@ -19,6 +19,7 @@ import gameModesRoutes from "@/routes/game-modes";
 import matchesRoutes from "@/routes/matches";
 import adminRoutes from "@/routes/admin";
 import auditRoutes from "@/routes/audit";
+import tasksRoutes from "@/routes/tasks";
 
 export const app = express();
 
@@ -83,6 +84,7 @@ app.use("/api/mmr", mmrRoutes);
 app.use("/api/game-modes", gameModesRoutes);
 app.use("/api/ranks", ranksRoutes);
 app.use("/api/matches", matchesRoutes);
+app.use("/api/tasks", tasksRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/audit", auditRoutes as Router);
 

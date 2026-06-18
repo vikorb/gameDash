@@ -4,6 +4,8 @@
       <h1 class="tasks-title">Historique des matchs</h1>
     </div>
 
+    <MissionsRewardsPanel :user-id="postgresUserId" />
+
     <div class="tasks-filters">
       <div class="filter-group filter-group--mode">
         <label class="filter-label">Mode de jeu</label>
@@ -56,6 +58,7 @@ import { useMatchHistoricStore } from '@/stores/matchHistoricStore'
 import { useUserStore } from '@/stores/userStore'
 import type { GameMode } from '@/types/gameMode'
 import HistoricMatchsTable from '@/views/tasks/HistoricMatchsTable.vue'
+import MissionsRewardsPanel from '@/views/tasks/MissionsRewardsPanel.vue'
 
 const userStore = useUserStore()
 const store = useMatchHistoricStore()
