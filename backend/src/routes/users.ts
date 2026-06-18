@@ -28,6 +28,11 @@ import {
 
 const router = Router();
 
+const updatePocketbaseUserAsSuperuserSafe: (
+  pbUserId: string,
+  fields: Record<string, string>,
+) => Promise<void> = updatePocketbaseUserAsSuperuser;
+
 router.post(
   "/",
   asyncHandler(async (req, res) => {
@@ -381,7 +386,7 @@ router.post(
       try {
         if (emailChanged) {
           // Email updates on auth collections can require elevated privileges depending on PB rules.
-          await updatePocketbaseUserAsSuperuser(user.pocketbase_user_id, pbBody);
+          await updatePocketbaseUserAsSuperuserSafe(user.pocketbase_user_id, pbBody);
         } else {
           await updatePocketbaseUser(
             user.pocketbase_user_id,

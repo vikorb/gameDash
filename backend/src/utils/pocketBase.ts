@@ -105,10 +105,13 @@ async function authPocketbaseSuperuser(): Promise<string> {
   return payload.token;
 }
 
-export async function updatePocketbaseUserAsSuperuser(
+export const updatePocketbaseUserAsSuperuser: (
   pbUserId: string,
   fields: Record<string, string>,
-): Promise<void> {
+) => Promise<void> = async (
+  pbUserId: string,
+  fields: Record<string, string>,
+): Promise<void> => {
   const adminToken = await authPocketbaseSuperuser();
 
   const res = await fetch(
@@ -127,7 +130,7 @@ export async function updatePocketbaseUserAsSuperuser(
     const err = await res.text();
     throw new Error(`PocketBase superuser update failed: ${res.status} ${err}`);
   }
-}
+};
 
 // ─── Upload avatar (token utilisateur requis) ─────────────────────────────────
 
