@@ -5,6 +5,8 @@ export type MatchRow = {
   match_id: number;
   played_at: string;
   status: string;
+  map_id: number | null;
+  map_name: string | null;
   game_mode_id: number;
   game_mode_name: string;
   team_id: number;
@@ -42,11 +44,14 @@ export async function getMatchHistory({ userId, modeId, result, dateFrom, dateTo
     .join('matches as m', 'm.id', 'mp.match_id')
     .join('match_teams as mt', 'mt.id', 'mp.team_id')
     .join('game_modes as gm', 'gm.id', 'm.game_mode_id')
+    .leftJoin('maps as map', 'map.id', 'm.map_id')
     .where('mp.user_id', userId)
     .select(
       'm.id as match_id',
       'm.played_at',
       'm.status',
+      'map.id as map_id',
+      'map.title as map_name',
       'gm.id as game_mode_id',
       'gm.name as game_mode_name',
       'mt.id as team_id',
@@ -119,6 +124,12 @@ export async function getMatchHistory({ userId, modeId, result, dateFrom, dateTo
       nb_kills: row.nb_kills,
       mmr_after: row.mmr_after ?? null,
       mmr_before: row.mmr_after != null ? row.mmr_after - row.mmr_gained : null,
+      map: row.map_id
+        ? {
+            id: row.map_id,
+            name: row.map_name ?? `Map #${row.map_id}`,
+          }
+        : undefined,
       teams: Object.values(teams),
     };
   });

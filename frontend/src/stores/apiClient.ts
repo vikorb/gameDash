@@ -18,7 +18,7 @@ export class ApiRequestError extends Error {
 
 function getApiBaseUrl() {
   const configured = import.meta.env.VITE_API_URL as string | undefined
-  return (configured || DEFAULT_API_BASE_URL).replace(/\/$/, '')
+  return (configured || DEFAULT_API_BASE_URL).trim().replace(/\/$/, '')
 }
 
 function buildUrl(path: string, query?: ApiRequestOptions['query']) {

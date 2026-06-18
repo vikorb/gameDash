@@ -5,6 +5,7 @@
     :show-play-button="isPlayer"
   />
 
+  <AdminHomeSection v-if="isAdmin" />
   <PlayerDashboardSection v-if="isPlayer" />
 </template>
 
@@ -13,6 +14,7 @@ import { computed } from 'vue'
 
 import { authService } from '@/services/pocketbase'
 import { useUserStore } from '@/stores/userStore'
+import AdminHomeSection from '@/views/home/AdminHomeSection.vue'
 import HomeHeaderSection from '@/views/home/HomeHeaderSection.vue'
 import PlayerDashboardSection from '@/views/home/PlayerDashboardSection.vue'
 
@@ -26,4 +28,5 @@ const displayName = computed(() => {
 })
 
 const isPlayer = computed(() => userStore.currentRole === 'player')
+const isAdmin = computed(() => userStore.currentRole === 'admin')
 </script>

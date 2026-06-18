@@ -2,7 +2,11 @@ import type { Knex } from 'knex';
 
 type UserRow = { id: number };
 type ModeRow = { id: number };
-type PlayerMmrRow = { user_id: number; mmr: number };
+type MapRow = { id: number };
+type PlayerMmrRow = { user_id: number; mode_id: number; mmr: number };
+
+const HISTORY_DAYS = 30;
+const PLAYERS_PER_MATCH = 8;
 
 export async function seed(knex: Knex): Promise<void> {
   await knex('match_participants').del();
@@ -12,6 +16,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   const players = (await knex('users').where({ role: 'player' }).select('id').limit(60)) as UserRow[];
   const modes: ModeRow[] = await knex('game_modes').where({ is_active: true }).select('id');
+  const maps: MapRow[] = await knex('maps').select('id').orderBy('id', 'asc');
 
   if (players.length < 8) {
     console.warn('Pas assez de joueurs pour seeder les matchs (minimum 8 requis)');
@@ -20,49 +25,66 @@ export async function seed(knex: Knex): Promise<void> {
 
   const allMmrRows: PlayerMmrRow[] = (await knex('player_mmr')
     .whereIn('user_id', players.map((p) => p.id))
-    .select('user_id', 'mmr')) as PlayerMmrRow[];
+    .select('user_id', 'mode_id', 'mmr')) as PlayerMmrRow[];
 
   const mmrCache = new Map<string, number>();
   for (const row of allMmrRows) {
-    for (const mode of modes) {
-      mmrCache.set(`${row.user_id}_${mode.id}`, 1000);
-    }
+    mmrCache.set(`${row.user_id}_${row.mode_id}`, row.mmr ?? 1000);
   }
 
   const now = new Date();
 
+  const matchesPerDay = Math.max(5, Math.ceil(players.length / 12));
+
   for (const mode of modes) {
-    for (let i = 0; i < 20; i++) {
-      const playedAt = new Date(now.getTime() - (20 - i) * 24 * 60 * 60 * 1000);
+    for (let day = 0; day < HISTORY_DAYS; day++) {
+      for (let matchIndex = 0; matchIndex < matchesPerDay; matchIndex++) {
+        const playedAt = new Date(
+          now.getTime() - (HISTORY_DAYS - 1 - day) * 24 * 60 * 60 * 1000,
+        );
+        playedAt.setHours(10 + (matchIndex % 10), (day * 7 + matchIndex * 11) % 60, 0, 0);
 
-      const shuffled = [...players].sort(() => Math.random() - 0.5).slice(0, 8);
-      const teamAPlayers = shuffled.slice(0, 4);
-      const teamBPlayers = shuffled.slice(4, 8);
+        const start = (day * 13 + matchIndex * PLAYERS_PER_MATCH) % players.length;
+        const selectedPlayers = Array.from({ length: PLAYERS_PER_MATCH }, (_, idx) => {
+          const player = players[(start + idx) % players.length];
+          if (!player) {
+            throw new Error('Unable to build seeded participants list');
+          }
+          return player;
+        });
 
-      const winnerIndex = Math.random() < 0.5 ? 0 : 1;
+        const teamAPlayers = selectedPlayers.slice(0, PLAYERS_PER_MATCH / 2);
+        const teamBPlayers = selectedPlayers.slice(PLAYERS_PER_MATCH / 2);
 
-      const [{ id: matchId }] = (await knex('matches').insert({
-        game_mode_id: mode.id,
-        status: 'completed',
-        winner_team_id: null,
-        played_at: playedAt.toISOString(),
-      }).returning('id')) as { id: number }[];
+        const winnerIndex = Math.random() < 0.5 ? 0 : 1;
 
-      const [{ id: teamAId }] = (await knex('match_teams').insert({
-        match_id: matchId,
-        name: 'Équipe A',
-        result: winnerIndex === 0 ? 'win' : 'loss',
-      }).returning('id')) as { id: number }[];
+        const selectedMapId = maps.length
+          ? (maps[(day * matchesPerDay + matchIndex + mode.id) % maps.length]?.id ?? null)
+          : null;
 
-      const [{ id: teamBId }] = (await knex('match_teams').insert({
-        match_id: matchId,
-        name: 'Équipe B',
-        result: winnerIndex === 1 ? 'win' : 'loss',
-      }).returning('id')) as { id: number }[];
+        const [{ id: matchId }] = (await knex('matches').insert({
+          game_mode_id: mode.id,
+          map_id: selectedMapId,
+          status: 'completed',
+          winner_team_id: null,
+          played_at: playedAt.toISOString(),
+        }).returning('id')) as { id: number }[];
 
-      await knex('matches').where({ id: matchId }).update({
-        winner_team_id: winnerIndex === 0 ? teamAId : teamBId,
-      });
+        const [{ id: teamAId }] = (await knex('match_teams').insert({
+          match_id: matchId,
+          name: 'Équipe A',
+          result: winnerIndex === 0 ? 'win' : 'loss',
+        }).returning('id')) as { id: number }[];
+
+        const [{ id: teamBId }] = (await knex('match_teams').insert({
+          match_id: matchId,
+          name: 'Équipe B',
+          result: winnerIndex === 1 ? 'win' : 'loss',
+        }).returning('id')) as { id: number }[];
+
+        await knex('matches').where({ id: matchId }).update({
+          winner_team_id: winnerIndex === 0 ? teamAId : teamBId,
+        });
 
       type ParticipantInsert = {
         match_id: number;
@@ -111,12 +133,13 @@ export async function seed(knex: Knex): Promise<void> {
           };
         });
 
-      const teamARows = buildParticipantRows(teamAPlayers, teamAId, winnerIndex === 0);
-      const teamBRows = buildParticipantRows(teamBPlayers, teamBId, winnerIndex === 1);
-      const allRows = [...teamARows, ...teamBRows];
+        const teamARows = buildParticipantRows(teamAPlayers, teamAId, winnerIndex === 0);
+        const teamBRows = buildParticipantRows(teamBPlayers, teamBId, winnerIndex === 1);
+        const allRows = [...teamARows, ...teamBRows];
 
-      await knex('match_participants').insert(allRows.map((r) => r.participant));
-      await knex('mmr_history').insert(allRows.map((r) => r.history));
+        await knex('match_participants').insert(allRows.map((r) => r.participant));
+        await knex('mmr_history').insert(allRows.map((r) => r.history));
+      }
     }
 
     for (const player of players) {

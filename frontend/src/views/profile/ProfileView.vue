@@ -453,9 +453,14 @@ async function handleProfileSubmit(values: ProfileFormValues) {
       return
     }
 
+    const nextUsername = values.username.trim()
+    const nextEmail = values.email.trim()
+    const currentUsername = user.value.username ?? ''
+    const currentEmail = user.value.email ?? ''
+
     const response = await updateUserProfile(user.value.id, {
-      username: values.username.trim(),
-      email: values.email.trim(),
+      username: nextUsername !== currentUsername ? nextUsername : undefined,
+      email: nextEmail !== currentEmail ? nextEmail : undefined,
       region: optionalString(values.region),
       bio: values.bio,
       language: optionalString(values.language),

@@ -2,8 +2,8 @@
   "home": {
     "welcome": "Welcome {name},",
     "hero": {
-      "title": "GameDash",
-      "subtitle": "Your control panel for maps."
+      "title": "",
+      "subtitle": ""
     },
     "landing": {
       "login": "Sign in",
@@ -32,9 +32,14 @@
     "player_dashboard": {
       "shop": {
         "title": "Shop",
-        "orange_pack": "Orange Pack",
-        "premium_pack": "Premium Pack",
-        "footnote": "Mock data – GameDash"
+        "open": "Open shop",
+        "announcement": "Shop announcements",
+        "caption": "Indicative preview of the latest 3 items",
+        "teaser": "Limited edition available this week",
+        "productCta": "View product",
+        "loading": "Loading latest items...",
+        "empty": "No new items available right now.",
+        "footnote": "Latest shop arrivals"
       },
       "competitive": {
         "title": "Competitive profile",
@@ -45,6 +50,117 @@
       "rank": {
         "title": "GOLD III",
         "level": "Level {level}"
+      }
+    },
+    "admin": {
+      "actions": {
+        "openDashboard": "Open dashboard",
+        "viewAll": "View all",
+        "openAudit": "Open audit"
+      },
+      "states": {
+        "loading": "Loading...",
+        "activityError": "Unable to load recent activity.",
+        "logsError": "Unable to load user logs.",
+        "noActivity": "No recent activity.",
+        "noLogs": "No recent moderation logs."
+      },
+      "kpis": {
+        "title": "Quick metrics",
+        "activeUsers": "Active users",
+        "matchesPerDay": "Matches / day",
+        "transactionsPerDay": "Transactions / day",
+        "mapsPublished": "Published maps",
+        "pendingReports": "Pending reports"
+      },
+      "hub": {
+        "subtitle": "Quick action-oriented view to admin modules without overloading details.",
+        "cards": {
+          "dashboard": "Global platform monitoring for key indicators and trends.",
+          "matchmaking": "Tune queue and balancing settings for game sessions.",
+          "economy": "Control shop, rewards, and key economy signals.",
+          "users": "Access profile management and user operations.",
+          "reports": "Process pending reports and prioritize actions.",
+          "audit": "Review moderation history and admin traceability."
+        }
+      },
+      "chart": {
+        "title": "Backoffice activity (30 days)",
+        "subtitle": "One line per type: match, transaction, map, sanction",
+        "noData": "Not enough data to draw the chart."
+      },
+      "averageMmr": {
+        "title": "Average player MMR over time",
+        "subtitle": "Global day-by-day average MMR trend with mode and date filters.",
+        "empty": "Not enough data to display this chart.",
+        "error": "Unable to load average MMR.",
+        "legend": {
+          "averageMmr": "Average MMR",
+          "median": "Median"
+        },
+        "filters": {
+          "allModes": "All modes",
+          "mode": "Mode",
+          "period": "Period",
+          "customRange": "Custom range"
+        }
+      },
+      "shopPurchases": {
+        "title": "Player shop purchases",
+        "subtitle": "Daily purchase volume (stars and cash) for the selected period.",
+        "empty": "Not enough data to display this chart.",
+        "error": "Unable to load shop purchases.",
+        "badgeUnit": "purchases",
+        "legend": {
+          "total": "Total",
+          "soft": "Star purchases",
+          "hard": "Cash purchases"
+        },
+        "filters": {
+          "period": "Period",
+          "customRange": "Custom range"
+        },
+        "axis": {
+          "y": "Purchase count"
+        },
+        "currencies": {
+          "soft": "stars",
+          "hard": "cash"
+        }
+      },
+      "quickLinks": {
+        "title": "Admin quick links",
+        "dashboard": "Backoffice dashboard",
+        "matchmaking": "Matchmaking settings",
+        "economy": "Economy and rewards",
+        "users": "User management",
+        "reports": "Reports"
+      },
+      "recentActivity": {
+        "title": "Platform activity",
+        "by": "By",
+        "types": {
+          "match": "Match",
+          "transaction": "Transaction",
+          "map": "Map",
+          "sanction": "Sanction"
+        }
+      },
+      "userLogs": {
+        "title": "User logs",
+        "by": "Action by",
+        "actions": {
+          "report_assigned": "Report assigned",
+          "report_resolved": "Report resolved",
+          "content_hidden": "Content hidden",
+          "content_restored": "Content restored",
+          "content_review_requested": "Review requested",
+          "sanction_activated": "Sanction activated",
+          "sanction_revoked": "Sanction revoked",
+          "appeal_accepted": "Appeal accepted",
+          "appeal_rejected": "Appeal rejected",
+          "appeal_info_requested": "Appeal info requested"
+        }
       }
     }
   }

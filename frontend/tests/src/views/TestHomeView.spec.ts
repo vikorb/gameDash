@@ -87,29 +87,17 @@ vi.mock('@/views/home/HomeHeaderSection.vue', () => ({
     `,
   }),
 }))
-vi.mock('@/components/player-dashboard/PlayerShopCard.vue', () => ({
-  default: defineComponent({
-    name: 'PlayerShopCard',
-    template: '<div class="player-shop-card" />',
-  }),
-}))
-vi.mock('@/components/player-dashboard/PlayerCompetitiveCard.vue', () => ({
-  default: defineComponent({
-    name: 'PlayerCompetitiveCard',
-    template: '<div class="player-competitive-card" />',
-  }),
-}))
-vi.mock('@/components/player-dashboard/PlayerRankCard.vue', () => ({
-  default: defineComponent({
-    name: 'PlayerRankCard',
-    template: '<div class="player-rank-card" />',
-  }),
-}))
-
-vi.mock('@/components/player-dashboard/PlayerDashboardSection.vue', () => ({
+vi.mock('@/views/home/PlayerDashboardSection.vue', () => ({
   default: defineComponent({
     name: 'PlayerDashboardSection',
     template: '<section class="player-dashboard" />',
+  }),
+}))
+
+vi.mock('@/views/home/AdminHomeSection.vue', () => ({
+  default: defineComponent({
+    name: 'AdminHomeSection',
+    template: '<section class="admin-home" />',
   }),
 }))
 

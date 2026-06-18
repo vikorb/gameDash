@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.app.json",
+  "include": ["../env.d.ts", "src/**/*"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["node", "jsdom", "vitest/globals"]
+  }
+}

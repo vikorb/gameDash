@@ -18,6 +18,8 @@ export type BackofficeTrend = {
 
 export type BackofficeDashboardData = {
   period: BackofficePeriodValue
+  selectedModeId: number | null
+  rankModes: Array<{ id: number; name: string }>
   snapshot: BackofficePeriodSnapshot
   trends: Record<keyof BackofficePeriodSnapshot, BackofficeTrend>
   rankDistribution: Array<{ key: BackofficeRankKey; count: number; percentage: number }>
@@ -54,4 +56,21 @@ export type BackofficeMatchmakingSummary = {
   avgWaitSeconds: number
   lastUpdateAt: string
   lastUpdateActor: string
+}
+
+export type BackofficeRankDivision = {
+  id: number
+  name: string
+  order: number
+  minXp: number
+  maxXp: number
+}
+
+export type BackofficeRankWithDivisions = {
+  id: number
+  name: string
+  minXp: number
+  maxXp: number
+  divisionCount: number
+  divisions: BackofficeRankDivision[]
 }

@@ -813,6 +813,7 @@ import {
 } from '@mdi/js'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 import {
   type Bundle,
@@ -825,10 +826,39 @@ import { picsumUrl, wait } from '@/stores/shopUtils'
 
 const store = useShopStore()
 const { t, locale } = useI18n({ useScope: 'global' })
+const route = useRoute()
+const router = useRouter()
 
-// ── Chargement initial ─────────────────────────────────────────────────────
-onMounted(() => {
-  if (!store.items.length) store.fetchShopState()
+function normalizeTab(value: unknown): 'boutique' | 'bundles' | 'catalogue' | null {
+  if (value === 'boutique' || value === 'bundles' || value === 'catalogue') return value
+  return null
+}
+
+function applyDeepLinkFromQuery(): void {
+  const tab = normalizeTab(route.query.tab)
+  if (tab) activeTab.value = tab
+
+  const itemParam = route.query.item
+  if (typeof itemParam !== 'string' || itemParam.trim() === '') return
+
+  const itemId = Number(itemParam)
+  if (!Number.isInteger(itemId) || itemId <= 0) return
+
+  const targetItem = store.items.find((item) => item.id === itemId)
+  if (!targetItem) return
+
+  activeTab.value = 'catalogue'
+  openItemPurchase(targetItem)
+
+  // Clean up deep-link query after resolving it once.
+  void router.replace({ path: '/shop', query: { tab: 'catalogue' } })
+}
+
+onMounted(async () => {
+  if (!store.items.length) {
+    await store.fetchShopState()
+  }
+  applyDeepLinkFromQuery()
 })
 
 // ── Clock (timer bundles) ──────────────────────────────────────────────────
