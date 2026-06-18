@@ -74,7 +74,7 @@
         "pendingReports": "Signalements en attente"
       },
       "hub": {
-        "subtitle": "Vue rapide et orientée action vers les modules admin, sans surcharger en détails.",
+        "subtitle": "Vue rapide et orientée action vers les modules admin, sans surcharger en détails (Période de 30 jours).",
         "cards": {
           "dashboard": "Pilotage global des indicateurs et tendances de la plateforme.",
           "matchmaking": "Ajustez les paramètres de files et d'équilibrage des parties.",

@@ -10,6 +10,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 type UserRow = {
   id: number;
+  pocketbase_user_id: string | null;
   email: string;
   username: string;
   role: string;
@@ -23,6 +24,7 @@ type UserRow = {
 };
 
 type WebhookUserRecord = {
+  id: string;
   email: string;
   username: string;
   avatar_url?: string;
@@ -39,6 +41,7 @@ const ajv = new Ajv({ allErrors: true });
 const validateWebhookUserRecord = ajv.compile<WebhookUserRecord>({
   type: "object",
   properties: {
+    id: { type: "string", minLength: 1 },
     email: { type: "string", minLength: 1 },
     username: { type: "string", minLength: 1 },
     role: { type: "string" },
@@ -57,7 +60,7 @@ const validateWebhookUserRecord = ajv.compile<WebhookUserRecord>({
     language: { type: "string" },
     matchmaking_pref: {},
   },
-  required: ["email", "username"],
+  required: ["id", "email", "username"],
   additionalProperties: true,
 });
 
@@ -106,6 +109,7 @@ router.post(
     const validatedRecord = recordRaw;
 
     const record = {
+      pocketbase_user_id: validatedRecord.id,
       email: validatedRecord.email,
       username: validatedRecord.username,
       role: validatedRecord.role,
@@ -117,17 +121,36 @@ router.post(
       matchmaking_pref: validatedRecord.matchmaking_pref ?? null,
     };
 
-    const existing = await db<{ id: number }>("users")
-      .where("email", record.email)
+    const existing = await db<{
+      id: number;
+      pocketbase_user_id: string | null;
+    }>("users")
+      .where("pocketbase_user_id", record.pocketbase_user_id)
+      .orWhere("email", record.email)
       .orWhere("username", record.username)
       .first();
 
     if (existing) {
-      return res.status(200).json({ status: "already_exists" });
+      await db("users")
+        .where("id", existing.id)
+        .update({
+          pocketbase_user_id: record.pocketbase_user_id,
+          email: record.email,
+          username: record.username,
+          avatar_url: record.avatar_url ?? null,
+          region: record.region ?? null,
+          bio: record.bio ?? null,
+          language: record.language ?? null,
+          matchmaking_pref: record.matchmaking_pref ?? null,
+          updated_at: db.fn.now(),
+        });
+
+      return res.status(200).json({ status: "updated_existing" });
     }
 
     const createdRows = (await db<UserRow>("users")
       .insert({
+        pocketbase_user_id: record.pocketbase_user_id,
         email: record.email,
         username: record.username,
         role: record.role ?? "player",
