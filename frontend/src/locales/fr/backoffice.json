@@ -114,6 +114,10 @@
         "title": "Distribution des rangs",
         "subtitle": "Répartition de la population sur la ladder compétitive.",
         "totalPlayers": "{count} joueurs classés",
+        "modeFilter": {
+          "all": "Tous les modes"
+        },
+        "manage": "Gérer",
         "labels": {
           "bronze": "Bronze",
           "silver": "Silver",
@@ -148,6 +152,46 @@
           "transaction": "Achat de {actor} : {target}",
           "map": "{actor} a publié {target}",
           "sanction": "{actor} a sanctionné {target}"
+        }
+      }
+    },
+    "ranks": {
+      "badge": "Compétitif",
+      "title": "Gestion des rangs & divisions",
+      "subtitle": "Vue structurée des paliers de rang et des divisions associées, avec style dashboard orienté live ops.",
+      "actions": {
+        "backToDashboard": "Retour au dashboard",
+        "create": "Créer",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "createDivision": "Créer division",
+        "editDivision": "Modifier division",
+        "deleteDivision": "Supprimer division",
+        "cancel": "Annuler",
+        "saveCreate": "Créer le rang",
+        "saveEdit": "Enregistrer",
+        "saveCreateDivision": "Créer la division",
+        "saveEditDivision": "Enregistrer la division"
+      },
+      "summary": {
+        "totalRanks": "Rangs",
+        "totalDivisions": "Divisions"
+      },
+      "divisionCount": "{count} divisions",
+      "form": {
+        "name": "Nom du rang",
+        "minXp": "XP minimum",
+        "maxXp": "XP maximum",
+        "divisions": "Nombre de divisions",
+        "divisionName": "Nom de la division",
+        "divisionOrder": "Ordre de la division",
+        "divisionMinXp": "XP minimum division",
+        "divisionMaxXp": "XP maximum division",
+        "errors": {
+          "nameRequired": "Le nom du rang est requis.",
+          "invalidRange": "La plage XP est invalide (max < min).",
+          "divisionNameRequired": "Le nom de la division est requis.",
+          "invalidDivisionOrder": "L'ordre de division doit etre superieur ou egal a 1."
         }
       }
     },

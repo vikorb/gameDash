@@ -31,6 +31,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/pb': {
+        target: process.env.POCKETBASE_URL || 'http://gamedash_pocketbase:8090',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/pb/, ''),
+      },
     },
     watch: {
       usePolling: true,

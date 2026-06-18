@@ -6,6 +6,7 @@ import AuthView from '@/views/auth/AuthView.vue'
 import BackofficeDashboardView from '@/views/backoffice/BackofficeDashboardView.vue'
 import BackofficeEconomyView from '@/views/backoffice/BackofficeEconomyView.vue'
 import BackofficeMatchmakingView from '@/views/backoffice/BackofficeMatchmakingView.vue'
+import BackofficeRanksView from '@/views/backoffice/BackofficeRanksView.vue'
 import BackOfficeView from '@/views/backoffice/BackOfficeView.vue'
 import RoleSectionView from '@/views/home/RoleSectionView.vue'
 import HomeView from '@/views/HomeView.vue'
@@ -125,6 +126,12 @@ const router = createRouter({
       path: '/backoffice/economy',
       name: 'backoffice-economy',
       component: BackofficeEconomyView,
+      meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
+    },
+    {
+      path: '/backoffice/ranks',
+      name: 'backoffice-ranks',
+      component: BackofficeRanksView,
       meta: { requiresAuth: true, roles: ['admin'] as UserRole[] },
     },
     {

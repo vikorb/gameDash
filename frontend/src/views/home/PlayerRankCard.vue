@@ -26,8 +26,9 @@ const { t } = useI18n({ useScope: 'global' })
 
 <style scoped>
 .player-card {
-  background: color-mix(in srgb, var(--color-background-secondary) 88%, var(--color-cream));
-  border: 1px solid color-mix(in srgb, var(--color-background-secondary) 58%, var(--color-cream));
+  background: linear-gradient(140deg, rgba(56, 70, 98, 0.82), rgba(30, 36, 54, 0.92));
+  border: 1px solid rgba(252, 239, 225, 0.14);
+  box-shadow: 0 18px 34px -26px rgba(0, 0, 0, 0.84);
 }
 
 .rank-title {

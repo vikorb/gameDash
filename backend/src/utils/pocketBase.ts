@@ -1,4 +1,6 @@
 const PB_URL = process.env.POCKETBASE_INTERNAL_URL ?? "http://pocketbase:8090";
+const PB_ADMIN_EMAIL = process.env.POCKETBASE_ADMIN_EMAIL;
+const PB_ADMIN_PASSWORD = process.env.POCKETBASE_ADMIN_PASSWORD;
 
 // ─── Auth utilisateur (pas admin) ────────────────────────────────────────────
 
@@ -72,6 +74,63 @@ export async function updatePocketbaseUser(
     throw new Error(`PocketBase update failed: ${res.status} ${err}`);
   }
 }
+
+async function authPocketbaseSuperuser(): Promise<string> {
+  if (!PB_ADMIN_EMAIL || !PB_ADMIN_PASSWORD) {
+    throw new Error("PocketBase superuser credentials are not configured");
+  }
+
+  const res = await fetch(
+    `${PB_URL}/api/collections/_superusers/auth-with-password`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        identity: PB_ADMIN_EMAIL,
+        password: PB_ADMIN_PASSWORD,
+      }),
+    },
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`PocketBase superuser auth failed: ${res.status} ${err}`);
+  }
+
+  const payload = (await res.json()) as { token?: string };
+  if (!payload.token) {
+    throw new Error("PocketBase superuser auth failed: missing token");
+  }
+
+  return payload.token;
+}
+
+export const updatePocketbaseUserAsSuperuser: (
+  pbUserId: string,
+  fields: Record<string, string>,
+) => Promise<void> = async (
+  pbUserId: string,
+  fields: Record<string, string>,
+): Promise<void> => {
+  const adminToken = await authPocketbaseSuperuser();
+
+  const res = await fetch(
+    `${PB_URL}/api/collections/users/records/${pbUserId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${adminToken}`,
+      },
+      body: JSON.stringify(fields),
+    },
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`PocketBase superuser update failed: ${res.status} ${err}`);
+  }
+};
 
 // ─── Upload avatar (token utilisateur requis) ─────────────────────────────────
 

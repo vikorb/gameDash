@@ -2,8 +2,8 @@
   "home": {
     "welcome": "Bienvenue {name},",
     "hero": {
-      "title": "GameDash",
-      "subtitle": "Le panneau de contrôle de tes maps."
+      "title": "",
+      "subtitle": ""
     },
     "landing": {
       "login": "Se connecter",
@@ -32,9 +32,14 @@
     "player_dashboard": {
       "shop": {
         "title": "Boutique",
-        "orange_pack": "Pack Orange",
-        "premium_pack": "Pack Premium",
-        "footnote": "Données fictives – GameDash"
+        "open": "Voir boutique",
+        "announcement": "Annonces boutique",
+        "caption": "Aperçu indicatif des 3 derniers items",
+        "teaser": "Edition limitée disponible cette semaine",
+        "productCta": "Voir produit",
+        "loading": "Chargement des nouveautés...",
+        "empty": "Aucune nouveauté disponible pour le moment.",
+        "footnote": "Dernières nouveautés de la boutique"
       },
       "competitive": {
         "title": "Profil compétitif",
@@ -45,6 +50,117 @@
       "rank": {
         "title": "GOLD III",
         "level": "Niveau {level}"
+      }
+    },
+    "admin": {
+      "actions": {
+        "openDashboard": "Ouvrir le dashboard",
+        "viewAll": "Tout voir",
+        "openAudit": "Ouvrir l'audit"
+      },
+      "states": {
+        "loading": "Chargement...",
+        "activityError": "Impossible de charger l'activité récente.",
+        "logsError": "Impossible de charger les logs utilisateurs.",
+        "noActivity": "Aucune activité récente.",
+        "noLogs": "Aucun log de modération récent."
+      },
+      "kpis": {
+        "title": "Indicateurs rapides",
+        "activeUsers": "Utilisateurs actifs",
+        "matchesPerDay": "Matches / jour",
+        "transactionsPerDay": "Transactions / jour",
+        "mapsPublished": "Maps publiées",
+        "pendingReports": "Signalements en attente"
+      },
+      "hub": {
+        "subtitle": "Vue rapide et orientée action vers les modules admin, sans surcharger en détails.",
+        "cards": {
+          "dashboard": "Pilotage global des indicateurs et tendances de la plateforme.",
+          "matchmaking": "Ajustez les paramètres de files et d'équilibrage des parties.",
+          "economy": "Contrôlez boutique, récompenses et signaux économiques clés.",
+          "users": "Accédez à la gestion des profils et des opérations utilisateurs.",
+          "reports": "Traitez les signalements en attente et priorisez les actions.",
+          "audit": "Consultez l'historique de modération et les traces d'administration."
+        }
+      },
+      "chart": {
+        "title": "Activité backoffice (30 jours)",
+        "subtitle": "Une courbe par type: match, transaction, map, sanction",
+        "noData": "Pas assez de données pour tracer le graphique."
+      },
+      "averageMmr": {
+        "title": "MMR moyen des joueurs dans le temps",
+        "subtitle": "Suivi global de la moyenne MMR par jour, avec filtres par mode et période.",
+        "empty": "Pas assez de données pour afficher ce graphique.",
+        "error": "Impossible de charger la moyenne MMR.",
+        "legend": {
+          "averageMmr": "MMR moyen",
+          "median": "Médiane"
+        },
+        "filters": {
+          "allModes": "Tous les modes",
+          "mode": "Mode",
+          "period": "Période",
+          "customRange": "Plage personnalisée"
+        }
+      },
+      "shopPurchases": {
+        "title": "Achats boutique des joueurs",
+        "subtitle": "Volume quotidien des achats en étoiles et en cash sur la période sélectionnée.",
+        "empty": "Pas assez de données pour afficher ce graphique.",
+        "error": "Impossible de charger les achats boutique.",
+        "badgeUnit": "achats",
+        "legend": {
+          "total": "Total",
+          "soft": "Achats en étoiles",
+          "hard": "Achats en cash"
+        },
+        "filters": {
+          "period": "Période",
+          "customRange": "Plage personnalisée"
+        },
+        "axis": {
+          "y": "Nombre d'achats"
+        },
+        "currencies": {
+          "soft": "étoiles",
+          "hard": "cash"
+        }
+      },
+      "quickLinks": {
+        "title": "Accès rapides admin",
+        "dashboard": "Dashboard backoffice",
+        "matchmaking": "Réglages matchmaking",
+        "economy": "Économie et récompenses",
+        "users": "Gestion des utilisateurs",
+        "reports": "Signalements"
+      },
+      "recentActivity": {
+        "title": "Activité plateforme",
+        "by": "Par",
+        "types": {
+          "match": "Match",
+          "transaction": "Transaction",
+          "map": "Map",
+          "sanction": "Sanction"
+        }
+      },
+      "userLogs": {
+        "title": "Logs utilisateurs",
+        "by": "Action par",
+        "actions": {
+          "report_assigned": "Signalement assigné",
+          "report_resolved": "Signalement résolu",
+          "content_hidden": "Contenu masqué",
+          "content_restored": "Contenu restauré",
+          "content_review_requested": "Revue demandée",
+          "sanction_activated": "Sanction activée",
+          "sanction_revoked": "Sanction annulée",
+          "appeal_accepted": "Appel accepté",
+          "appeal_rejected": "Appel rejeté",
+          "appeal_info_requested": "Infos d'appel demandées"
+        }
       }
     }
   }
