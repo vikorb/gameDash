@@ -59,9 +59,11 @@ function toAbsoluteApiBaseUrl(baseUrl: string): string {
 }
 
 function buildUrl(path: string, query?: ApiRequestOptions['query']) {
-  const normalizedPath = path.startsWith('/') ? path.slice(1) : path
-  const baseUrl = toAbsoluteApiBaseUrl(getApiBaseUrl())
-  const url = new URL(normalizedPath, baseUrl)
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const base = getApiBaseUrl()
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+
+  const url = new URL(`${base}${normalizedPath}`, origin)
 
   Object.entries(query ?? {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
